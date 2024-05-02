@@ -21,6 +21,18 @@ knit_hooks$set(inline = function(x) {
 
 ```
 
+# Outline
+
+-   [x] Pre-process the summary statistics
+
+-   [x] Run cleansumstats
+
+-   [ ] Run PRSice
+
+-   [ ] Identify cases and controls
+
+-   [ ] Analyze the PRSs
+
 # Data Source
 
 Polygenic hazard score (PHS) model summary statistics (sumstats) downloaded from the [PGS Catalog](https://www.pgscatalog.org/), PGS Publication number [PGP000047](https://www.pgscatalog.org/publication/PGP000047/) from @seibert2018.
@@ -116,7 +128,7 @@ sumstats$P = 1
 Based on the above, we should expect our model returned from `cleansumstats` with `{r} nrow(sumstats) - nrow(ambiguous_SNPs)` or fewer SNPs due to ambiguous base changes.
 
 ```{r write_sumstats}
-write_tsv(sumstats, 'PGS000067_hmPOS_GRCh37_cleaned.txt.gz')
+write_tsv(sumstats, 'PRACTICAL_PCa_2018.txt.gz')
 ```
 
 ## Metadata file
@@ -126,7 +138,7 @@ Lastly, we need a `.yaml` file with metadata for our sumstats.
 ```{r write_yaml}
 yaml <- c(
   "cleansumstats_metafile_kind: minimal",
-  "path_sumStats: PGS000067_hmPOS_GRCh37_cleaned.txt.gz",
+  "path_sumStats: PRACTICAL_PCa_2018.txt.gz",
   "stats_Model: cox",
   "col_CHR: chr_name",
   "col_POS: chr_position",
@@ -138,14 +150,14 @@ yaml <- c(
   "col_ControlN: n_controls",
   "col_P: P")
 
-write_lines(yaml, "PGS000067_hmPOS_GRCh37_cleaned.yaml")
+write_lines(yaml, "PRACTICAL_PCa_2018.yaml")
 ```
 
 # Pre-process genotype and phenotype data
 
 ## Phenotype
 
-```{r preprocess_phenotype}
+```{r preprocess_phenotype, eval=FALSE}
 allData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 1)
 caseData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 2)
 
@@ -193,14 +205,14 @@ Uses the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/m
 
 ```{bash, eval=FALSE}
 bash run_cleansumstats.sh \
-  /ess/p33/cluster/users/andrewmo/PGS000067_hmPOS_GRCh37_cleaned.yaml \
+  /ess/p33/cluster/users/andrewmo/PRACTICAL_PCa_2018.yaml \
   /ess/p33/cluster/users/andrewmo/sumstats/out \
   /ess/p33/cluster/users/andrewmo/scratch \
   p33
 ```
 
 ```{r import_cleansumstats}
-cleansumstats <- read_tsv('PGS000067_hmPOS_GRCh37_cleaned.GRCh37.gz')
+cleansumstats <- read_tsv('PRACTICAL_PCa_2018.GRCh37.gz')
 kable(cleansumstats)
 ```
 
