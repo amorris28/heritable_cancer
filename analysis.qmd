@@ -1,0 +1,249 @@
+---
+title: "Polygenic hazard score of prostate cancer"
+author: Andrew H. Morris
+date: today
+date-format: "DD.MM.YYYY"
+format: pdf
+editor: visual
+bibliography: references.bib
+toc: true
+---
+
+```{r initialize, message=FALSE}
+
+library(tidyverse)
+library(knitr)
+library(readxl)
+
+knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark=" ")
+})
+
+```
+
+# Data Source
+
+Polygenic hazard score (PHS) model summary statistics (sumstats) downloaded from the [PGS Catalog](https://www.pgscatalog.org/), PGS Publication number [PGP000047](https://www.pgscatalog.org/publication/PGP000047/) from @seibert2018.
+
+# Pre-process sumstats
+
+```{r import_sumstats}
+sumstats = read_tsv('PGS000067_hmPOS_GRCh37.txt.gz', comment = "#")
+
+sumstats
+```
+
+The model from @seibert2018 contains `{r} nrow(sumstats)` SNPs. The cleansumstats pipeline may not handle leading comments, so we removed them on import. Some of the extraneous columns can crash cleansumstats so we will remove them and just keep the necessary columns.
+
+```{r drop_columns}
+sumstats %>% 
+  select(rsID, chr_name, chr_position,
+         effect_allele, other_allele, effect_weight) ->
+  sumstats
+```
+
+## Sample size
+
+```{r cases_controls}
+n_case = 18868
+n_control = 12879
+```
+
+cleansumstats also requires a sample size (N, N_case, and/or N_control). The original paper uses the PRACTICAL consortium with a sample size of `{r} n_case` cases and `{r} n_control` controls [@seibert2018], so we will add those as columns.
+
+```{r, add_n}
+sumstats %>% 
+  mutate(n_cases = n_case) %>% 
+  mutate(n_controls = n_control) ->
+  sumstats
+```
+
+## Ambiguous SNPs
+
+```{r, ambiguous_SNPs}
+
+get_ambiguous_snps <- function(x, A1, A2) {
+  A1 = sym(A1)
+  A2 = sym(A2)
+  x %>% 
+  filter((!!A1 %in% c('C', 'G') & !!A2 %in% c('C', 'G')) | 
+           (!!A1 %in% c('A', 'T') & !!A2 %in% c('A', 'T')))
+}
+
+sumstats %>% 
+  get_ambiguous_snps(A1 = 'effect_allele', A2 = 'other_allele') ->
+  ambiguous_SNPs
+```
+
+The cleansumstats pipeline will remove SNPs with ambiguous base changes (i.e., A/T or C/G). Here we can see we have `{r} nrow(ambiguous_SNPs)`:
+
+```{r}
+kable(ambiguous_SNPs)
+```
+
+## Non-ACTG SNPs
+
+We do not have any non-ACTG SNPs:
+
+```{r nonACTG_SNPs}
+sumstats %>% 
+  filter(!(effect_allele %in% c('A', 'C', 'T', 'G')) |
+           !(other_allele %in% c('A', 'C', 'T', 'G'))) %>% 
+  kable()
+```
+
+## Missing RS numbers
+
+```{r missing_rs}
+# SNPs without an rs#
+sumstats %>% 
+  filter(!str_starts(rsID, 'rs') | is.na(rsID)) ->
+  missing_rs
+
+kable(missing_rs)
+```
+
+We also have `{r} nrow(missing_rs)` variants with missing RS numbers, which `cleansumstats` will add based on chromosome number and base pair position.
+
+## Missing p-values
+
+This model has no p-values, but PRSice requires it so we will add a new column with values of 1 for every SNP.
+
+```{r}
+sumstats$P = 1
+```
+
+Based on the above, we should expect our model returned from `cleansumstats` with `{r} nrow(sumstats) - nrow(ambiguous_SNPs)` or fewer SNPs due to ambiguous base changes.
+
+```{r write_sumstats}
+write_tsv(sumstats, 'PGS000067_hmPOS_GRCh37_cleaned.txt.gz')
+```
+
+## Metadata file
+
+Lastly, we need a `.yaml` file with metadata for our sumstats.
+
+```{r write_yaml}
+yaml <- c(
+  "cleansumstats_metafile_kind: minimal",
+  "path_sumStats: PGS000067_hmPOS_GRCh37_cleaned.txt.gz",
+  "stats_Model: cox",
+  "col_CHR: chr_name",
+  "col_POS: chr_position",
+  "col_EffectAllele: effect_allele",
+  "col_OtherAllele: other_allele",
+  "col_BETA: effect_weight",
+  "col_SNP: rsID",
+  "col_CaseN: n_cases",
+  "col_ControlN: n_controls",
+  "col_P: P")
+
+write_lines(yaml, "PGS000067_hmPOS_GRCh37_cleaned.yaml")
+```
+
+# Pre-process genotype and phenotype data
+
+## Phenotype
+
+```{r preprocess_phenotype}
+allData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 1)
+caseData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 2)
+
+# Grab all male IDs
+allData %>% 
+  filter(SEX == "M") %>% 
+  pull(PID) %>% 
+  unique() ->
+  allMaleIDs
+
+# Grab IDs of prostate cancer cases
+caseData %>% 
+  filter(pid %in% allMaleIDs) %>% 
+  filter(icd9 == 185) %>% 
+  pull(pid) %>% 
+  unique ->
+prostateIDs
+
+# Grab IDs of all cancer cases
+caseData %>% 
+  filter(pid %in% allMaleIDs) %>% 
+  pull(pid) %>% 
+  unique() ->
+  caseIDs
+
+# Grab IDs for all cancer-free males
+allData %>% 
+  filter(PID %in% allMaleIDs) %>% 
+  filter(!(PID %in% caseIDs)) %>% 
+  pull(PID) %>% 
+  unique() ->
+  controlIDs
+
+# Double check no cancer cases or prostate cases are in control IDs
+try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
+try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
+
+write_lines(postateIDs, 'FW__Poly_tables/case_pids.txt')
+write_lines(controlIDs, 'FW__Poly_tables/control_pids.txt')
+```
+
+# Run `cleansumstats` pipeline
+
+Uses the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available using command `run_cleansumstats.sh` on TSD p33.
+
+```{bash, eval=FALSE}
+bash run_cleansumstats.sh \
+  /ess/p33/cluster/users/andrewmo/PGS000067_hmPOS_GRCh37_cleaned.yaml \
+  /ess/p33/cluster/users/andrewmo/sumstats/out \
+  /ess/p33/cluster/users/andrewmo/scratch \
+  p33
+```
+
+```{r import_cleansumstats}
+cleansumstats <- read_tsv('PGS000067_hmPOS_GRCh37_cleaned.GRCh37.gz')
+kable(cleansumstats)
+```
+
+## SNPs removed by `cleansumstats`
+
+After `cleansumstats` there are `{r} nrow(cleansumstats)` SNPs left in the model and `{r} nrow(sumstats) - nrow(cleansumstats)` were removed.
+
+Here are the SNPs that were removed:
+
+```{r}
+cleansumstats %>%
+  mutate(CHR = as.character(CHR)) %>% 
+  right_join(sumstats, by = c("CHR" = "chr_name", "POS" = "chr_position")) %>% 
+  filter(is.na(RSID)) %>% 
+  select(-(RSID:ControlN)) ->
+  removed_SNPs
+
+kable(removed_SNPs)
+
+removed_SNPs %>% 
+  get_ambiguous_snps(A1 = 'effect_allele', A2 = 'other_allele') ->
+  ambiguous_snps2
+
+removed_SNPs %>% 
+  anti_join(ambiguous_snps2, by = c('CHR', 'POS')) ->
+  removed_SNPs2
+
+removed_SNPs2 %>% 
+  filter(CHR == 'X') ->
+  removed_Xchr
+
+removed_SNPs2 %>% 
+  anti_join(removed_Xchr, by = 'CHR') ->
+  removed_SNPs3
+
+```
+
+It removed all `{r} nrow(ambiguous_snps2)` ambiguous snps. At also removed all `{r} nrow(removed_Xchr)` SNPs that were on the X chromosome. The last remaining SNP is:
+
+```{r}
+kable(removed_SNPs3)
+```
+
+It is unclear why `cleansumstats` removed this SNP.
+
+# References
