@@ -211,12 +211,12 @@ bash run_cleansumstats.sh \
   p33
 ```
 
+## SNPs removed by `cleansumstats`
+
 ```{r import_cleansumstats}
 cleansumstats <- read_tsv('PRACTICAL_PCa_2018.GRCh37.gz')
 kable(cleansumstats)
 ```
-
-## SNPs removed by `cleansumstats`
 
 After `cleansumstats` there are `{r} nrow(cleansumstats)` SNPs left in the model and `{r} nrow(sumstats) - nrow(cleansumstats)` were removed.
 
@@ -257,5 +257,49 @@ kable(removed_SNPs3)
 ```
 
 It is unclear why `cleansumstats` removed this SNP.
+
+# Check RS IDs in BIM file
+
+```{bash, eval=FALSE}
+# RSIDs in cleaned sumstats file
+zcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
+
+# RSIDs in moba genotype file (BIM)
+awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+rsids = read_lines('RSIDS')
+moba_rsids = read_lines('MOBA_RSIDS')
+rsid_df = data.frame(rsids = rsids)
+rsid_df$in_moba = rsids %in% moba_rsids
+write_tsv(rsid_df, 'RSIDS_in_MOBA.tsv')
+
+```
+
+Three RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
+
+-   rs201305416
+
+-   rs10051795
+
+-   rs1351836062
+
+```{r check_bim}
+all_bim = read_tsv('...', col_names = FALSE)
+all_bim %>% 
+  filter(X1 == 10 & X4 = 8032001) %>% 
+  write_tsv('big_effect_allele')
+  
+```
+
+# Run `PRSice`
+
+```{bash}
+singularity shell -B $PWD:/sumstats -B /cluster/projects/p212/moba_qc_imputation/BA/release6:/genome //cluster/projects/p212/comorment/containers/singularity/gwas.sif
+
+//tools/prsice/PRSice_linux --base /sumstats/PRACTICAL_PCa_2018.GRCh37.gz --target /genome/moba_imputed_all --thread 1 --SNP RSID --A1 EffectAllele --A2 OtherAllele --stat B --pvalue P --fastscore -all-score --no-regress --no-clump --binary-target T --out /sumstats/moba_
+```
 
 # References
