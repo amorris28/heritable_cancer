@@ -36,9 +36,9 @@ def nice_number(n):
 
 -   [x] Run cleansumstats
 
--   [ ] Run PRSice
+-   [x] Run PRSice
 
--   [ ] Identify cases and controls
+-   [x] Identify cases and controls
 
 -   [ ] Analyze the PRSs
 
@@ -46,7 +46,9 @@ def nice_number(n):
 
 Polygenic hazard score (PHS) model summary statistics (sumstats) downloaded from the [PGS Catalog](https://www.pgscatalog.org/), PGS Publication number [PGP000047](https://www.pgscatalog.org/publication/PGP000047/) from @seibert2018.
 
-# Pre-process sumstats
+# Cleansumstats
+
+## Pre-process sumstats for `cleansumstats` 
 
 ```{python import_sumstats}
 sumstats = pd.read_csv('PGS000067_hmPOS_GRCh37.txt.gz', comment = '#', sep = '\t')
@@ -63,7 +65,7 @@ sumstats = sumstats.loc[:, 'rsID':'effect_weight']
 sumstats.head()
 ```
 
-## Sample size
+### Sample size
 
 ```{python cases_controls}
 n_case = 18868
@@ -77,7 +79,7 @@ sumstats = sumstats.assign(n_cases = n_case,
                            n_controls = n_control)
 ```
 
-## Ambiguous SNPs
+### Ambiguous SNPs
 
 ```{python get_ambiguous_snps}
 def get_ambiguous_snps(df, A1, A2):
@@ -98,7 +100,7 @@ ambiguous_snps.loc[:,"rsID":"effect_weight"]
 
 The cleansumstats pipeline will remove SNPs with ambiguous base changes (i.e., A/T or C/G). Here we can see we have `r py_eval('len(ambiguous_snps.index)')`.
 
-## Non-ACTG SNPs
+### Non-ACTG SNPs
 
 We do not have any non-ACTG SNPs:
 
@@ -112,7 +114,7 @@ for i in sumstats.index:
 sumstats.loc[x]
 ```
 
-## Missing RS numbers
+### Missing RS numbers
 
 ```{python missing_rs}
 missing_rs = sumstats.loc[~sumstats['rsID'].str.startswith('rs', na=False)]
@@ -122,7 +124,7 @@ missing_rs
 
 We also have `r  py_eval('len(missing_rs.index)')` variants with missing RS numbers, which `cleansumstats` will add based on chromosome number and base pair position.
 
-## Missing p-values and z-scores
+### Missing p-values and z-scores
 
 This model has no p-values nor z-scores (nor data to calculate z scores), but cleansumstats and PRSice require these so we will add a new column with values of 1 for every SNP.
 
@@ -164,7 +166,66 @@ with open('PRACTICAL_PCa_2018.yaml', 'w') as outfile:
   outfile.write('\n'.join(str(i) for i in yaml))
 ```
 
+## Pre-process BIM for `cleansumstats` 
+
+```{python}
+mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
+
+```
+
+### Check RS IDs in BIM file
+
+```{bash, eval=FALSE}
+# bash
+# RSIDs in cleaned sumstats file
+gzcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
+
+# RSIDs in moba genotype file (BIM)
+#awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
+awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
+```
+
+```{python}
+with open('RSIDS') as f:
+    rsids = f.read().splitlines()
+with open('MOBA_RSIDS') as f:
+    moba_rsids = f.read().splitlines()
+d = {'rsids': rsids}
+rsid_df = pd.DataFrame(data = d)
+
+
+x = []
+for i in rsids: 
+  x.append(i in moba_rsids)
+rsid_df['in_moba'] = x
+rsid_df.to_csv('RSIDS_in_MOBA.tsv', sep = "\t")
+```
+
+Three (out of 39) RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
+
+-   rs201305416
+
+-   rs10051795
+
+-   rs1351836062
+
+rs201305416 is the largest effect size allele in the original dataset (B = 1.53).
+
+```{python}
+mobabim[(mobabim['CHR'] == 10) & (mobabim['POS'] == 8032001)]
+```
+
+```{r check_bim, eval=FALSE}
+all_bim = read_tsv('...', col_names = FALSE)
+all_bim %>% 
+  filter(CHR == 10 & X4 = 8032001) %>% 
+  write_tsv('big_effect_allele')
+  
+```
+
 # Run `cleansumstats` pipeline
+
+## Run `cleansumstats` on sumstats
 
 Uses the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available using command `run_cleansumstats.sh` on TSD p33.
 
@@ -177,7 +238,7 @@ bash run_cleansumstats.sh \
   p33
 ```
 
-## SNPs removed by `cleansumstats`
+### SNPs removed by `cleansumstats`
 
 ```{python}
 cleansumstats = pd.read_csv('PRACTICAL_PCa_2018.GRCh37.gz', sep = '\t')
@@ -246,64 +307,7 @@ cleansumstats
 
 According to `removed_lines.gz`, all of the items removed were either due to 1) palindromes or 2) not possible pair (according to dbsnp). However, the `stepwise_overview.txt` says that the number of SNPs went from 54 to 89 on the step "Split multi-allelics to multiple rows" and it is unclear from `removed_lines.gz` whether it is indexed at 0 or 1 and which items were removed for what reason. Clearly, it added and then removed some lines, but it has no record of those.
 
-# Pre-process BIM file for cleansumstats
-
-```{python}
-mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
-
-```
-
-# Check RS IDs in BIM file
-
-```{bash, eval=FALSE}
-# bash
-# RSIDs in cleaned sumstats file
-gzcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
-
-# RSIDs in moba genotype file (BIM)
-#awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
-awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
-```
-
-```{python}
-with open('RSIDS') as f:
-    rsids = f.read().splitlines()
-with open('MOBA_RSIDS') as f:
-    moba_rsids = f.read().splitlines()
-d = {'rsids': rsids}
-rsid_df = pd.DataFrame(data = d)
-
-
-x = []
-for i in rsids: 
-  x.append(i in moba_rsids)
-rsid_df['in_moba'] = x
-rsid_df.to_csv('RSIDS_in_MOBA.tsv', sep = "\t")
-```
-
-Three (out of 39) RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
-
--   rs201305416
-
--   rs10051795
-
--   rs1351836062
-
-rs201305416 is the largest effect size allele in the original dataset (B = 1.53).
-
-```{python}
-big_effect_allele = mobabim[(mobabim['CHR'] == 10) & (mobabim['POS'] == 8032001)]
-```
-
-```{r check_bim, eval=FALSE}
-all_bim = read_tsv('...', col_names = FALSE)
-all_bim %>% 
-  filter(CHR == 10 & X4 = 8032001) %>% 
-  write_tsv('big_effect_allele')
-  
-```
-
-# Run `cleansumstats_bim` on the BIM file
+## Run `cleansumstats_bim` on the BIM file
 
 ```{bash, eval=FALSE}
 # bash
@@ -316,16 +320,15 @@ bash run_cleansumstats_bim.sh \
 
 ```{python import_bim_cs}
 mobabim = pd.read_csv('moba_imputed_all.GRCh37.bim.gz', sep = '\t')
-
 ```
 
 ```{python}
 print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in mobabim['RSID']])))
 ```
 
-Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file.
+Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file, including rs201305416.
 
-# Rotate alleles in BED and FAM files
+### Rotate alleles in BED and FAM files
 
 ```{bash, eval=FALSE}
 #!/bin/bash
@@ -454,5 +457,9 @@ try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in co
 write_lines(postateIDs, 'FW__Poly_tables/case_pids.txt')
 write_lines(controlIDs, 'FW__Poly_tables/control_pids.txt')
 ```
+
+# Analyze polygenic risk scores
+
+## Pull PCa cases and non-cancer controls from PRSs
 
 # References
