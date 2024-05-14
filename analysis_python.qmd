@@ -11,7 +11,7 @@ engine: knitr
 #jupyter: python3
 ---
 
-```{r}
+```{r initialize_r}
 library(reticulate)
 library(knitr)
 knit_hooks$set(inline = function(x) {
@@ -20,9 +20,11 @@ knit_hooks$set(inline = function(x) {
 
 ```
 
-```{python initialize}
+```{python initialize_python}
 import pandas as pd 
-
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 def nice_number(n):
   return('{:,}'.format(n).replace(',', ' '))
 
@@ -248,7 +250,6 @@ According to `removed_lines.gz`, all of the items removed were either due to 1) 
 
 ```{python}
 mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
-pd.unique(mobabim["CHR"]).shape[0] == 1
 
 ```
 
@@ -257,13 +258,14 @@ pd.unique(mobabim["CHR"]).shape[0] == 1
 ```{bash, eval=FALSE}
 # bash
 # RSIDs in cleaned sumstats file
-zcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
+gzcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
 
 # RSIDs in moba genotype file (BIM)
-awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
+#awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
+awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
 ```
 
-```{python, eval=FALSE}
+```{python}
 with open('RSIDS') as f:
     rsids = f.read().splitlines()
 with open('MOBA_RSIDS') as f:
@@ -279,17 +281,7 @@ rsid_df['in_moba'] = x
 rsid_df.to_csv('RSIDS_in_MOBA.tsv', sep = "\t")
 ```
 
-```{r, eval=FALSE}
-library(tidyverse)
-rsids = read_lines('RSIDS')
-moba_rsids = read_lines('MOBA_RSIDS')
-rsid_df = data.frame(rsids = rsids)
-rsid_df$in_moba = rsids %in% moba_rsids
-write_tsv(rsid_df, 'RSIDS_in_MOBA.tsv')
-
-```
-
-Three RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
+Three (out of 39) RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
 
 -   rs201305416
 
@@ -297,13 +289,43 @@ Three RSIDs in the cleaned sumstats file are missing from the MOBA imputation BI
 
 -   rs1351836062
 
+rs201305416 is the largest effect size allele in the original dataset (B = 1.53).
+
+```{python}
+big_effect_allele = mobabim[(mobabim['CHR'] == 10) & (mobabim['POS'] == 8032001)]
+```
+
 ```{r check_bim, eval=FALSE}
 all_bim = read_tsv('...', col_names = FALSE)
 all_bim %>% 
-  filter(X1 == 10 & X4 = 8032001) %>% 
+  filter(CHR == 10 & X4 = 8032001) %>% 
   write_tsv('big_effect_allele')
   
 ```
+
+# Run `cleansumstats_bim` on the BIM file
+
+```{bash, eval=FALSE}
+# bash
+bash run_cleansumstats_bim.sh \
+  /ess/p33/cluster/users/andrewmo/bim_files/moba_imputed_all \
+  /ess/p33/cluster/users/andrewmo/bim_files/sumstats/out \
+  /ess/p33/cluster/users/andrewmo/bim_files/scratch \
+  p33
+```
+
+```{python import_bim_cs}
+mobabim = pd.read_csv('moba_imputed_all.GRCh37.bim.gz', sep = '\t')
+
+```
+
+```{python check_cleansumstats_rsids_in_bim_cs}
+print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in moba_cs_rsids])))
+```
+
+Now it appears all RSIDs from the cleaned sumstats are in the cleaned bim file.
+
+# Harmonize cs BIM with BED and FAM files
 
 # Run `PRSice`
 
