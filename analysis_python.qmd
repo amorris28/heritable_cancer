@@ -319,20 +319,94 @@ mobabim = pd.read_csv('moba_imputed_all.GRCh37.bim.gz', sep = '\t')
 
 ```
 
-```{python check_cleansumstats_rsids_in_bim_cs}
-print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in moba_cs_rsids])))
+```{python}
+print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in mobabim['RSID']])))
 ```
 
-Now it appears all RSIDs from the cleaned sumstats are in the cleaned bim file.
+Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file.
 
-# Harmonize cs BIM with BED and FAM files
+# Rotate alleles in BED and FAM files
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=rotate
+#SBATCH --output=%x.%j.out
+#SBATCH --error=%x.%j.err
+#SBATCH --account=p212_tsd
+#SBATCH --time=00:01:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=8000M
+#SBATCH --cpus-per-task=8
+
+module load singularity/3.7.3
+
+export BFILE=//cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all
+export OUT_DIR=/ess/p212/home/p212-andrewmo/out
+export BFILE_OUT="$(basename ${BFILE})"_cs
+export WORK_DIR=/ess/p212/home/p212-andrewmo/scratch
+export COMORMENT=//cluster/projects/p212/comorment
+#export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink"
+export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
+
+#$PLINK --dummy 2 2 --freq --make-bed --out toy_data
+#$PLINK2 --bfile toy_data --freq --out test2
+
+#echo ${BFILE}.bed
+#echo ${WORK_DIR}/${BFILE_OUT}_tmp.bim
+#echo ${BFILE}.fam
+#echo ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt
+#echo ${OUT_DIR}/${BFILE_OUT}
+
+$PLINK2 --bed ${BFILE}.bed \
+	--bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
+	--fam ${BFILE}.fam \
+	--alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
+	--make-bed \
+	--out ${OUT_DIR}/${BFILE_OUT}
+
+awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
+mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
+
+```
 
 # Run `PRSice`
 
 ```{bash, eval=FALSE}
-singularity shell -B $PWD:/sumstats -B /cluster/projects/p212/moba_qc_imputation/BA/release6:/genome //cluster/projects/p212/comorment/containers/singularity/gwas.sif
+#!/bin/bash
+#SBATCH --job-name=prsice
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
+#SBATCH --account=p212_tsd
+#SBATCH --time=00:01:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=8000M
+#SBATCH --cpus-per-task=1
 
-//tools/prsice/PRSice_linux --base /sumstats/PRACTICAL_PCa_2018.GRCh37.gz --target /genome/moba_imputed_all --thread 1 --SNP RSID --A1 EffectAllele --A2 OtherAllele --stat B --pvalue P --fastscore -all-score --no-regress --no-clump --binary-target T --out /sumstats/moba_
+module load singularity/3.7.3
+
+export BASE=/ess/p212/home/p212-andrewmo/PRACTICAL_PCa_2018.GRCh37
+export BFILE=/ess/p212/home/p212-andrewmo/out/moba_imputed_all_cs
+export OUT_DIR=/ess/p212/home/p212-andrewmo/prsice
+export BFILE_OUT="$(basename ${BFILE})"
+export COMORMENT=//cluster/projects/p212/comorment
+export PRSICE="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif PRSice_linux"
+
+$PRSICE --base ${BASE} \
+	--target ${BFILE} \
+	--thread 1 \
+	--snp RSID \
+	--A1 EffectAllele \
+	--A2 OtherAllele \
+	--stat B \
+	--pvalue P \
+	--fastscore \
+	--all-score \
+	--no-clump \
+	--no-regress \
+	--binary-target T \
+	--out ${OUT_DIR}/${BFILE_OUT} \
+	--beta
+	
 ```
 
 # Pre-process genotype and phenotype data
