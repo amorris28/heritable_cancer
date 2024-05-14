@@ -1,0 +1,362 @@
+---
+title: "Polygenic hazard score of prostate cancer"
+author: Andrew H. Morris
+date: today
+date-format: "DD.MM.YYYY"
+format: html
+editor: visual
+bibliography: references.bib
+toc: true
+engine: knitr
+#jupyter: python3
+---
+
+```{r}
+library(reticulate)
+library(knitr)
+knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark=" ")
+})
+
+```
+
+```{python initialize}
+import pandas as pd 
+
+def nice_number(n):
+  return('{:,}'.format(n).replace(',', ' '))
+
+```
+
+# Outline
+
+-   [x] Pre-process the summary statistics
+
+-   [x] Run cleansumstats
+
+-   [ ] Run PRSice
+
+-   [ ] Identify cases and controls
+
+-   [ ] Analyze the PRSs
+
+# Data Source
+
+Polygenic hazard score (PHS) model summary statistics (sumstats) downloaded from the [PGS Catalog](https://www.pgscatalog.org/), PGS Publication number [PGP000047](https://www.pgscatalog.org/publication/PGP000047/) from @seibert2018.
+
+# Pre-process sumstats
+
+```{python import_sumstats}
+sumstats = pd.read_csv('PGS000067_hmPOS_GRCh37.txt.gz', comment = '#', sep = '\t')
+sumstats.head()
+```
+
+The model from @seibert2018 contains `r nrow(py_eval('sumstats'))` SNPs. The cleansumstats pipeline may not handle leading comments, so we removed them on import. Some of the extraneous columns can crash cleansumstats so we will remove them and just keep the necessary columns.
+
+```{python drop_columns}
+sumstats.columns
+
+sumstats = sumstats.loc[:, 'rsID':'effect_weight']
+
+sumstats.head()
+```
+
+## Sample size
+
+```{python cases_controls}
+n_case = 18868
+n_control = 12879
+```
+
+cleansumstats also requires a sample size (N, N_case, and/or N_control). The original paper uses the PRACTICAL consortium with a sample size of `r py_eval('n_case')` cases and `r py_eval('n_control')` controls [@seibert2018], so we will add those as columns.
+
+```{python add_n}
+sumstats = sumstats.assign(n_cases = n_case,
+                           n_controls = n_control)
+```
+
+## Ambiguous SNPs
+
+```{python get_ambiguous_snps}
+def get_ambiguous_snps(df, A1, A2):
+  """Returns rows containing ambiguous SNPs (G/C or A/T)"""
+  AT = ["A", "T"]
+  GC = ["G", "C"]
+  x = list()
+  for i in df.index:
+    x.append((df[A1][i] in AT and df[A2][i] in AT) or (df[A1][i] in GC and df[A2][i] in GC))
+  return df.loc[x]
+
+```
+
+```{python ambigous_snps}
+ambiguous_snps = get_ambiguous_snps(sumstats, A1 = "effect_allele", A2 = "other_allele")
+ambiguous_snps.loc[:,"rsID":"effect_weight"]
+```
+
+The cleansumstats pipeline will remove SNPs with ambiguous base changes (i.e., A/T or C/G). Here we can see we have `r py_eval('len(ambiguous_snps.index)')`.
+
+## Non-ACTG SNPs
+
+We do not have any non-ACTG SNPs:
+
+```{python nonACTG_SNPs}
+ACTG = ["A", "C", "T", "G"]
+A1 = "effect_allele"
+A2 = "other_allele"
+x = list()
+for i in sumstats.index:
+  x.append(not (sumstats[A1][i] in ACTG or sumstats[A2][i] in ACTG))
+sumstats.loc[x]
+```
+
+## Missing RS numbers
+
+```{python missing_rs}
+missing_rs = sumstats.loc[~sumstats['rsID'].str.startswith('rs', na=False)]
+
+missing_rs
+```
+
+We also have `r  py_eval('len(missing_rs.index)')` variants with missing RS numbers, which `cleansumstats` will add based on chromosome number and base pair position.
+
+## Missing p-values and z-scores
+
+This model has no p-values nor z-scores (nor data to calculate z scores), but cleansumstats and PRSice require these so we will add a new column with values of 1 for every SNP.
+
+```{python add_p}
+sumstats['P'] = 1
+```
+
+```{python add_z, eval=FALSE}
+sumstats['Z'] = None
+```
+
+Based on the above, we should expect our model returned from `cleansumstats` with `r py_eval('len(sumstats.index) - len(ambiguous_snps.index)')` or fewer SNPs due to ambiguous base changes.
+
+```{python save_sumstats}
+sumstats.to_csv('PRACTICAL_PCa_2018.txt.gz', sep = "\t", index = False, na_rep = "NA")
+```
+
+## Metadata file
+
+Lastly, we need a `.yaml` file with metadata for our sumstats.
+
+```{python write_yaml, results='hide'}
+yaml = [
+  "cleansumstats_metafile_kind: minimal",
+  "path_sumStats: PRACTICAL_PCa_2018.txt.gz",
+  "stats_Model: cox",
+  "col_CHR: chr_name",
+  "col_POS: chr_position",
+  "col_EffectAllele: effect_allele",
+  "col_OtherAllele: other_allele",
+  "col_BETA: effect_weight",
+  "col_SNP: rsID",
+  "col_CaseN: n_cases",
+  "col_ControlN: n_controls",
+  "col_P: P",
+  "col_Z: Z"]
+
+with open('PRACTICAL_PCa_2018.yaml', 'w') as outfile:
+  outfile.write('\n'.join(str(i) for i in yaml))
+```
+
+# Run `cleansumstats` pipeline
+
+Uses the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available using command `run_cleansumstats.sh` on TSD p33.
+
+```{bash, eval=FALSE}
+# bash
+bash run_cleansumstats.sh \
+  /ess/p33/cluster/users/andrewmo/PRACTICAL_PCa_2018.yaml \
+  /ess/p33/cluster/users/andrewmo/sumstats/out \
+  /ess/p33/cluster/users/andrewmo/scratch \
+  p33
+```
+
+## SNPs removed by `cleansumstats`
+
+```{python}
+cleansumstats = pd.read_csv('PRACTICAL_PCa_2018.GRCh37.gz', sep = '\t')
+cleansumstats
+```
+
+After `cleansumstats` there are `r py_eval('len(cleansumstats.index)')` SNPs left in the model and `r py_eval('len(sumstats.index) - len(cleansumstats.index)')` were removed.
+
+Here are the SNPs that were removed:
+
+```{python removed_snps}
+cleansumstats['CHR'] = cleansumstats['CHR'].astype(str)
+
+newsumstats = pd.merge(sumstats, cleansumstats, how = "left", left_on = ['chr_name', 'chr_position', 'P'], right_on = ['CHR', 'POS', 'P'])
+
+removed_snps = newsumstats.loc[newsumstats['CHR'].isnull(), 'rsID':'P']
+
+removed_snps
+```
+
+```{python, get_ambiguous_snps2}
+ambiguous_snps2 = get_ambiguous_snps(removed_snps, A1 = 'effect_allele', A2 = 'other_allele')
+
+```
+
+`cleansumstats` removed `r py_eval('len(ambiguous_snps2.index)')` ambiguous SNPs:
+
+```{python ambiguous_snps2}
+ambiguous_snps2
+```
+
+```{python, get_x_chromosome_snps}
+merge = removed_snps.merge(ambiguous_snps2, on=['rsID', 'chr_name', 'chr_position', 'effect_allele', 'other_allele',
+       'effect_weight', 'n_cases', 'n_controls', 'P'], how='outer', indicator='source')
+removed_snps2 = merge[merge.source.eq('left_only')].drop('source', axis=1)
+
+removed_Xchr = removed_snps2[removed_snps2['chr_name'] == 'X']
+
+merge = removed_snps2.merge(removed_Xchr, on=['rsID', 'chr_name', 'chr_position', 'effect_allele', 'other_allele', 'effect_weight', 'n_cases', 'n_controls', 'P'], how='outer', indicator='source')
+removed_snps3 = merge[merge.source.eq('left_only')].drop('source', axis=1)
+```
+
+It also removed `r py_eval('len(removed_Xchr.index)')` SNPs on the X chromosome; unclear why:
+
+```{python x_chromosome_snps}
+removed_Xchr
+```
+
+Finally, it is unclear why it removed this SNP:
+
+```{python remaining_removed_snps}
+removed_snps3
+```
+
+```{python}
+removed_lines = pd.read_csv('removed_lines.gz', sep = '\t')
+
+len(set(removed_lines['RowIndex']))
+
+removed_lines.sort_values('RowIndex')
+
+sumstats
+
+cleansumstats
+```
+
+According to `removed_lines.gz`, all of the items removed were either due to 1) palindromes or 2) not possible pair (according to dbsnp). However, the `stepwise_overview.txt` says that the number of SNPs went from 54 to 89 on the step "Split multi-allelics to multiple rows" and it is unclear from `removed_lines.gz` whether it is indexed at 0 or 1 and which items were removed for what reason. Clearly, it added and then removed some lines, but it has no record of those.
+
+# Pre-process BIM file for cleansumstats
+
+```{python}
+mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
+pd.unique(mobabim["CHR"]).shape[0] == 1
+
+```
+
+# Check RS IDs in BIM file
+
+```{bash, eval=FALSE}
+# bash
+# RSIDs in cleaned sumstats file
+zcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
+
+# RSIDs in moba genotype file (BIM)
+awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
+```
+
+```{python, eval=FALSE}
+with open('RSIDS') as f:
+    rsids = f.read().splitlines()
+with open('MOBA_RSIDS') as f:
+    moba_rsids = f.read().splitlines()
+d = {'rsids': rsids}
+rsid_df = pd.DataFrame(data = d)
+
+
+x = []
+for i in rsids: 
+  x.append(i in moba_rsids)
+rsid_df['in_moba'] = x
+rsid_df.to_csv('RSIDS_in_MOBA.tsv', sep = "\t")
+```
+
+```{r, eval=FALSE}
+library(tidyverse)
+rsids = read_lines('RSIDS')
+moba_rsids = read_lines('MOBA_RSIDS')
+rsid_df = data.frame(rsids = rsids)
+rsid_df$in_moba = rsids %in% moba_rsids
+write_tsv(rsid_df, 'RSIDS_in_MOBA.tsv')
+
+```
+
+Three RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
+
+-   rs201305416
+
+-   rs10051795
+
+-   rs1351836062
+
+```{r check_bim, eval=FALSE}
+all_bim = read_tsv('...', col_names = FALSE)
+all_bim %>% 
+  filter(X1 == 10 & X4 = 8032001) %>% 
+  write_tsv('big_effect_allele')
+  
+```
+
+# Run `PRSice`
+
+```{bash, eval=FALSE}
+singularity shell -B $PWD:/sumstats -B /cluster/projects/p212/moba_qc_imputation/BA/release6:/genome //cluster/projects/p212/comorment/containers/singularity/gwas.sif
+
+//tools/prsice/PRSice_linux --base /sumstats/PRACTICAL_PCa_2018.GRCh37.gz --target /genome/moba_imputed_all --thread 1 --SNP RSID --A1 EffectAllele --A2 OtherAllele --stat B --pvalue P --fastscore -all-score --no-regress --no-clump --binary-target T --out /sumstats/moba_
+```
+
+# Pre-process genotype and phenotype data
+
+## Phenotype
+
+```{r preprocess_phenotype, eval=FALSE}
+allData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 1)
+caseData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 2)
+
+# Grab all male IDs
+allData %>% 
+  filter(SEX == "M") %>% 
+  pull(PID) %>% 
+  unique() ->
+  allMaleIDs
+
+# Grab IDs of prostate cancer cases
+caseData %>% 
+  filter(pid %in% allMaleIDs) %>% 
+  filter(icd9 == 185) %>% 
+  pull(pid) %>% 
+  unique ->
+prostateIDs
+
+# Grab IDs of all cancer cases
+caseData %>% 
+  filter(pid %in% allMaleIDs) %>% 
+  pull(pid) %>% 
+  unique() ->
+  caseIDs
+
+# Grab IDs for all cancer-free males
+allData %>% 
+  filter(PID %in% allMaleIDs) %>% 
+  filter(!(PID %in% caseIDs)) %>% 
+  pull(PID) %>% 
+  unique() ->
+  controlIDs
+
+# Double check no cancer cases or prostate cases are in control IDs
+try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
+try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
+
+write_lines(postateIDs, 'FW__Poly_tables/case_pids.txt')
+write_lines(controlIDs, 'FW__Poly_tables/control_pids.txt')
+```
+
+# References
