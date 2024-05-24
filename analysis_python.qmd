@@ -12,6 +12,8 @@ engine: knitr
 ---
 
 ```{r initialize_r}
+library(tidyverse)
+library(readxl)
 library(reticulate)
 library(knitr)
 knit_hooks$set(inline = function(x) {
@@ -48,7 +50,7 @@ Polygenic hazard score (PHS) model summary statistics (sumstats) downloaded from
 
 # Cleansumstats
 
-## Pre-process sumstats for `cleansumstats` 
+## Pre-process sumstats for `cleansumstats`
 
 ```{python import_sumstats}
 sumstats = pd.read_csv('PGS000067_hmPOS_GRCh37.txt.gz', comment = '#', sep = '\t')
@@ -166,7 +168,7 @@ with open('PRACTICAL_PCa_2018.yaml', 'w') as outfile:
   outfile.write('\n'.join(str(i) for i in yaml))
 ```
 
-## Pre-process BIM for `cleansumstats` 
+## Pre-process BIM for `cleansumstats`
 
 ```{python}
 mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
@@ -328,93 +330,14 @@ print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in mobabim['RSID']
 
 Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file, including rs201305416.
 
-### Rotate alleles in BED and FAM files
+# Rotate alleles in BED and FAM files
 
-```{bash, eval=FALSE}
-#!/bin/bash
-#SBATCH --job-name=rotate
-#SBATCH --output=%x.%j.out
-#SBATCH --error=%x.%j.err
-#SBATCH --account=p212_tsd
-#SBATCH --time=00:01:00
-#SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=8000M
-#SBATCH --cpus-per-task=8
+## Identify cases and controls
 
-module load singularity/3.7.3
-
-export BFILE=//cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all
-export OUT_DIR=/ess/p212/home/p212-andrewmo/out
-export BFILE_OUT="$(basename ${BFILE})"_cs
-export WORK_DIR=/ess/p212/home/p212-andrewmo/scratch
-export COMORMENT=//cluster/projects/p212/comorment
-#export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink"
-export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
-
-#$PLINK --dummy 2 2 --freq --make-bed --out toy_data
-#$PLINK2 --bfile toy_data --freq --out test2
-
-#echo ${BFILE}.bed
-#echo ${WORK_DIR}/${BFILE_OUT}_tmp.bim
-#echo ${BFILE}.fam
-#echo ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt
-#echo ${OUT_DIR}/${BFILE_OUT}
-
-$PLINK2 --bed ${BFILE}.bed \
-	--bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
-	--fam ${BFILE}.fam \
-	--alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
-	--make-bed \
-	--out ${OUT_DIR}/${BFILE_OUT}
-
-awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
-mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
+```{bash eval=FALSE}
+module load R/4.2.1-foss-2022a
 
 ```
-
-# Run `PRSice`
-
-```{bash, eval=FALSE}
-#!/bin/bash
-#SBATCH --job-name=prsice
-#SBATCH --output=logs/%x.%j.out
-#SBATCH --error=logs/%x.%j.err
-#SBATCH --account=p212_tsd
-#SBATCH --time=00:01:00
-#SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=8000M
-#SBATCH --cpus-per-task=1
-
-module load singularity/3.7.3
-
-export BASE=/ess/p212/home/p212-andrewmo/PRACTICAL_PCa_2018.GRCh37
-export BFILE=/ess/p212/home/p212-andrewmo/out/moba_imputed_all_cs
-export OUT_DIR=/ess/p212/home/p212-andrewmo/prsice
-export BFILE_OUT="$(basename ${BFILE})"
-export COMORMENT=//cluster/projects/p212/comorment
-export PRSICE="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif PRSice_linux"
-
-$PRSICE --base ${BASE} \
-	--target ${BFILE} \
-	--thread 1 \
-	--snp RSID \
-	--A1 EffectAllele \
-	--A2 OtherAllele \
-	--stat B \
-	--pvalue P \
-	--fastscore \
-	--all-score \
-	--no-clump \
-	--no-regress \
-	--binary-target T \
-	--out ${OUT_DIR}/${BFILE_OUT} \
-	--beta
-	
-```
-
-# Pre-process genotype and phenotype data
-
-## Phenotype
 
 ```{r preprocess_phenotype, eval=FALSE}
 allData = read_excel('FW__Poly_tables/poly_final_220425_estimated_lastobs.xls', sheet = 1)
@@ -454,12 +377,248 @@ allData %>%
 try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
 try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
 
-write_lines(postateIDs, 'FW__Poly_tables/case_pids.txt')
-write_lines(controlIDs, 'FW__Poly_tables/control_pids.txt')
+write_lines(prostateIDs, 'case_pids.txt')
+write_lines(controlIDs, 'control_pids.txt')
 ```
 
-# Analyze polygenic risk scores
+```{r create_sample_list, eval=FALSE}
+# Run on p212
+library(tidyverse)
+library(readxl)
 
-## Pull PCa cases and non-cancer controls from PRSs
+xl = read_excel("FW__Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
+case = read_csv("case_pids.txt", col_names = "PTN_REGNR", col_types = "c")
+control = read_csv("control_pids.txt", col_names = "PTN_REGNR", col_types = "c")
+bind_rows(case, control) %>% 
+  left_join(xl, by = "PTN_REGNR") %>% 
+  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) %>% 
+  mutate(bfile_id2 = bfile_id) ->
+  samples
+write_tsv(samples, "sample_key.txt")
+
+samples %>% 
+  select(bfile_id, bfile_id2) ->
+  bfile_id_samples
+write_tsv(bfile_id_samples, "bfile_id_samples.txt", col_names = FALSE)
+
+```
+
+## Rotate alleles and filter cases and controls
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=rotate
+#SBATCH --output=%x.%j.out
+#SBATCH --error=%x.%j.err
+#SBATCH --account=p212_tsd
+#SBATCH --time=00:30:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=8000M
+#SBATCH --cpus-per-task=8
+
+module load singularity/3.7.3
+
+export BFILE=//cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all
+export OUT_DIR=/ess/p212/home/p212-andrewmo/out
+export BFILE_OUT="$(basename ${BFILE})"_cs
+export WORK_DIR=/ess/p212/home/p212-andrewmo/scratch
+export COMORMENT=//cluster/projects/p212/comorment
+export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink"
+export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
+
+#$PLINK --dummy 2 2 --freq --make-bed --out toy_data
+#$PLINK2 --bfile toy_data --freq --out test2
+
+#echo ${BFILE}.bed
+#echo ${WORK_DIR}/${BFILE_OUT}_tmp.bim
+#echo ${BFILE}.fam
+#echo ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt
+#echo ${OUT_DIR}/${BFILE_OUT}
+
+$PLINK2 --bed ${BFILE}.bed \
+	--bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
+	--fam ${BFILE}.fam \
+	--alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
+	--make-bed \
+	--out ${OUT_DIR}/${BFILE_OUT}
+
+awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
+mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
+
+$PLINK --bfile ${OUT_DIR}/${BFILE_OUT} \
+  --keep eivind_samples.txt \
+  --make-bed \
+  --out ${OUT_DIR}/${BFILE_OUT}_PCa
+
+```
+
+# PRS Scores
+
+## Run `PRSice`
+
+```{bash, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name=prsice
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
+#SBATCH --account=p212_tsd
+#SBATCH --time=00:01:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=8000M
+#SBATCH --cpus-per-task=1
+
+module load singularity/3.7.3
+
+export BASE=/ess/p212/home/p212-andrewmo/PRACTICAL_PCa_2018.GRCh37
+export BFILE=/ess/p212/home/p212-andrewmo/out/moba_imputed_all_cs_PCa
+export OUT_DIR=/ess/p212/home/p212-andrewmo/prsice
+export BFILE_OUT="$(basename ${BFILE})"
+export COMORMENT=//cluster/projects/p212/comorment
+export PRSICE="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif PRSice_linux"
+
+$PRSICE --base ${BASE} \
+	--target ${BFILE} \
+	--thread 1 \
+	--snp RSID \
+	--A1 EffectAllele \
+	--A2 OtherAllele \
+	--stat B \
+	--pvalue P \
+	--fastscore \
+	--all-score \
+	--no-clump \
+	--no-regress \
+	--binary-target T \
+	--out ${OUT_DIR}/${BFILE_OUT} \
+	--beta
+	
+```
+
+## Manually calculate
+
+```{bash prep_geno_PHS, eval=FALSE}
+# Pull out model SNP RSIDs
+awk '{ print $3 }' PRACTICAL_PCa_2018.GRCh37 > phs_rsids
+sed -i 1d phs_rsids
+
+# Filter Bfiles for RSIDs
+$PLINK --bfile ${OUT_DIR}/${BFILE_OUT}_PCa \
+       --extract phs_rsids \
+       --make-bed \
+       --out ${OUT_DIR}/${BFILE_OUT}_PHS
+
+```
+
+```{bash eval=FALSE}
+module load R/4.2.1-foss-2022a
+
+```
+
+```{r matrix_multiply_PHS, eval=FALSE}
+library(tidyverse)
+library(genio)
+
+sumstats = read_tsv('PRACTICAL_PCa_2018.GRCh37')
+genotype = read_plink('out/moba_imputed_all_cs_PHS')
+
+# Sort SNPs by RSID and transpose matrix so columns are SNPs and rows are Subjects
+genotype$X_sorted = t(genotype$X[sort(rownames(genotype$X)), ])
+
+# Remove SNPs from sumstats missing in genotype data
+sumstats_filtered = filter(sumstats, RSID %in% rownames(genotype$X))
+# Sort sumstats by RSID to match genotype matrix
+sumstats_filtered_sorted = sumstats_filtered[order(sumstats_filtered$RSID), ]
+# Double check sumstats RSIDs match the order of genotype matrix
+colnames(genotype$X_sorted) == sumstats_filtered_sorted$RSID
+# Fill in average value for missing genotypes
+impute_col_means = function(x) {
+  for (i in seq_len(ncol(x))) {
+    x[is.na(x[, i]), i] = mean(x[, i], na.rm = TRUE)
+  }
+  return(x)
+}
+
+genotype$X_sorted_imputed = impute_col_means(genotype$X_sorted)
+
+# Fill in zeros for missing genotypes
+genotype$X_sorted_zeros = genotype$X_sorted
+genotype$X_sorted_zeros[is.na(genotype$X_sorted)] = 0
+
+PHS_zeros = genotype$X_sorted_zeros %*% sumstats_filtered_sorted$B
+PHS_imputed = genotype$X_sorted_imputed %*% sumstats_filtered_sorted$B
+
+qplot(PHS_zeros, PHS_imputed)
+# Good correspondence between zeros and imputed
+prsice = read_table('prsice/moba_imputed_all_cs_PCa.all_score')
+PHS_prsice = prsice[3]
+qplot(PHS_prsice, PHS_imputed)
+
+# Correspondence between prsice values and manual PRSes
+# Negative correlation
+# Some noise around estimates, maybe prsice is trimming SNPs
+
+write_tsv(as_tibble(PHS_imputed, rownames = "Subject"), "phs_imputed", col_names = FALSE)
+write_tsv(as_tibble(PHS_zeros, rownames = "Subject"), "phs_zeros", col_names = FALSE)
+```
+
+# Subset the phenotype data for my case/controls to input into PHS
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(readxl)
+
+metadata = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.cls',
+                      sheet = 1)
+diagnosis = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.cls',
+                      sheet = 2)
+sample_key = read_tsv('sample_key.txt',
+                      col_names = )
+
+diagnosis %>% 
+  filter(pid %in% sample_key$PTN_REGNR) %>% 
+  inner_join(sample_key[c('PTN_REGNR', 'bfile_id')], by = join_by(pid = PTN_REGNR)) %>% 
+  select(-PTN_REGNR) ->
+  diagnosis
+
+metadata %>% 
+  filter(PID %in% sample_key$PTN_REGNR) %>% 
+  inner_join(sample_key[c('PTN_REGNR', 'bfile_id')], by = join_by(pid = PTN_REGNR)) %>% 
+  select(-PTN_REGNR)
+
+######
+# Event PID  Age status
+# 1     1    45  0
+# 2     1    57  1
+# 3     2    66  1
+# 4     3    48  0
+# 
+
+
+```
+
+## Calculate concordanceIndex
+
+```{r, eval=FALSE}
+PHS_scores
+MyFit2<-coxph(Surv(CurrentCohortPhenos_Ordered$"Age_diagnosis", CurrentCohortPhenos_Ordered$BL_DIAG_CLIN) ~ 1 + ADNIplusDemGenePHS, data = NN_PHS_DataForSurvfit)
+  fit <- tfun(Surv(time, status) ~ age)
+  
+  
+  coxph(Surv(age, status) ~ PHS)
+```
+
+-   What cohort is the heritable cancer data from? Is the imputation done using moba data?
+
+-   How many of the Seiber alleles were in data?
+
+-   How many were in the genotype data versus the imputed data?
+
+-   What is the imputation rate and MAF of the alleles included in the model?
+
+-   What is the appropriate order of operations for my above processing steps? (And does it matter?) For example, would filtering the samples before/after rotating alleles matter?
+
+-   How do the PRSs get translated into the survival curves?
+
+It would be interesting to know how many of the alleles from the original GWAS are present in this cohort. How many people lack an allele, how many have the effect allele. How well does PRS predict disease prevalence. Figure out how to calculate PHS.
 
 # References
