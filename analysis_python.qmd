@@ -8,7 +8,6 @@ editor: visual
 bibliography: references.bib
 toc: true
 engine: knitr
-#jupyter: python3
 ---
 
 ```{r initialize_r}
@@ -170,12 +169,7 @@ with open('PRACTICAL_PCa_2018.yaml', 'w') as outfile:
 
 ## Pre-process BIM for `cleansumstats`
 
-```{python}
-mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
-
-```
-
-### Check RS IDs in BIM file
+### Check RSIDs in BIM file
 
 ```{bash, eval=FALSE}
 # bash
@@ -188,6 +182,8 @@ awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
 ```
 
 ```{python}
+mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
+
 with open('RSIDS') as f:
     rsids = f.read().splitlines()
 with open('MOBA_RSIDS') as f:
@@ -213,17 +209,14 @@ Three (out of 39) RSIDs in the cleaned sumstats file are missing from the MOBA i
 
 rs201305416 is the largest effect size allele in the original dataset (B = 1.53).
 
+rs10051795 is the second largest effect size allele in the original dataset (B = 1.50)
+
 ```{python}
 mobabim[(mobabim['CHR'] == 10) & (mobabim['POS'] == 8032001)]
+mobabim[(mobabim['CHR'] == 5) & (mobabim['POS'] == 100648792)]
 ```
 
-```{r check_bim, eval=FALSE}
-all_bim = read_tsv('...', col_names = FALSE)
-all_bim %>% 
-  filter(CHR == 10 & X4 = 8032001) %>% 
-  write_tsv('big_effect_allele')
-  
-```
+Both of their positions seem to be absent from the moba genotype data as well (not just their RSIDs).
 
 # Run `cleansumstats` pipeline
 
@@ -328,7 +321,9 @@ mobabim = pd.read_csv('moba_imputed_all.GRCh37.bim.gz', sep = '\t')
 print(cleansumstats['RSID'].apply(lambda x: any([i in x for i in mobabim['RSID']])))
 ```
 
-Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file, including rs201305416.
+~~Now it appears that all RSIDs in the cleaned sumstats file are in the cs bim file, including rs201305416.~~
+
+Edit: This is true, but it does not mean the SNPs are in the *genotype* data. Cleansumstats seems to have added the SNPS to the BIM file, but they are still absent from the genotype data.
 
 # Rotate alleles in BED and FAM files
 
@@ -391,12 +386,12 @@ case = read_csv("case_pids.txt", col_names = "PTN_REGNR", col_types = "c")
 control = read_csv("control_pids.txt", col_names = "PTN_REGNR", col_types = "c")
 bind_rows(case, control) %>% 
   left_join(xl, by = "PTN_REGNR") %>% 
-  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) %>% 
-  mutate(bfile_id2 = bfile_id) ->
+  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
   samples
 write_tsv(samples, "sample_key.txt")
 
 samples %>% 
+  mutate(bfile_id2 = bfile_id) %>% 
   select(bfile_id, bfile_id2) ->
   bfile_id_samples
 write_tsv(bfile_id_samples, "bfile_id_samples.txt", col_names = FALSE)
@@ -408,8 +403,8 @@ write_tsv(bfile_id_samples, "bfile_id_samples.txt", col_names = FALSE)
 ```{bash, eval=FALSE}
 #!/bin/bash
 #SBATCH --job-name=rotate
-#SBATCH --output=%x.%j.out
-#SBATCH --error=%x.%j.err
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
 #SBATCH --account=p212_tsd
 #SBATCH --time=00:30:00
 #SBATCH --ntasks=1
@@ -426,17 +421,10 @@ export COMORMENT=//cluster/projects/p212/comorment
 export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink"
 export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
 
-#$PLINK --dummy 2 2 --freq --make-bed --out toy_data
-#$PLINK2 --bfile toy_data --freq --out test2
-
-#echo ${BFILE}.bed
-#echo ${WORK_DIR}/${BFILE_OUT}_tmp.bim
-#echo ${BFILE}.fam
-#echo ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt
-#echo ${OUT_DIR}/${BFILE_OUT}
-
 $PLINK2 --bed ${BFILE}.bed \
 	--bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
+  --extract phs_rsids \
+  --keep bfile_id_samples.txt \
 	--fam ${BFILE}.fam \
 	--alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
 	--make-bed \
@@ -445,14 +433,19 @@ $PLINK2 --bed ${BFILE}.bed \
 awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
 mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
 
+# Pull out model SNP RSIDs
+awk '{ print $3 }' PRACTICAL_PCa_2018.GRCh37 > phs_rsids
+sed -i 1d phs_rsids
+
 $PLINK --bfile ${OUT_DIR}/${BFILE_OUT} \
-  --keep eivind_samples.txt \
-  --make-bed \
-  --out ${OUT_DIR}/${BFILE_OUT}_PCa
+       --keep bfile_id_samples.txt \
+       --extract phs_rsids \
+       --make-bed \
+       --out ${OUT_DIR}/${BFILE_OUT}_PCa
 
 ```
 
-# PRS Scores
+# Calculate PRS/PHS Scores
 
 ## Run `PRSice`
 
@@ -496,19 +489,6 @@ $PRSICE --base ${BASE} \
 
 ## Manually calculate
 
-```{bash prep_geno_PHS, eval=FALSE}
-# Pull out model SNP RSIDs
-awk '{ print $3 }' PRACTICAL_PCa_2018.GRCh37 > phs_rsids
-sed -i 1d phs_rsids
-
-# Filter Bfiles for RSIDs
-$PLINK --bfile ${OUT_DIR}/${BFILE_OUT}_PCa \
-       --extract phs_rsids \
-       --make-bed \
-       --out ${OUT_DIR}/${BFILE_OUT}_PHS
-
-```
-
 ```{bash eval=FALSE}
 module load R/4.2.1-foss-2022a
 
@@ -519,7 +499,8 @@ library(tidyverse)
 library(genio)
 
 sumstats = read_tsv('PRACTICAL_PCa_2018.GRCh37')
-genotype = read_plink('out/moba_imputed_all_cs_PHS')
+genotype = read_plink('out/moba_imputed_all_cs_PCa')
+genotype = read_plink('out/antegenes_imputed_allchr-temporary_cs_PCa')
 
 # Sort SNPs by RSID and transpose matrix so columns are SNPs and rows are Subjects
 genotype$X_sorted = t(genotype$X[sort(rownames(genotype$X)), ])
@@ -547,29 +528,40 @@ genotype$X_sorted_zeros[is.na(genotype$X_sorted)] = 0
 PHS_zeros = genotype$X_sorted_zeros %*% sumstats_filtered_sorted$B
 PHS_imputed = genotype$X_sorted_imputed %*% sumstats_filtered_sorted$B
 
-qplot(PHS_zeros, PHS_imputed)
+ggsave("compare_imputed_zeros.png", qplot(PHS_zeros, PHS_imputed))
 # Good correspondence between zeros and imputed
 prsice = read_table('prsice/moba_imputed_all_cs_PCa.all_score')
-PHS_prsice = prsice[3]
-qplot(PHS_prsice, PHS_imputed)
+PHS_prsice = prsice[[3]]
+ggsave("compare_imputed_prsice.png", qplot(PHS_prsice, PHS_imputed)
+)
+
+###########
+# inspect PHSes
+
+ggsave("phs_hist_by_case.png",
+       ggplot(combined_data, aes(x = phs, fill = factor(status))) + 
+         geom_histogram()
+)
 
 # Correspondence between prsice values and manual PRSes
 # Negative correlation
 # Some noise around estimates, maybe prsice is trimming SNPs
 
-write_tsv(as_tibble(PHS_imputed, rownames = "Subject"), "phs_imputed", col_names = FALSE)
+write_tsv(as_tibble(PHS_imputed, rownames = "Subject"), "phs_imputed_antegenes", col_names = FALSE)
 write_tsv(as_tibble(PHS_zeros, rownames = "Subject"), "phs_zeros", col_names = FALSE)
 ```
 
-# Subset the phenotype data for my case/controls to input into PHS
+# Fit Cox Proportional Hazards model
+
+## Subset the phenotype data for case/controls to input into PHS
 
 ```{r, eval=FALSE}
 library(tidyverse)
 library(readxl)
 
-metadata = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.cls',
+metadata = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.xls',
                       sheet = 1)
-diagnosis = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.cls',
+diagnosis = read_excel('FW__Poly_tables/poly_final_220425_estimates_lastobs.xls',
                       sheet = 2)
 sample_key = read_tsv('sample_key.txt',
                       col_names = )
@@ -585,27 +577,18 @@ metadata %>%
   inner_join(sample_key[c('PTN_REGNR', 'bfile_id')], by = join_by(pid = PTN_REGNR)) %>% 
   select(-PTN_REGNR)
 
-######
+###### example format
 # Event PID  Age status
 # 1     1    45  0
 # 2     1    57  1
 # 3     2    66  1
 # 4     3    48  0
-# 
+# Age = last observed (for censored) or first diagonsis (for cases)
 
 
 ```
 
-## Calculate concordanceIndex
-
-```{r, eval=FALSE}
-PHS_scores
-MyFit2<-coxph(Surv(CurrentCohortPhenos_Ordered$"Age_diagnosis", CurrentCohortPhenos_Ordered$BL_DIAG_CLIN) ~ 1 + ADNIplusDemGenePHS, data = NN_PHS_DataForSurvfit)
-  fit <- tfun(Surv(time, status) ~ age)
-  
-  
-  coxph(Surv(age, status) ~ PHS)
-```
+## Calculate concordance Index
 
 -   What cohort is the heritable cancer data from? Is the imputation done using moba data?
 
@@ -620,5 +603,9 @@ MyFit2<-coxph(Surv(CurrentCohortPhenos_Ordered$"Age_diagnosis", CurrentCohortPhe
 -   How do the PRSs get translated into the survival curves?
 
 It would be interesting to know how many of the alleles from the original GWAS are present in this cohort. How many people lack an allele, how many have the effect allele. How well does PRS predict disease prevalence. Figure out how to calculate PHS.
+
+# Daglige notater
+
+05.06.2024 - Today, I worked on the 1KG imputed dataset on p212. I had the cleansumstats output of the BIM file and the forcealt file. I had to fix the FAM file on p212 because it contained 0s for the FIDs and duplicate IDs (e.g., eivind_1_eivind_1) for the IIDs. This is what was causing the "--sort-vars" error. Once I straightened all of that out, the rotate_alleles.batch file could be run pretty much as is by adding a step at the very beginning to `--update-ids` and by updating the appropriate input file.
 
 # References
