@@ -1,0 +1,39 @@
+---
+title: "Manuscript"
+format: html
+editor: visual
+---
+
+## Introduction
+
+Prostate carcinoma (PCa) is the second most prevalant form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) suggested that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with overdiagnosis and overtreatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men. One potential approach to reduce the false positive rate for early screening and to reduce the risk of harms due to DRE is to employ polygenic hazard scores (PHS) to stratify individuals based on predicted age of onset for prostate cancer (Seibert or another PHS citation). This approach has been shown to accurately predict risk and age of onset for PCa in multiple ethnic groups (Huynh-Le et al. 2021). Furthermore, PHS can be combined with PSA screening and family history to potentially improve the positive predictive value of these screening measures (Seibert et al. 2018). By stratifying individuals using PHS, we can identify individuals who would benefit most through early PSA screening.
+
+In this study, we wanted to develop a PHS model for individual-level early diagnosis of PCa that is applicable to Nordic populations. We first applied the model from Seibert et al. (2018) to a novel Nordic cohort. We then developed a new PHS model using genotype and phenotype data from the UK Biobank cohort and tested in two Nordic cohorts.
+
+### Side Notes
+
+Huynh-LE 2020 and Seibert 2018 say that stratifying individuals by PHS improves the PPV of PSA testing for aggressive/clinically-significant PCa... but aggressive/clinically-significant PCa is partially defined by PSA values \>10. And PHS strata are defined by their increased/earlier risk of PCa. So.. of course peope in the highest quartile of PHS have a higher correlation with PSA? It is not clear to my that that is evidence that stratifying by PHS makes PSA more useful... we already know the individuals in the highest quartile are at increased risk of PCa. But maybe they are arguing that it helps identify *when* we should start screening? Or maybe they argue that people with high PHS *and* high PSA are at increased risk relative to individuals with low PSA or low PHS or both?
+
+## Methods
+
+### Subjects
+
+### Genotyping
+
+Subjects were genotyped using the \_\_\_ chip and genotype data were imputed using the \_\_\_ pipeline with the 1KG as a reference panel.
+
+### Clean summary statics
+
+Summary statistics from previous PHS GWAS were acquired from the GWAS catalog from the supplementary materials of individual publications. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with reviison 37 of... This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this).
+
+### Calculation of polygenic hazard scores
+
+## Results
+
+We first applied the Seibert model to the Nordic heritable cancer cohort.
+
+## Discussion
+
+## Acknowledgements
+
+## References

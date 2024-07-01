@@ -1,0 +1,21 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+
+# Ignore everything
+
+#/*
+
+# Add files
+
+#!analysis.qmd
+#!analysis_python.qmd
+#!renv*
+#!references.bib
+refs/
+.DS_Store
+environment.yml
+derived_data/*
+!.gitkeep

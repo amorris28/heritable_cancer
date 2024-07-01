@@ -174,29 +174,40 @@ with open('PRACTICAL_PCa_2018.yaml', 'w') as outfile:
 ```{bash, eval=FALSE}
 # bash
 # RSIDs in cleaned sumstats file
-gzcat PRACTICAL_PCa_2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > RSIDS
+gzcat derived_data/sumstats/PRACTICAL_PCa_Seibert2018.GRCh37.gz | awk 'NR > 1 { print $3 }' > derived_data/seibert_rsids
+gzcat derived_data/sumstats/PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz | awk 'NR > 1 { print $3 }' > derived_data/huynle2021_rsids
+gzcat derived_data/sumstats/PRACTICAL_PCa_Huynh-Le2022.GRCh37.gz | awk 'NR > 1 { print $3 }' > derived_data/huynle2022_rsids
+gzcat derived_data/sumstats/PRACTICAL_PCa_Karunamuni2021.GRCh37.gz | awk 'NR > 1 { print $3 }' > derived_data/karunamuni_rsids
+
 
 # RSIDs in moba genotype file (BIM)
 #awk '{ print $2 }' /cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all.bim > MOBA_RSIDS
-awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
+# awk '{ print $2 }' moba_imputed_all.bim > MOBA_RSIDS
 ```
 
 ```{python}
 mobabim = pd.read_csv('moba_imputed_all.bim', sep = '\t', names = ["CHR", "RSID", "Direction", "POS", "EffectAllele", "OtherAllele"])
 
-with open('RSIDS') as f:
-    rsids = f.read().splitlines()
-with open('MOBA_RSIDS') as f:
-    moba_rsids = f.read().splitlines()
-d = {'rsids': rsids}
+with open('derived_data/seibert_rsids') as f:
+    seibert_rsids = f.read().splitlines()
+with open('derived_data/huynle2021_rsids') as f:
+    huynle2021_rsids = f.read().splitlines()
+with open('derived_data/huynle2022_rsids') as f:
+    huynle2022_rsids = f.read().splitlines()
+with open('derived_data/karunamuni_rsids') as f:
+    karunamuni_rsids = f.read().splitlines()
+
+with open('derived_data/RSIDS_antegenes') as f:
+    antegenes_rsids = f.read().splitlines()
+d = {'huynle2021_rsids': huynle2021_rsids}
 rsid_df = pd.DataFrame(data = d)
 
 
 x = []
-for i in rsids: 
-  x.append(i in moba_rsids)
-rsid_df['in_moba'] = x
-rsid_df.to_csv('RSIDS_in_MOBA.tsv', sep = "\t")
+for i in huynle2021_rsids: 
+  x.append(i in antegenes_rsids)
+rsid_df['in_antegenes'] = x
+rsid_df.to_csv('RSIDS_in_antegenes.tsv', sep = "\t")
 ```
 
 Three (out of 39) RSIDs in the cleaned sumstats file are missing from the MOBA imputation BIM file:
@@ -435,7 +446,12 @@ mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
 
 # Pull out model SNP RSIDs
 awk '{ print $3 }' PRACTICAL_PCa_2018.GRCh37 > phs_rsids
+zcat PRACTICAL_PCa_2018.GRCh37
 sed -i 1d phs_rsids
+for VARIABLE in PRACTICAL_PCa_Seibert2018.GRCh37.gz PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz PRACTICAL_PCa_Huynh-Le2022.GRCh37.gz PRACTICAL_PCa_Karunamuni2021.GRCh37.gz 
+do
+  zcat $VARIABLE | awk '{ print $3 }' | tail -n +2 >> phs_rsids_test
+done
 
 $PLINK --bfile ${OUT_DIR}/${BFILE_OUT} \
        --keep bfile_id_samples.txt \
@@ -498,10 +514,98 @@ module load R/4.2.1-foss-2022a
 library(tidyverse)
 library(genio)
 
-sumstats = read_tsv('PRACTICAL_PCa_2018.GRCh37')
-genotype = read_plink('out/moba_imputed_all_cs_PCa')
-genotype = read_plink('out/antegenes_imputed_allchr-temporary_cs_PCa')
+sumstat_files = c('PRACTICAL_PCa_2018.GRCh37.gz',
+                  'PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz',
+                  'PRACTICAL_PCa_Huynh-Le2022.GRCh37.gz',
+                  'PRACTICAL_PCa_Karunamuni2021.GRCh37.gz')
 
+sumstats <- lapply(sumstat_files, read_tsv)
+names(sumstats) <- sumstat_files
+
+moba = read_plink('out/moba_imputed_all_cs_PCa')$X
+antegenes = read_plink('out/antegenes_imputed_allchr-temporary_cs_PCa')$X
+
+filter_sort_sumstats = function(sumstats, genotype) {
+  sumstats_filtered = filter(sumstats, RSID %in% rownames(genotype))
+  sumstats_filtered_sorted = sumstats_filtered[order(sumstats_filtered$RSID), ]
+  return(sumstats_filtered_sorted)
+}
+
+sumstats_filtered_sorted <- lapply(sumstats, filter_sort_sumstats, antegenes)
+
+filter_sort_genotype = function(sumstats, genotype) {
+#  sumstats = sumstats[sumstats$RSID %in% rownames(antegenes), ]
+  genotype_filtered = genotype[sumstats$RSID,]
+  genotype_filtered_sorted = t(genotype_filtered[sort(rownames(genotype_filtered)), ])
+  return(genotype_filtered_sorted)
+}
+
+# Some SNPs from PHS models missing in imputed genotype data
+genotype_filtered_sorted = lapply(sumstats_filtered_sorted, filter_sort_genotype, antegenes)
+
+impute_col_means = function(x) {
+  for (i in seq_len(ncol(x))) {
+    x[is.na(x[, i]), i] = mean(x[, i], na.rm = TRUE)
+  }
+  return(x)
+}
+
+genotype_filtered_sorted_imputed = lapply(genotype_filtered_sorted, impute_col_means)
+
+# Add in a check that sumstats rows and matrix columns match order
+
+betas = lapply(sumstats_filtered_sorted, function(x) x$B)
+
+phses = mapply('%*%', genotype_filtered_sorted_imputed, betas, SIMPLIFY = FALSE)
+
+ps = lapply(phses, qplot)
+
+
+n = names(ps)
+sapply(n, FUN = function(nameindex, ps) { ggsave(paste0(gsub("\\..*","",nameindex), "_phs_hist.png"), ps[[nameindex]]) }, ps, simplify = FALSE, USE.NAMES = TRUE)
+
+n = names(phses)
+sapply(n, function(nameindex, phses) { write_tsv(as_tibble(phs, rownames = "Subject"), "phs_imputed_antegenes", col_names = FALSE) }, phses, simplify = FALSE, USE.NAMES = TRUE)
+
+lapply(seq_along(phses), 
+       function(i) { 
+         write_tsv(as_tibble(phses[[i]], 
+                             rownames = "Subject"),
+                   paste0(gsub("\\..*","", names(phses)[[i]]),
+                          "_phs_imputed_antegenes"),
+                   col_names = FALSE) })
+
+save_phses = function(i) { 
+  write_tsv(as_tibble(phses[[i]], 
+                      rownames = "Subject"), 
+            paste0(nameindex, "phs_imputed_antegenes"), col_names = FALSE) }
+
+lapply(seq_along(phses), 
+       function(i) paste(i, names(mylist)[[i]], mylist[[i]]))
+
+
+mynewlist <- lapply(setNames(n, n), function(nameindex) {mylist[[nameindex]]})
+
+lapply(seq_along(List),
+       function(i) paste("The List Number Starting From",
+                         i,
+                         "with",
+                         names(List)[[i]],
+                         "contains the values",
+                         paste(List[[i]], collapse = ", ")))
+######################################
+# Old Analysis
+
+genotype_files = c("moba_imputed_all_cs_PCa",
+                   "antegenes_imputed_allchr-temporary_cs_PCa")
+
+
+seibert2018_fs = filter_sort_sumstats(seibert2018, genotype)
+seibert2018_fs = filter_sort_sumstats(HuynhLe2021, genotype)
+HuynhLe2022_fs = filter_sort_sumstats(HuynhLe2022, genotype)
+Karunamuni2021_fs = filter_sort_sumstats(Karunamuni2021, genotype)
+
+colnames(genotype$X_sorted) == sumstats_filtered_sorted$RSID
 # Sort SNPs by RSID and transpose matrix so columns are SNPs and rows are Subjects
 genotype$X_sorted = t(genotype$X[sort(rownames(genotype$X)), ])
 
@@ -518,14 +622,9 @@ impute_col_means = function(x) {
   }
   return(x)
 }
-
 genotype$X_sorted_imputed = impute_col_means(genotype$X_sorted)
 
-# Fill in zeros for missing genotypes
-genotype$X_sorted_zeros = genotype$X_sorted
-genotype$X_sorted_zeros[is.na(genotype$X_sorted)] = 0
-
-PHS_zeros = genotype$X_sorted_zeros %*% sumstats_filtered_sorted$B
+# Calculate imputed PHS scores
 PHS_imputed = genotype$X_sorted_imputed %*% sumstats_filtered_sorted$B
 
 ggsave("compare_imputed_zeros.png", qplot(PHS_zeros, PHS_imputed))
