@@ -34,8 +34,6 @@ sbatch run_cleansumstats_bim_bulk.job
 module load R/4.2.1-foss-2022a
 Rscript identify_cases_controls.R
 
-# Rotate alleles and filter BIM file for cases/controls and SNPs in sumstats
-sbatch rotate_alleles.batch
 
 # For the antegenes/1KG imputation Bfiles:
 # Update the Sample IDs since the fid and iid's have been created incorrectly
@@ -65,7 +63,7 @@ awk '{ print $2 }' antegenes_imputed_allchr-temporary_cs.bim > ANTE_RSIDS
 # rs1351836062 is not in reference panel
 
 # Check for individual RSIDs
-awk -F'\t' '$2 == "" {print}' /tsd/p212/home/p212-andrewmo/out/antegenes_imputed_allchr-temporary_cs.bim
+awk -F'\t' '$2 == "rs201305416" {print}' /tsd/p212/home/p212-andrewmo/out/antegenes_imputed_allchr-temporary_cs.bim
 
 # Use matrix multiplication to calcule PHS values for each combinationg of
 # model and genotype
@@ -84,4 +82,5 @@ Rscript R/calculate_phs.R sumstats_list.txt out/antegenes_imputed_allchr-tempora
 
 # Fit coxph and plot K-M curves
 # Run RK_get_perf.R to get HRs
-Rscript R/phs_testing.R PRACTICAL_PCa_Seibert2018_phs_imputed_antegenes combined_data_simplified.tsv
+sbatch bash/phs.batch
+

@@ -14,6 +14,8 @@ In this study, we wanted to develop a PHS model for individual-level early diagn
 
 Huynh-LE 2020 and Seibert 2018 say that stratifying individuals by PHS improves the PPV of PSA testing for aggressive/clinically-significant PCa... but aggressive/clinically-significant PCa is partially defined by PSA values \>10. And PHS strata are defined by their increased/earlier risk of PCa. So.. of course peope in the highest quartile of PHS have a higher correlation with PSA? It is not clear to my that that is evidence that stratifying by PHS makes PSA more useful... we already know the individuals in the highest quartile are at increased risk of PCa. But maybe they are arguing that it helps identify *when* we should start screening? Or maybe they argue that people with high PHS *and* high PSA are at increased risk relative to individuals with low PSA or low PHS or both?
 
+In addition, Mohamed et al. 2019 commented on the original Seibert paper criticizing it for 1) not being generalizable to non-European populations and 2) for lacking family history data.
+
 ## Methods
 
 ### Subjects
@@ -24,7 +26,9 @@ Subjects were genotyped using the \_\_\_ chip and genotype data were imputed usi
 
 ### Clean summary statics
 
-Summary statistics from previous PHS GWAS were acquired from the GWAS catalog from the supplementary materials of individual publications. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with reviison 37 of... This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this).
+Summary statistics from previous PHS GWAS were acquired from the GWAS catalog from the supplementary materials of individual publications. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel. This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this).
+
+Some PHS models included SNPs that were absent from our imputed genotype data. For these SNPs, we used the LDlink tool LDproxy to identify SNPs in strong LD with the SNPs that were missing from our dataset (cite machiela 2015). One SNP was replaced with another SNP in LD. Two SNPs were removed because one was monoallelic in the European population and the second was absent in the European 1KG reference panel.
 
 ### Calculation of polygenic hazard scores
 

@@ -21,6 +21,7 @@ phs = read_tsv(model, col_names = c("bfile_id", "phs"))
 phs$phs = phs$phs * -1
 metadata %>%
   left_join(phs, by = "bfile_id") %>%
+  mutate(status = factor) %>%
   filter(!(is.na(phs))) ->
   combined_data
 

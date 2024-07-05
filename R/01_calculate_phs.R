@@ -6,48 +6,44 @@ library(genio)
 
 args = commandArgs(trailingOnly=TRUE)
 
-# Import sumstats
-sumstat_files = c('PRACTICAL_PCa_Seibert2018.GRCh37.gz',
-                  'PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz',
-                  'PRACTICAL_PCa_Huynh-Le2022.GRCh37.gz',
-                  'PRACTICAL_PCa_Karunamuni2021.GRCh37.gz')
-sumstat_files = read_lines(args[1])
+model_file = args[1] # Sumstats file
+model = basename(args[1]) # filename for output
+genotype_bfiles = args[2] # PHS data
 
-sumstats <- lapply(sumstat_files, read_tsv)
-names(sumstats) <- sumstat_files
+# sumstats = readr::read_tsv("derived_data/PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz")
+sumstats = readr::read_tsv(model_file)
 
 # Import genotypes
-#moba = read_plink('out/moba_imputed_all_cs_PCa')$X
-antegenes = read_plink('out/antegenes_imputed_allchr-temporary_cs_PCa')$X
-antegenes = read_plink(args[2])$X
+genotype = genio::read_plink(genotype_bfiles)$X
+# genotype = genio::read_plink("out/antegenes_imputed_all-temporary_cs_PCa")$X
 
-seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
+#seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
 
 
 # Check SNPs not in genotype data
 #seibert_notin_moba = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(moba))]
-seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
+#seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
 
 # write_lines(seibert_notin_moba, "seibert_notin_moba2")
 
-sumstats[[1]][sumstats[[1]]$RSID == seibert_notin_ante[1], "RSID"] = "rs10905266"
 
 # Pre-process data so RSIDs match in sumstats and genotype
 filter_sort_sumstats = function(sumstats, genotype) {
-  sumstats_filtered = filter(sumstats, RSID %in% rownames(genotype))
+  sumstats_filtered = dplyr::filter(sumstats, RSID %in% rownames(genotype))
   sumstats_filtered_sorted = sumstats_filtered[order(sumstats_filtered$RSID), ]
   return(sumstats_filtered_sorted)
 }
-
-sumstats_filtered_sorted <- lapply(sumstats, filter_sort_sumstats, antegenes)
+# sumstats_filtered_sorted <- lapply(sumstats, filter_sort_sumstats, antegenes)
+sumstats_filtered_sorted = filter_sort_sumstats(sumstats, genotype)
 
 filter_sort_genotype = function(sumstats, genotype) {
   genotype_filtered = genotype[sumstats$RSID,]
   genotype_filtered_sorted = t(genotype_filtered[sort(rownames(genotype_filtered)), ])
   return(genotype_filtered_sorted)
 }
-
-genotype_filtered_sorted = lapply(sumstats_filtered_sorted, filter_sort_genotype, antegenes)
+# 
+# genotype_filtered_sorted = lapply(sumstats_filtered_sorted, filter_sort_genotype, antegenes)
+genotype_filtered_sorted = filter_sort_genotype(sumstats_filtered_sorted, genotype)
 
 # Some SNPs from PHS models missing in genotype data imputed from moba
 impute_col_means = function(x) {
@@ -56,30 +52,36 @@ impute_col_means = function(x) {
   }
   return(x)
 }
-
-genotype_filtered_sorted_imputed = lapply(genotype_filtered_sorted, impute_col_means)
+# 
+# genotype_filtered_sorted_imputed = lapply(genotype_filtered_sorted, impute_col_means)
+genotype_filtered_sorted_imputed = impute_col_means(genotype_filtered_sorted)
 
 # Check that sumstats rows and matrix columns match order
-mapply(function(x, y) x$RSID != colnames(y), sumstats_filtered_sorted, genotype_filtered_sorted_imputed) %>%
-  lapply(sum)
+# mapply(function(x, y) x$RSID != colnames(y), sumstats_filtered_sorted, genotype_filtered_sorted_imputed) %>%
+#   lapply(sum)
+
+mismatches = sum(sumstats_filtered_sorted$RSID != colnames(genotype_filtered_sorted_imputed))
+if (mismatches > 0) {
+  stop("There are ", mismatches, " mismatches between RSIDs in sumstats and genotype.")
+}
 
 # Pull out betas into list of vectors
-betas = lapply(sumstats_filtered_sorted, function(x) x$B)
+# betas = lapply(sumstats_filtered_sorted, function(x) x$B)
+
+betas = sumstats_filtered_sorted$B
 
 # Calcuate PHSes with matrix multiplication
-phses = mapply('%*%', genotype_filtered_sorted_imputed, betas, SIMPLIFY = FALSE)
+# phses = mapply('%*%', genotype_filtered_sorted_imputed, betas, SIMPLIFY = FALSE)
 
-# Plot histograms of PHSes
-ps = lapply(phses, qplot)
-n = names(ps)
-sapply(n, FUN = function(nameindex, ps) { ggsave(paste0(gsub("\\..*","",nameindex), "_phs_hist.png"), ps[[nameindex]]) }, ps, simplify = FALSE, USE.NAMES = TRUE)
+phses = genotype_filtered_sorted_imputed %*% betas
 
-# Save PHSes
-lapply(seq_along(phses), 
-       function(i) { 
-         write_tsv(as_tibble(phses[[i]], 
-                             rownames = "Subject"),
-                   paste0(gsub("\\..*","", names(phses)[[i]]),
-                          "_phs_imputed_antegenes"),
-                   col_names = FALSE) })
-
+# # Save PHSes
+# lapply(seq_along(phses), 
+#        function(i) { 
+#          write_tsv(as_tibble(phses[[i]], 
+#                              rownames = "Subject"),
+#                    paste0(gsub("\\..*","", names(phses)[[i]]),
+#                           "_phs_imputed_antegenes"),
+#                    col_names = FALSE) })
+readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), paste0("derived_data/", gsub("\\..*","", model),
+       "_phs_imputed_antegenes"), col_names = FALSE)
