@@ -1,7 +1,7 @@
-
+#!/bin/bash
 # Pre-process steps: 
 # 1. Download sumstats
-# 2. Create yaml files (Ex: https://github.com/amorris28/GWAS_SUMSTAT/blob/master/cleansumstats_meta/PGC_SCZ_0518_EUR/PGC_SCZ_0518_EUR.yaml)
+# 2. Create yaml files (Ex: https://github.com/precimed/GWAS_SUMSTAT/blob/master/cleansumstats_meta/PGC_SCZ_0518_EUR/PGC_SCZ_0518_EUR.yaml)
 # 3. Remove leading lines with comments (#)
 # 4. Import sumstats + yaml + BIM file(s) to p33
 
