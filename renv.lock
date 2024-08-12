@@ -8,11 +8,6 @@
       }
     ]
   },
-  "Python": {
-    "Version": "3.12.3",
-    "Type": "conda",
-    "Name": "./env"
-  },
   "Packages": {
     "DBI": {
       "Package": "DBI",
