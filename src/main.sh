@@ -1,14 +1,13 @@
 #!/bin/bash
-# Pre-process steps: 
-# 1. Download sumstats
-# 2. Create yaml files (Ex: https://github.com/precimed/GWAS_SUMSTAT/blob/master/cleansumstats_meta/PGC_SCZ_0518_EUR/PGC_SCZ_0518_EUR.yaml)
-# 3. Remove leading lines with comments (#)
-# 4. Import sumstats + yaml + BIM file(s) to p33
 
-gzcat raw_data/sumstats/PGS000067_hmPOS_GRCh37.txt.gz \
-  | sed '/^#/d' \
-  | gzip \
-  > derived_data/sumstats/PRACTICAL_PCa_Seibert2018.txt.gz
+# Preprocess sumstats
+# Remove leading lines with #, 
+
+python Python/preprocess_sumstats.py
+
+# Create yaml files (Ex: https://github.com/precimed/GWAS_SUMSTAT/blob/master/cleansumstats_meta/PGC_SCZ_0518_EUR/PGC_SCZ_0518_EUR.yaml)
+# Export BIM files from original TSD projects
+# Import sumstats + yaml + BIM file(s) to p33
 
 ########################################
 # On p33
