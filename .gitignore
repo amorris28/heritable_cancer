@@ -20,3 +20,5 @@ refs/
 environment.yml
 derived_data/*
 !.gitkeep
+*.docx
+results/
