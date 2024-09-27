@@ -74,7 +74,6 @@ echo "rs10905266" >> phs_rsids_test
 
 # Rotate Alleles
 
-
 # Calculate PHS scores
 # Should add a step before this script to swap in the SNPs in LD
 Rscript R/calculate_phs.R sumstats_list.txt out/antegenes_imputed_allchr-temporary_cs
@@ -82,4 +81,3 @@ Rscript R/calculate_phs.R sumstats_list.txt out/antegenes_imputed_allchr-tempora
 # Fit coxph and plot K-M curves
 # Run RK_get_perf.R to get HRs
 sbatch bash/phs.batch
-

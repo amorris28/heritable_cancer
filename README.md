@@ -1,4 +1,4 @@
-# Project directory for the Prostate Cancer Polygenic/Multimodal Hazard Score manuscript
+# Prostate Cancer Polygenic Hazard Score
 
 ## To-do
 
@@ -7,32 +7,37 @@
 
 ## Overview
 
-Polygenic hazard score (PHS) model parameters downloaded from the [PGS Catalog](https://www.pgscatalog.org/) or from the supplementary data of individual publications. 
+Polygenic hazard score (PHS) model parameters downloaded from the [PGS Catalog](https://www.pgscatalog.org/).
 
-Uses the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available using command `run_cleansumstats.sh` on TSD p33.
+Uses a modified version of the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available on TSD p33.
+
+Files starting with `PCA_` are preprocessing steps specific to this project. Other scripts are generic scripts to be used for validation of PHS models. 
 
 ## Steps to reproduce analysis
 
-### 1. Remove leading comment lines
+### Preprocessing steps specific to the PCA project
 
-The cleansumstats pipeline may not handle leading comment lines beginning with "#"
-so run this command on each sumstat file to remove them.
+### 1. Download and preprocess sumstats
+
+Run `src/PCA_sumstats.R` to download the sumstats files from PGS, preprocess them for input into cleansumstats, and automatically generate yaml files. 
+
+### 2. Download the B files manually from their respective TSD project
+
+### 3. Run the cleansumstats pipeline on p33
+
+I have modified the wrapper script to facilitate running the pipeline on TSD p33. Zip this project directory and import to p33. Copy it to the `cluster/users/<username>` directory:
 
 ```bash
-gzcat raw_data/sumstats/PGS000067_hmPOS_GRCh37.txt.gz \
-  | sed '/^#/d' \
-  | gzip \
-  > derived_data/sumstats/PRACTICAL_PCa_Seibert2018.txt.gz
+zip heritable_cancer.zip heritable_cancer/*
 ```
 
-### 2. Run the cleansumstats pipeline on p33
+`data/interim/traitlist.txt` contains a list of absolute paths for each yaml file and assumes the associated sumstats file is in the same directory as the yaml file.
 
-You can use the cleansumstats pipeline driectly, but I have modified this
-wrapper script to facilitate running the pipeline on TSD p33. Place all scripts from `cleansumstats/` in a directory on p33 and modify the `.job` scripts to run in slurm.
+From the project root:
 
 ```bash
-sbatch run_cleansumstats_bulk.job
-sbatch run_cleansumstats_bim_bulk.job
+sbatch src/cleansumstats/run_cleansumstats_bulk.job
+sbatch src/cleansumstats/run_cleansumstats_bim_bulk.job
 ```
 
 Export `${BFILE_OUT}_tmp.bim`, `forceALT_betan_${BFILE_OUT}.txt`, and `sumstats.GRCh37.gz` from p33.
