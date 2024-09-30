@@ -15,7 +15,9 @@
 
 ### 30.09.2024
 
-`cleansumstats_bim.sh` failed because I was missing a script, which I added, and now I am rerunning it. I also updated my local repo to reflect any changes in the scripts as they are on p33. 
+`cleansumstats_bim.sh` failed because I was missing a script, which I added, and now I am rerunning it. I also updated my local repo to reflect any changes in the scripts as they are on p33. Downloaded the resulting files.
+
+Next step: Upload to p212 and run the code to rotate alleles in the B files
 
 ### 27.09.2024
 

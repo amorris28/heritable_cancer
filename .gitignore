@@ -1,3 +1,4 @@
+# R userdata
 .Rproj.user
 .Rhistory
 .RData
@@ -20,9 +21,14 @@ refs/
 environment.yml
 data/interim/bim_files/*
 !.gitkeep
-*.docx
-results/
 
+# MS docs and render output
+*.docx
+*.xlsx
+*.pptx
+*.html
+
+# plink bfiles
 *.bim
 *.bam
 *.fam
