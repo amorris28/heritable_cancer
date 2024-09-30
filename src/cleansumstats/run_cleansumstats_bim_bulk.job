@@ -13,9 +13,9 @@ source /cluster/bin/jobsetup
 set -o errexit
 
 # User input (list of meta files (.yaml), output directory and TSD project)
-export LIST=bimlist.txt
-export OUT_DIR=/ess/p33/cluster/users/andrewmo/bim_files
-export WORK_DIR=/ess/p33/cluster/users/andrewmo/scratch
+export LIST=data/interim/bimlist.txt
+export OUT_DIR=/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/bim_files
+export WORK_DIR=/ess/p33/cluster/users/andrewmo/heritable_cancer/scratch
 export TSD_PROJ=p33 # p697 or p33
 
 # Path and variable definition

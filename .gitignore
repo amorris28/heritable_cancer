@@ -18,7 +18,11 @@
 refs/
 .DS_Store
 environment.yml
-derived_data/*
+data/interim/bim_files/*
 !.gitkeep
 *.docx
 results/
+
+*.bim
+*.bam
+*.fam
