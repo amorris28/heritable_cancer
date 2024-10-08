@@ -70,25 +70,22 @@ sbatch bash/phs.batch
 ## Project Organization
 
 ```
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
+├── Makefile           <- Makefile with convenience commands like `make 
+│                         sumstats` or `make metadata`
+├── README.md          <- The top-level README for developers using this
+│                         project.
 ├── data
 │   ├── external       <- Data from third party sources.
 │   ├── interim        <- Intermediate data that has been transformed.
 │   ├── processed      <- The final, canonical data sets for modeling.
 │   └── raw            <- The original, immutable data dump.
 │
-├── src   <- Source code for use in this project.
-│
 ├── notebooks          <- Quarto notebooks.
 │
 ├── manuscript         <- Manuscript documents.
 │
-└── src   <- Source code for use in this project. scripts are
-    │	     numbered in the order they run.
-    │
-    │
-    │
+└── src                <- Source code for use in this project. scripts are
+    │	                  numbered in the order they run.
     └── cleansumstats  <- Custom cleansumstats wrapper scripts
 ```
 
