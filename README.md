@@ -11,52 +11,90 @@ Polygenic hazard score (PHS) model parameters downloaded from the [PGS Catalog](
 
 Uses a modified version of the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available on TSD p33.
 
-Files starting with `PCA_` are preprocessing steps specific to this project. Other scripts are generic scripts to be used for validation of PHS models. 
+Files containing `_pca_` are preprocessing steps specific to this project. Other scripts are generic scripts to be used for validation of PHS models. 
 
 ## Steps to reproduce analysis
+
+Scripts within `src/` are named with fields separated by underscores `_` and words within a field seprated by dashs `-`. The leading number `01` is the order scripts run. The second field `pca` is specific to the project (in this case, pca = prostate cacer). The third field is a slug to describe the analysis step.
 
 ### Preprocessing steps specific to the PCA project
 
 ### 1. Download and preprocess sumstats
 
-Run `src/PCA_sumstats.R` to download the sumstats files from PGS, preprocess them for input into cleansumstats, and automatically generate yaml files. 
+Update `traitlist.txt` with the URLs for your PHS models on PHS Catalog.
 
-### 2. Download the B files manually from their respective TSD project
+Run `make sumstats` to download the sumstats files from PGS, preprocess them for input into cleansumstats, and automatically generate yaml files. 
+
+### 2. Download the bim files manually from their respective TSD project
+
+Download bim files from each TSD project and place in `data/raw`.
+
+Update `bimlist.txt` with the absolute paths for your bim files (without file extensions).
+
+Run `make zip` and upload the zip file to p33.
 
 ### 3. Run the cleansumstats pipeline on p33
 
-I have modified the wrapper script to facilitate running the pipeline on TSD p33. Zip this project directory and import to p33. Copy it to the `cluster/users/<username>` directory:
+Unzip the zip file in your working directory.
+
+Run `make cleansumstats`
+
+### 4. Export files from p33 and reupload them to their respective TSD project
+
+Export `${BFILE_OUT}_tmp.bim`, `forceALT_betan_${BFILE_OUT}.txt`, and `sumstats.GRCh37.gz` from p33:
+
+Run `make zip`. Download the zip file to your local PC. Then, upload the zip file to each TSD project.
+
+### 5. Prepare data before analysis on p212
+
+We need to harmonize the old bed and fam files with the updated bim file. We also need to identify subjects that are cases and controls, their censoring age (diagnosis/last observed), and filtered the bfiles for only the subjects and RSIDs relevant to us.
+
+Do all of this by running `make metadata`
+
+### 6. Calculate PHS scores
+
+Run `make phs` to calculate PHS scores for each combination of model/bfile using matrix multiplication.
+
+This concludes the project-specific prep-processing. The remainded of the analysis should be generalizable to any dataset.
+
+## PHS Testing Pipeline
+
+This batch script fits a K-M curve and calculate performance statistics. Multiple such analysis for multiple PHS models can be run in parallel using the `--array` argument to sbatch. The custome script `multijoin.sh` can merge the resulting performance tables into one table.
 
 ```bash
-zip heritable_cancer.zip heritable_cancer/*
+sbatch bash/phs.batch
+./bash/multijoin.sh derived_data/*performance.txt > performance.txt
+```
+### Test performance on p212
+
+## Project Organization
+
+```
+├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
+├── README.md          <- The top-level README for developers using this project.
+├── data
+│   ├── external       <- Data from third party sources.
+│   ├── interim        <- Intermediate data that has been transformed.
+│   ├── processed      <- The final, canonical data sets for modeling.
+│   └── raw            <- The original, immutable data dump.
+│
+├── src   <- Source code for use in this project.
+│
+├── notebooks          <- Quarto notebooks.
+│
+├── manuscript         <- Manuscript documents.
+│
+└── src   <- Source code for use in this project. scripts are
+    │	     numbered in the order they run.
+    │
+    │
+    │
+    └── cleansumstats  <- Custom cleansumstats wrapper scripts
 ```
 
-`data/interim/traitlist.txt` contains a list of absolute paths for each yaml file and assumes the associated sumstats file is in the same directory as the yaml file.
+## Someday/Maybe
 
-From the project root:
-
-```bash
-sbatch src/cleansumstats/run_cleansumstats_bulk.job
-sbatch src/cleansumstats/run_cleansumstats_bim_bulk.job
-```
-
-Export `${BFILE_OUT}_tmp.bim`, `forceALT_betan_${BFILE_OUT}.txt`, and `sumstats.GRCh37.gz` from p33.
-Import to the local p project for your B files (e.g., p212).
-
-### Prepare data before analysis on p212
-
-Identify sample IDs of prostate cancer cases and cancer-free controls.
-
-```bash
-module load R/4.2.1-foss-2022a
-Rscript identify_cases_controls.R
-````
-
-For the antegenes/1KG imputation Bfiles: Update the Sample IDs since the fid and iid's have been created incorrectly.
-
-```bash
-Rscript update_ids_antegenes.R
-````
+### Identify missing RSIDs and then fine alleles in LD with them
 
 Identify RSIDs of SNPs in models. sub `gzcat` if on macos.
 
@@ -80,28 +118,3 @@ Rscript R/compare_rsids.R
 Use [LDproxy](https://ldlink.nih.gov/?tab=ldproxy) to find SNPs in LD with the missing SNPs from the model. Some SNPs may be monoallelic in this population or missing from the reference panel.
 
 
-
-Use the output from `run_cleansumstats_bim.sh` to rotate alleles in BED and FAM files. Filter BIM file for cases/controls and SNPs in sumstats. 
-
-```bash
-sbatch rotate_alleles.batch
-```
-
-### Calculate PHS scores, fit model, and test performance on p212
-
-This batch script calls two R scripts, one to calculate PHS scores for one set of sumstats + genotype and one to fit a K-M curve and calculate performance statistics. Multiple such analysis for multiple PHS models can be run in parallel using the `--array` argument to sbatch. The custome script `multijoin.sh` can merge the resulting performance tables into one table.
-
-```bash
-sbatch bash/phs.batch
-./bash/multijoin.sh derived_data/*performance.txt > performance.txt
-```
-
-## Directories
-
-`bash/` - contains `.sh` scripts and batch scripts
-`R/` - contains `.R` scripts
-`raw_data/` - Raw data in the form it was received. Do not modify.
-`derived_data/` - Data that has been processed via scripts. Can be deleted/recreated.
-`env/` - Python `conda` environment information
-`renv/` - R `renv` environment information
-`manuscript/`- Contains files needed to render the manuscript in Docx format.
