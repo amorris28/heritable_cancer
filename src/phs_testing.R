@@ -1,7 +1,12 @@
 library(tidyverse)
 library(survival)
-library(survminer)
-library(broom)
+#library(survminer)
+#library(broom)
+
+source("src/00_config.R")
+
+args = c(paste0(PROCESSED_DATA, "PGS003331_phs"), paste0(PROCESSED_DATA, "familial_cancer_phenotypes.tsv"), TRUE)
+
 
 #########################################
 # First argument: PHS file
@@ -13,26 +18,27 @@ library(broom)
 # boolean indicating whether to inverse (x * -1) the PHS scores
 # to reverse the direction of effect.
 
-args = commandArgs(trailingOnly=TRUE)
+#args = commandArgs(trailingOnly=TRUE)
 
-model_file = args[1] # Sumstats file
+model_file = args[1] # PHS file
 
 model = basename(args[1]) # filename for output
 
-metadata = read_tsv(args[2]) # PHS data
+metadata = read_tsv(args[2]) # Phenotype data
 
 inverse = args[3]
+
+output = "reports/"
+
+figs = "reports/figures/"
 
 #########################################
 # Import PHS data
 
 phs = read_tsv(model_file, col_names = c("bfile_id", "phs"))
 
-phs = tibble("bfile_id" = paste("b", 1:100, sep = "_"),
-                 "phs" = rnorm(100))
-metadata = data.frame("bfile_id" = paste("b", 1:100, sep = "_"),
-                                     "age" = round(runif(100, 40, 100)),
-                                     "status" = rbinom(100, 1, 0.3))
+phs$phs = scale(phs$phs, center = TRUE, scale = TRUE)
+
 if (inverse) {phs$phs = phs$phs * -1}
 
 metadata %>%
@@ -45,7 +51,7 @@ phs_hist = ggplot(combined_data, aes(x = phs, group = status, fill = as.characte
   scale_fill_manual(values = c("#132B43", "#56B1F7")) +
   theme_minimal()
 
-ggsave(paste0("figs/", model, "_hist.png"), phs_hist)
+ggsave(paste0(figs, model, "_hist.png"), phs_hist)
 
 # Fit model
 
@@ -103,7 +109,6 @@ S_tibble %>%
 ##########################
 
 # Plot K-M curves for centiles
-
 mod = survfit(Surv(age, status) ~ percentile, data = combined_data)
 
 tidy_strata = function(strata) {
@@ -123,8 +128,7 @@ mod_data = tibble(time = mod$time,
            conf.high = mod$upper,
            conf.low = mod$lower,
            strata = tidy_strata(mod$strata))
-
-
+#mod_data = tidy(mod)
 
 tibble(strata = unique(mod_data$strata),
        percentile = unique(S_tibble$percentile)) ->
@@ -142,7 +146,7 @@ kmcurve = ggplot(mod_data, aes(x = time, y = estimate, color = percentile)) +
   scale_color_brewer(palette = "Set1") +
   labs(x = "Age", y = "PCa-free Survival")
 
-ggsave(paste0("figs/", model, "_km_curve.png"),
+ggsave(paste0(figs, model, "_km_curve.png"),
        kmcurve)
 
 combined_data %>% 
@@ -151,7 +155,7 @@ combined_data %>%
   cases_controls
 
 ## Hazard ratios
-source("R/RK_get_perf.R")
+source("src/RK_get_perf.R")
 perform = with(combined_data, 
                RK_get_perf(phs, 
                            age, 
@@ -160,4 +164,4 @@ perform = with(combined_data,
                            swc.popnumcases = cases_controls[[2, 2]], 
                            swc.popnumcontrols = cases_controls[[1, 2]]))
 perform = stack(perform)[, c(2, 1)]
-vwrite_tsv(perform, paste0("derived_data/", model, "_performance.txt"))
+write_tsv(perform, paste0(output, model, "_performance.txt"))
