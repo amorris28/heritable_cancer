@@ -3,8 +3,10 @@
 .Rhistory
 .RData
 .Ruserdata
-.spyproject
 
+# IDE files
+.spyproject
+.vscode
 
 # Ignore everything
 
@@ -17,10 +19,16 @@
 #!renv*
 #!references.bib
 refs/
-.DS_Store
 environment.yml
 data/interim/bim_files/*
 !.gitkeep
+
+# senstivie data
+data/**/bim_files/*
+
+# system files
+.DS_Store
+*.swp
 
 # MS docs and render output
 *.docx

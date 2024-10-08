@@ -28,6 +28,11 @@ inverse = args[3]
 
 phs = read_tsv(model_file, col_names = c("bfile_id", "phs"))
 
+phs = tibble("bfile_id" = paste("b", 1:100, sep = "_"),
+                 "phs" = rnorm(100))
+metadata = data.frame("bfile_id" = paste("b", 1:100, sep = "_"),
+                                     "age" = round(runif(100, 40, 100)),
+                                     "status" = rbinom(100, 1, 0.3))
 if (inverse) {phs$phs = phs$phs * -1}
 
 metadata %>%
@@ -98,8 +103,28 @@ S_tibble %>%
 ##########################
 
 # Plot K-M curves for centiles
+
 mod = survfit(Surv(age, status) ~ percentile, data = combined_data)
-mod_data = tidy(mod)
+
+tidy_strata = function(strata) {
+  temp = c()
+  for (i in seq(strata)) {
+    temp = c(temp, rep_len(names(strata)[i], strata[i]))
+  }
+  return(temp)
+}
+
+mod_data = tibble(time = mod$time,
+           n.risk = mod$n.risk,
+           n.event = mod$n.event,
+           n.censor = mod$n.censor,
+           estimate = mod$surv,
+           std.error = mod$std.err,
+           conf.high = mod$upper,
+           conf.low = mod$lower,
+           strata = tidy_strata(mod$strata))
+
+
 
 tibble(strata = unique(mod_data$strata),
        percentile = unique(S_tibble$percentile)) ->
