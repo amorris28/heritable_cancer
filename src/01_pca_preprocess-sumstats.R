@@ -1,9 +1,12 @@
-source("src/config.R")
+source("src/00_config.R")
 
 phsmodels = readr::read_lines(paste0(RAW_DATA, "phs-models.txt"))
 
 ##########################################
 # Download and preprocess external sumstats files
+
+files = tools::file_path_sans_ext(basename(phsmodels), compression = TRUE)
+readr::write_lines(files, paste0(INTERIM_DATA, "sumstats_basenames"))
 
 for (url in phsmodels) {
   # import sumstats URLs and extract file names

@@ -21,7 +21,7 @@ export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $C
 ######################################################
 # Fix fam file IDs
 
-$RSCRIPT src/PCA_update_ids_antegenes.R
+$RSCRIPT src/04_pca_update-ids.R
 
 $PLINK  --bed ${BFILE}.bed \
 	--fam ${BFILE}.fam \
@@ -51,7 +51,7 @@ mv ${INTERIM_DIR}/bfiles/${BFILE_OUT}.bim_tmp ${INTERIM_DIR}/bfiles/${BFILE_OUT}
 ######################################################
 # Filter cases and controls
 
-$RSCRIPT src/PCA_identify_cases_controls.R
+$RSCRIPT src/05_pca_id-cases-controls.R
 
 # Pull out model SNP RSIDs
 while read VARIABLE;

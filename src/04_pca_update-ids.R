@@ -1,5 +1,7 @@
 library(tidyverse)
 
+source("src/00_config.R")
+
 fam = read_tsv('/cluster/projects/p212/antenor_pipeline/antegenes_imputed_allchr-temporary.fam',
 	col_names = c("FID", "IID", "FA", "MO", "SEX", "PHE"))
 
@@ -10,7 +12,7 @@ fam %>%
 bind_cols(fam[1:2], new_fam[1:2]) ->
 	output
 
-write_tsv(output, "update-ids-antegenes.tsv", col_names = FALSE)
+write_tsv(output, paste0(INTERIM_DATA, "update-ids-antegenes.tsv"), col_names = FALSE)
 
 ############################
 # Output
