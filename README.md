@@ -2,20 +2,28 @@
 
 ## To-do
 
-- Currently, all scripts require modification based on specific filenames to run. Make this a command line argument instead so they are generalizable.
+- Currently, all scripts require modification based on specific filenames to
+  run. Make this a command line argument instead so they are generalizable.
 - Add output filename option as well
 
 ## Overview
 
-Polygenic hazard score (PHS) model parameters downloaded from the [PGS Catalog](https://www.pgscatalog.org/).
+Polygenic hazard score (PHS) model parameters downloaded from the
+[PGS Catalog](https://www.pgscatalog.org/).
 
-Uses a modified version of the [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF) from Julian (and dependent on the original [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats)) available on TSD p33.
-
-Files containing `_pca_` are preprocessing steps specific to this project. Other scripts are generic scripts to be used for validation of PHS models. 
+Uses a modified version of the 
+[cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF)
+from Julian (and dependent on the original 
+[cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats))
+available on TSD p33.
 
 ## Steps to reproduce analysis
 
-Scripts within `src/` are named with fields separated by underscores `_` and words within a field seprated by dashs `-`. The leading number `01` is the order scripts run. The second field `pca` is specific to the project (in this case, pca = prostate cacer). The third field is a slug to describe the analysis step.
+Scripts within `src/` are named with fields separated by underscores `_` and
+words within a field separated by dashes `-`. The leading number `01` is the
+order scripts run. The second field `pca` is specific to the project (in this
+case, pca = prostate cacer). The third field is a slug to describe the analysis
+step.
 
 ### Preprocessing steps specific to the PCA project
 
@@ -23,13 +31,15 @@ Scripts within `src/` are named with fields separated by underscores `_` and wor
 
 Update `traitlist.txt` with the URLs for your PHS models on PHS Catalog.
 
-Run `make sumstats` to download the sumstats files from PGS, preprocess them for input into cleansumstats, and automatically generate yaml files. 
+Run `make sumstats` to download the sumstats files from PGS, preprocess them
+for input into cleansumstats, and automatically generate yaml files. 
 
 ### 2. Download the bim files manually from their respective TSD project
 
 Download bim files from each TSD project and place in `data/raw`.
 
-Update `bimlist.txt` with the absolute paths for your bim files (without file extensions).
+Update `bimlist.txt` with the absolute paths for your bim files (without file
+extensions).
 
 Run `make zip` and upload the zip file to p33.
 
@@ -41,25 +51,35 @@ Run `make cleansumstats`
 
 ### 4. Export files from p33 and reupload them to their respective TSD project
 
-Export `${BFILE_OUT}_tmp.bim`, `forceALT_betan_${BFILE_OUT}.txt`, and `sumstats.GRCh37.gz` from p33:
+Export `${BFILE_OUT}_tmp.bim`, `forceALT_betan_${BFILE_OUT}.txt`, and
+`sumstats.GRCh37.gz` from p33:
 
-Run `make zip`. Download the zip file to your local PC. Then, upload the zip file to each TSD project.
+Run `make zip`. Download the zip file to your local PC. Then, upload the zip
+file to each TSD project.
 
 ### 5. Prepare data before analysis on p212
 
-We need to harmonize the old bed and fam files with the updated bim file. We also need to identify subjects that are cases and controls, their censoring age (diagnosis/last observed), and filtered the bfiles for only the subjects and RSIDs relevant to us.
+We need to harmonize the old bed and fam files with the updated bim file. We
+also need to identify subjects that are cases and controls, their censoring age
+(diagnosis/last observed), and filtered the bfiles for only the subjects and
+RSIDs relevant to us.
 
 Do all of this by running `make metadata`
 
 ### 6. Calculate PHS scores
 
-Run `make phs` to calculate PHS scores for each combination of model/bfile using matrix multiplication.
+Run `make phs` to calculate PHS scores for each combination of model/bfile
+using matrix multiplication.
 
-This concludes the project-specific prep-processing. The remainded of the analysis should be generalizable to any dataset.
+This concludes the project-specific prep-processing. The remainded of the
+analysis should be generalizable to any dataset.
 
 ## PHS Testing Pipeline
 
-This batch script fits a K-M curve and calculate performance statistics. Multiple such analysis for multiple PHS models can be run in parallel using the `--array` argument to sbatch. The custome script `multijoin.sh` can merge the resulting performance tables into one table.
+This batch script fits a K-M curve and calculate performance statistics.
+Multiple such analysis for multiple PHS models can be run in parallel using the
+`--array` argument to sbatch. The custome script `multijoin.sh` can merge the
+resulting performance tables into one table.
 
 ```bash
 sbatch bash/phs.batch
@@ -112,6 +132,8 @@ Compare RSIDs in sumstats to Bfiles and output missing SNPs.
 Rscript R/compare_rsids.R
 ```
 
-Use [LDproxy](https://ldlink.nih.gov/?tab=ldproxy) to find SNPs in LD with the missing SNPs from the model. Some SNPs may be monoallelic in this population or missing from the reference panel.
+Use [LDproxy](https://ldlink.nih.gov/?tab=ldproxy) to find SNPs in LD with the
+missing SNPs from the model. Some SNPs may be monoallelic in this population or
+missing from the reference panel.
 
 
