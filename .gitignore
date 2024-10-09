@@ -23,7 +23,7 @@ environment.yml
 data/interim/bim_files/*
 !.gitkeep
 
-# senstivie data
+# data
 data/**/bim_files/*
 
 # system files
