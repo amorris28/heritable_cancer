@@ -12,22 +12,10 @@ model_file = args[1] # Sumstats file
 model = basename(args[1]) # filename for output
 genotype_bfiles = args[2] # PHS data
 
-# sumstats = readr::read_tsv("derived_data/PRACTICAL_PCa_Huynh-Le2021.GRCh37.gz")
 sumstats = readr::read_tsv(model_file)
 
 # Import genotypes
 genotype = genio::read_plink(genotype_bfiles)$X
-# genotype = genio::read_plink("out/antegenes_imputed_all-temporary_cs_PCa")$X
-
-#seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
-
-
-# Check SNPs not in genotype data
-#seibert_notin_moba = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(moba))]
-#seibert_notin_ante = sumstats[[1]]$RSID[!(sumstats[[1]]$RSID %in% rownames(antegenes))]
-
-# write_lines(seibert_notin_moba, "seibert_notin_moba2")
-
 
 # Pre-process data so RSIDs match in sumstats and genotype
 filter_sort_sumstats = function(sumstats, genotype) {
@@ -43,7 +31,7 @@ filter_sort_genotype = function(sumstats, genotype) {
   genotype_filtered_sorted = t(genotype_filtered[sort(rownames(genotype_filtered)), ])
   return(genotype_filtered_sorted)
 }
-# 
+ 
 # genotype_filtered_sorted = lapply(sumstats_filtered_sorted, filter_sort_genotype, antegenes)
 genotype_filtered_sorted = filter_sort_genotype(sumstats_filtered_sorted, genotype)
 

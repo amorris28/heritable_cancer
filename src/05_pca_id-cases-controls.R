@@ -40,12 +40,6 @@ allData %>%
 try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
 try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
 
-#write_lines(prostateIDs, paste0(INTERIM_DATA, 'case_pids.txt'))
-#write_lines(controlIDs, paste0(INTERIM_DATA, 'control_pids.txt'))
-#
-#case = read_csv(paste0(INTERIM_DATA, 'case_pids.txt'), col_names = "PTN_REGNR", col_types = "c")
-#control = read_csv(paste0(INTERIM_DATA, 'control_pids.txt'), col_names = "PTN_REGNR", col_types = "c")
-
 case = tibble(PTN_REGNR = as.character(prostateIDs))
 control = tibble(PTN_REGNR = as.character(controlIDs))
 
@@ -55,7 +49,6 @@ bind_rows(case, control) %>%
   left_join(xl, by = "PTN_REGNR") %>% 
   mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
   samples
-#write_tsv(samples, paste0(INTERIM_DATA, "sample_key.txt"))
 
 samples %>% 
   mutate(bfile_id2 = bfile_id) %>% 
@@ -63,8 +56,6 @@ samples %>%
   bfile_id_samples
 bfile_id_samples$bfile_id = 0
 write_tsv(bfile_id_samples, paste0(INTERIM_DATA, "bfile_id_samples.txt"), col_names = FALSE)
-
-
 
 ########################################################
 # bfile_id, age, status

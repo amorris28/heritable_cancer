@@ -23,10 +23,14 @@ zip:
 	$(PROJECT_NAME)/data \
 	$(PROJECT_NAME)/src \
 	$(PROJECT_NAME)/Makefile \
+	$(PROJECT_NAME)/README.md \
 	$(PROJECT_NAME)/.gitignore \
 	$(PROJECT_NAME)/.git \
+	$(PROJECT_NAME)/renv \
+	$(PROJECT_NAME)/renv.lock \
 	-x $(PROJECT_NAME)/**/*.bed \
 	-x $(PROJECT_NAME)/**/*.fam \
+	-x $(PROJECT_NAME)/**/*.DS_Store
 	
 #################################################################################
 # PROJECT RULES                                                                 #

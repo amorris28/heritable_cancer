@@ -31,6 +31,10 @@ Other files:
 
 ## Log
 
+### 08.10.2024
+
+Today, I basically synced up my p212 project directory with my local git repo. I also cleaned up some scripts in the local repo. What I would like to do next is to finish cleaning up this directory and re-run the pre-processing steps from fron to back to make sure everything works. That way, I should be ready once I decide to do use other genotype data like HUSK and MOBA.
+
 ### 04.10.2024
 
 Today I got the script running for testing the PHS models. Next I should probably do a sync up between p212 and local just to backup and version control my changes. Then, I should modify the PHS_testing file to align with Alex's decisions about how to go about testing.
