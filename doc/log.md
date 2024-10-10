@@ -31,6 +31,14 @@ Other files:
 
 ## Log
 
+### 10.10.2024
+
+I further organized the hazRd package and published it on Github. I also lobotomized my `phs_testing.R` script into several functions. I need to replace the `phs_testing.R` script with an updated script that uses the hazRd package instead. The other thing I need to do is to update the scripts in hazRd to create the plots and performance metrics that Alex requested.
+
+### 09.10.2024
+
+I cleaned up the scripts in this directory and deleted some old data files from the git repo to open up some space. I also created a Github repo and connected to my local repo. I started testing the workflow, but unfortunately TSD is down today. 
+
 ### 08.10.2024
 
 Today, I basically synced up my p212 project directory with my local git repo. I also cleaned up some scripts in the local repo. What I would like to do next is to finish cleaning up this directory and re-run the pre-processing steps from fron to back to make sure everything works. That way, I should be ready once I decide to do use other genotype data like HUSK and MOBA.

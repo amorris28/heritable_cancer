@@ -1,11 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=SUMSTAT
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
 #SBATCH --account=p33
 #SBATCH --time=4:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=16
-#SBATCH --array=1-2 # user input depending on the number of meta files in the trait list
+#SBATCH --array=1 # user input depending on the number of meta files in the trait list
 
 module purge
 test $SCRATCH && module load singularity/3.7.3 
@@ -13,14 +15,14 @@ source /cluster/bin/jobsetup
 set -o errexit
 
 # User input (list of meta files (.yaml), output directory and TSD project)
-export LIST=data/interim/bimlist.txt
-export OUT_DIR=/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim
-export WORK_DIR=/ess/p33/cluster/users/andrewmo/heritable_cancer/scratch
+export LIST=${SLURM_SUBMIT_DIR}/data/raw/bimlist.txt
+export OUT_DIR=${SLURM_SUBMIT_DIR}/data/interim
+export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
 export TSD_PROJ=p33 # p697 or p33
 
 # Path and variable definition
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
-export META_YAML=$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
+export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
 #export WORK_DIR=${SCRATCH}/out && mkdir -p ${WORK_DIR} && echo Temporary working directory: "${WORK_DIR}"
 
 # Get script location
@@ -28,6 +30,6 @@ IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '
 SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${OUT_DIR} ${WORK_DIR} ${TSD_PROJ}
+#bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${OUT_DIR} ${WORK_DIR} ${TSD_PROJ}
 bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${META_YAML} ${OUT_DIR} ${WORK_DIR} ${TSD_PROJ}
 

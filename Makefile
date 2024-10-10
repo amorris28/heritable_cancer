@@ -15,6 +15,12 @@ clean_data:
 	find data/interim/. -type f -name "*.yaml" -delete
 	find data/interim/. -type f -name "*.txt.gz" -delete
 
+## Delete all slurm log files in the logs/ directory
+.PHONY: clean_logs
+clean_logs:
+	find logs/. -type f -name "*.err" -delete
+	find logs/. -type f -name "*.out" -delete
+
 ## Zip contents of directory for upload/download to/from TSD
 .PHONY: zip
 zip:

@@ -1,7 +1,6 @@
 library(tidyverse)
 library(survival)
-#library(survminer)
-#library(broom)
+library(hazRd)
 
 source("src/00_config.R")
 
@@ -142,7 +141,7 @@ kmcurve = ggplot(mod_data, aes(x = time, y = estimate, color = percentile)) +
   geom_step() +
   theme_minimal() +
   xlim(40, 100) + 
-#  geom_line(aes(x = agevals, y = value, color = percentile), S_tibble) + 
+  geom_line(aes(x = agevals, y = value, color = percentile), S_tibble) + 
   scale_color_brewer(palette = "Set1") +
   labs(x = "Age", y = "PCa-free Survival")
 
@@ -155,13 +154,12 @@ combined_data %>%
   cases_controls
 
 ## Hazard ratios
-source("src/RK_get_perf.R")
 perform = with(combined_data, 
                RK_get_perf(phs, 
                            age, 
                            status, 
                            ref = phs, 
-                           swc.popnumcases = cases_controls[[2, 2]], 
-                           swc.popnumcontrols = cases_controls[[1, 2]]))
+                           swc_popnumcases = cases_controls[[2, 2]], 
+                           swc_popnumcontrols = cases_controls[[1, 2]]))
 perform = stack(perform)[, c(2, 1)]
 write_tsv(perform, paste0(output, model, "_performance.txt"))

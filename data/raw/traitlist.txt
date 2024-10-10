@@ -1,6 +1,6 @@
-/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/PGS000067.yaml
-/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/PGS000733.yaml
-/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/PGS000741.yaml
-/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/PGS000742.yaml
-/ess/p33/cluster/users/andrewmo/heritable_cancer/data/interim/PGS003331.yaml
+data/interim/PGS000067.yaml
+data/interim/PGS000733.yaml
+data/interim/PGS000741.yaml
+data/interim/PGS000742.yaml
+data/interim/PGS003331.yaml
 
