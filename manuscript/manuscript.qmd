@@ -1,7 +1,51 @@
 ---
-title: "Manuscript"
-format: html
-editor: visual
+title: "Title"
+
+author:
+    - name: Andrew H. Morris
+      email: andrewmorris@mailbox.org
+      affiliations:
+          - ref: ous
+          - ref: uio
+      attributes:
+        corresponding: true
+    - name: Bayram Cevdet Akdeniz
+      affiliations:
+          - ref: ous
+          - ref: uio
+    - name: Oleksandr Frei
+      affiliations:
+          - ref: ous
+          - ref: uio
+    - name: Ole A. Andreassen
+      affiliations:
+          - ref: ous
+
+affiliations:
+    - id: ous
+      name: Centre for Precision Psychiatry, Centre for Mental Disorders Research, Division of Mental Health and Addiction, Oslo University Hospital, and Institute of Clinical Medicine, University of Oslo, Oslo, Norway
+    - id: uio
+      name: Centre for Bioinformatics, Department of Informatics, University of Oslo, Oslo, Norway
+
+filters:
+    - authors-block
+bibliography: references.bib
+output: 
+    pdf_document:
+        extra_dependencies: ["flafter"]
+format:
+    pdf:
+        editor: visual
+        papersize: A4
+        keep-tex: true
+        cite-method: natbib
+        natbiboptions: numbers
+        biblio-style: naturemag
+        include-in-header:
+            - text: |
+                \usepackage{lineno}\linenumbers
+    # docx: 
+    #     csl: nature.csl
 ---
 
 ## Introduction

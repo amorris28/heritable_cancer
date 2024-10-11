@@ -18,22 +18,14 @@
 2. Use LDlink to find alternative SNPs
 3. Write a script to substitute in these IDs
 
-Scripts to update in local:
-
-- `src/PCA_rotate_alleles.batch`
-- `src/PCA_update_ids_antegenes.R`
-- `src/PCA_identify_cases_and_controls.R`
-- `src/PCA_sumstats.R`
-- basically everything in `src`
-
-Other files:
-- Some lists in `data/interim`
 
 ## Log
 
 ### 10.10.2024
 
 I further organized the hazRd package and published it on Github. I also lobotomized my `phs_testing.R` script into several functions. I need to replace the `phs_testing.R` script with an updated script that uses the hazRd package instead. The other thing I need to do is to update the scripts in hazRd to create the plots and performance metrics that Alex requested.
+
+Besides the R package, I also have started testing my customer pipeline. This was delayed a bit cuz TSD was down and then it was catching up on jobs afterwards. 
 
 ### 09.10.2024
 

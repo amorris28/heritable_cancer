@@ -35,8 +35,18 @@ data/**/bim_files/*
 *.xlsx
 *.pptx
 *.html
+*.pdf
 
 # plink bfiles
 *.bim
 *.bam
 *.fam
+
+# latex intermediate files
+*.fdb_latexmk
+*.tex
+
+# log files
+*.log
+*.err
+*.out

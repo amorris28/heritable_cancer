@@ -32,8 +32,6 @@ zip:
 	$(PROJECT_NAME)/README.md \
 	$(PROJECT_NAME)/.gitignore \
 	$(PROJECT_NAME)/.git \
-	$(PROJECT_NAME)/renv \
-	$(PROJECT_NAME)/renv.lock \
 	-x $(PROJECT_NAME)/**/*.bed \
 	-x $(PROJECT_NAME)/**/*.fam \
 	-x $(PROJECT_NAME)/**/*.DS_Store
@@ -56,10 +54,10 @@ cleansumstats:
 ## Identify cases/controls and harmonize in bfiles
 .PHONY: metadata
 metadata:
-	sbatch 03_pca_preprocess-metadata.batch
+	sbatch src/03_pca_preprocess-metadata.batch
 
 ## Calculate PHS values for each model using matrix multiplication
 .PHONY: phs
 phs:
-	sbatch 06_pca_calculate-phs.batch
+	sbatch src/06_pca_calculate-phs.batch
 
