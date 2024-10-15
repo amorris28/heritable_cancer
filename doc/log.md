@@ -21,6 +21,10 @@
 
 ## Log
 
+### 2024-10-11
+
+Left off running make metadata on p212. Be sure to check all of the scripts for diff between that directory and my local (main) directory to insure I capture all of the modifications I have made. Then, rerun the whole pipeline (I guess) because there were many steps that required editing to get it to run.
+
 ### 10.10.2024
 
 I further organized the hazRd package and published it on Github. I also lobotomized my `phs_testing.R` script into several functions. I need to replace the `phs_testing.R` script with an updated script that uses the hazRd package instead. The other thing I need to do is to update the scripts in hazRd to create the plots and performance metrics that Alex requested.

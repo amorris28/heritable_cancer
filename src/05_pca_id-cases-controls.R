@@ -1,7 +1,7 @@
 library(tidyverse)
 library(readxl)
 
-source("src/config.R")
+source("src/00_config.R")
 
 allData = read_excel(paste0(RAW_DATA, 'familial_cancer_phenotypes.xls'), sheet = 1)
 caseData = read_excel(paste0(RAW_DATA, 'familial_cancer_phenotypes.xls'), sheet = 2)
