@@ -3,9 +3,9 @@
 #SBATCH --output=logs/%x.%j.out
 #SBATCH --error=logs/%x.%j.err
 #SBATCH --account=p212_tsd
-#SBATCH --time=00:10:00
+#SBATCH --time=02:00:00
 #SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=10G
+#SBATCH --mem-per-cpu=100G
 #SBATCH --cpus-per-task=1
 
 export BFILE=/cluster/projects/p212/antenor_pipeline/antegenes_imputed_allchr-temporary
@@ -18,6 +18,8 @@ export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COM
 export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
 export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 
+mkdir scratch
+
 ######################################################
 # Fix fam file IDs
 
@@ -25,7 +27,7 @@ $RSCRIPT src/04_pca_update-ids.R
 
 $PLINK  --bed ${BFILE}.bed \
 	--fam ${BFILE}.fam \
-	--bim data/interim/bim_files/${BFILE_OUT}_tmp.bim \
+	--bim data/interim/${BFILE_OUT}_tmp.bim \
 	--update-ids data/interim/update-ids-antegenes.tsv \
 	--make-bed \
 	--out ${WORK_DIR}/${BFILE_OUT}_tmp
@@ -41,12 +43,12 @@ $PLINK2 --bfile ${WORK_DIR}/${BFILE_OUT}_tmp \
 
 # Rotate alleles
 $PLINK2 --pfile ${WORK_DIR}/${BFILE_OUT}_tmp_sorted \
-	--alt1-allele force data/interim/bim_files/forceALT_betan_${BFILE_OUT}.txt \
+	--alt1-allele force data/interim/forceALT_betan_${BFILE_OUT}.txt \
 	--make-bed \
-	--out ${INTERIM_DIR}/bfiles/${BFILE_OUT}
+	--out ${INTERIM_DIR}/${BFILE_OUT}
 
-awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${INTERIM_DIR}/bfiles/${BFILE_OUT}.bim > ${INTERIM_DIR}/bfiles/${BFILE_OUT}.bim_tmp
-mv ${INTERIM_DIR}/bfiles/${BFILE_OUT}.bim_tmp ${INTERIM_DIR}/bfiles/${BFILE_OUT}.bim
+awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${INTERIM_DIR}/${BFILE_OUT}.bim > ${INTERIM_DIR}/${BFILE_OUT}.bim_tmp
+mv ${INTERIM_DIR}/${BFILE_OUT}.bim_tmp ${INTERIM_DIR}/${BFILE_OUT}.bim
 
 ######################################################
 # Filter cases and controls
@@ -61,7 +63,7 @@ do
   cp data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz data/processed/${VARIABLE}.txt.gz
 done < ${INTERIM_DIR}/sumstats_basenames 
 
-$PLINK	--bfile ${INTERIM_DIR}/bfiles/${BFILE_OUT} \
+$PLINK	--bfile ${INTERIM_DIR}/${BFILE_OUT} \
 	--keep ${INTERIM_DIR}/bfile_id_samples.txt \
 	--extract ${INTERIM_DIR}/phs_rsids \
 	--make-bed \

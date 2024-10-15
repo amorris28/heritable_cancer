@@ -1,10 +1,9 @@
 library(tidyverse)
 library(survival)
-library(hazRd)
+#library(survminer)
+#library(broom)
 
 source("src/00_config.R")
-
-args = c(paste0(PROCESSED_DATA, "PGS003331_phs"), paste0(PROCESSED_DATA, "familial_cancer_phenotypes.tsv"), TRUE)
 
 
 #########################################
@@ -17,7 +16,7 @@ args = c(paste0(PROCESSED_DATA, "PGS003331_phs"), paste0(PROCESSED_DATA, "famili
 # boolean indicating whether to inverse (x * -1) the PHS scores
 # to reverse the direction of effect.
 
-#args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
 
@@ -141,7 +140,7 @@ kmcurve = ggplot(mod_data, aes(x = time, y = estimate, color = percentile)) +
   geom_step() +
   theme_minimal() +
   xlim(40, 100) + 
-  geom_line(aes(x = agevals, y = value, color = percentile), S_tibble) + 
+#  geom_line(aes(x = agevals, y = value, color = percentile), S_tibble) + 
   scale_color_brewer(palette = "Set1") +
   labs(x = "Age", y = "PCa-free Survival")
 
@@ -154,12 +153,13 @@ combined_data %>%
   cases_controls
 
 ## Hazard ratios
+source("src/RK_get_perf.R")
 perform = with(combined_data, 
                RK_get_perf(phs, 
                            age, 
                            status, 
                            ref = phs, 
-                           swc_popnumcases = cases_controls[[2, 2]], 
-                           swc_popnumcontrols = cases_controls[[1, 2]]))
+                           swc.popnumcases = cases_controls[[2, 2]], 
+                           swc.popnumcontrols = cases_controls[[1, 2]]))
 perform = stack(perform)[, c(2, 1)]
 write_tsv(perform, paste0(output, model, "_performance.txt"))

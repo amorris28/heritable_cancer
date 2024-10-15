@@ -1,7 +1,7 @@
 library(tidyverse)
 library(genio)
 
-source("src/config.R")
+source("src/00_config.R")
 
 # Takes a list of sumstats (or just 1 I guess)
 # Takes bfile

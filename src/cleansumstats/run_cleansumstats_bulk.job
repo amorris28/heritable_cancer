@@ -30,6 +30,10 @@ IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '
 SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
+#bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
 # bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
+
+export MODEL=`basename ${META_YAML} .yaml`
+
+mv ${INTERIM_DIR}/${MODEL}/${MODEL}.GRCh37.gz ${PROCESSED_DIR}/${MODEL}.txt.gz
 

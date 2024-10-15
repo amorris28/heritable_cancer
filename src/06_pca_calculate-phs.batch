@@ -6,7 +6,7 @@
 #SBATCH --time=00:05:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=1
 #SBATCH --array=1-5
 
 module purge
@@ -22,6 +22,8 @@ export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MO
 #export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list
 export COMORMENT=/cluster/projects/p212/comorment
 export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
+
+mkdir -p reports/figures
 
 Rscript src/07_pca_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.txt.gz $PROCESSED_DIR/familial_cancer_cs_PCa
 Rscript src/phs_testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/familial_cancer_phenotypes.tsv TRUE
