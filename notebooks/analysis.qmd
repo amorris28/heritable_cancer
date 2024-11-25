@@ -157,7 +157,7 @@ Three RSIDs in the cleaned sumstats file are missing from the MOBA imputation BI
 ```{r check_bim}
 all_bim = read_tsv('...', col_names = FALSE)
 all_bim %>% 
-  filter(X1 == 10 & X4 = 8032001) %>% 
+  filter(X1 == 10 & X4 == 8032001) %>% 
   write_tsv('big_effect_allele')
   
 ```
