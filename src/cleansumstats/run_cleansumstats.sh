@@ -1,5 +1,5 @@
 #!/bin/bash
-# args: $1: meta, $2: OUT_DIR, $3: WORK_DIR, $4: p33/p697, $5: SUMSTAT_DIR
+# args: $1: meta, $2: OUT_DIR, $3: WORK_DIR, $4: p33/p697/p212, $5: SUMSTAT_DIR
 
 ###### user input ######
 export META_YAML=${1}
@@ -17,11 +17,16 @@ if [[ "${TSD_PROJ}" == "p697" ]]; then
     export CLEANSUMSTATS=/ess/p697/cluster/projects/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p697:/ess/p697 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export RSCRIPT="singularity exec --bind /ess/p697:/ess/p697 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
-else 
+elif [[ "${TSD_PROJ}" == "p33" ]]; then 
     export COMORMENT=/ess/p33/cluster/github/comorment
     export CLEANSUMSTATS=/ess/p33/cluster/groups/biostat/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export RSCRIPT="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
+else
+    export COMORMENT=/ess/p212/cluster/comorment
+    export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
+    export PYTHON="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
+    export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 fi
 export REF_FILE="$COMORMENT/matlabruntime/reference/pleiofdr/9545380_ref/9545380.ref"
 

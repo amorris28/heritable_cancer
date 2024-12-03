@@ -2,7 +2,7 @@
 #SBATCH --job-name=SUMSTAT
 #SBATCH --output=logs/%x.%j.out
 #SBATCH --error=logs/%x.%j.err
-#SBATCH --account=p33
+#SBATCH --account=p212_tsd
 #SBATCH --time=4:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
@@ -18,7 +18,7 @@ set -o errexit
 export LIST=${SLURM_SUBMIT_DIR}/data/raw/bimlist.txt
 export OUT_DIR=${SLURM_SUBMIT_DIR}/data/interim
 export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
-export TSD_PROJ=p33 # p697 or p33
+export TSD_PROJ=p212 # p697 or p33 or p212
 
 # Path and variable definition
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}

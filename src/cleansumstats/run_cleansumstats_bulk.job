@@ -2,7 +2,7 @@
 #SBATCH --job-name=SUMSTAT
 #SBATCH --output=logs/%x.%j.out
 #SBATCH --error=logs/%x.%j.err
-#SBATCH --account=p33
+#SBATCH --account=p212_tsd
 #SBATCH --time=4:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
@@ -17,7 +17,7 @@ set -o errexit
 export LIST=${SLURM_SUBMIT_DIR}/data/raw/traitlist.txt
 export INTERIM_DIR=${SLURM_SUBMIT_DIR}/data/interim/sumstats
 export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
-export TSD_PROJ=p33 # p697 or p33
+export TSD_PROJ=p212 # p697 or p33 or p212
 export PROCESSED_DIR=${SLURM_SUBMIT_DIR}/data/processed
 
 # Path and variable definition
@@ -30,7 +30,7 @@ IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '
 SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-#bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
+bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
 # bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
 
 export MODEL=`basename ${META_YAML} .yaml`

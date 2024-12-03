@@ -17,11 +17,16 @@ if [[ "${TSD_PROJ}" == "p697" ]]; then
     export CLEANSUMSTATS=/ess/p697/cluster/projects/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p697:/ess/p697 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export PLINK2="singularity exec --bind /ess/p697:/ess/p697 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
-else 
+elif [[ "${TSD_PROJ}" == "p33" ]]; then 
     export COMORMENT=/ess/p33/cluster/github/comorment
     export CLEANSUMSTATS=/ess/p33/cluster/groups/biostat/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p33:/ess/p33,/usr/bin:/usr/bin --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export PLINK2="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
+else
+    export COMORMENT=/ess/p212/cluster/comorment
+    export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
+    export PYTHON="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
+    export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
 fi
 
 # Path and variable definition
