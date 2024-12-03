@@ -1,6 +1,6 @@
+library(tidyverse)
 library(hazrd)
 source("src/00_config.R")
-readr::read_tsv(paste0(PROCESSED_DATA))
 
 #########################################
 # First argument: PHS file
@@ -44,15 +44,22 @@ metadata %>%
 # Analyze PHS data
 
 # PHS Histogram
-phs_hist = phs_hist(test_data, normalize = TRUE)
+phs_hist = phs_hist(combined_data, normalize = TRUE)
 
 ggsave(paste0(figs, model, "_hist.png"), phs_hist)
 
 # Performance metrics
-HR80_20 = get_hr(test_data, CI = TRUE, boot = 300)
-OR80_20 = get_or(test_data, or_age = 70, CI = TRUE, boot = 300)
-c_index = get_cindex(test_data, CI = TRUE, boot = 300)
-perform = data.frame(HR = HR80_20[1:4], OR = OR80_20[1:4], CI = c_index[1:4])
+
+
+HR80_20 = get_hr(combined_data, CI = TRUE, boot = 300)
+OR80_20 = get_or(combined_data, or_age = 70, CI = TRUE, boot = 300)
+c_index = get_cindex(combined_data, CI = TRUE, boot = 300)
+indices = list(HR80_20, OR80_20, c_index)
+
+perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                 value = x$value, 
+                                                                 conf.low = x$conf.low, 
+                                                                 conf.high = x$conf.high)}))
 write_tsv(perform, paste0(output, model, "_performance.txt"))
 
 
@@ -100,6 +107,6 @@ km_curve = ggplot(km_curves, aes(x = time,
                     name = "Centile")
 
 ggsave(paste0(figs, model, "_km_curve.png"),
-       kmcurve)
+       km_curve)
 
 
