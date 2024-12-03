@@ -11,9 +11,11 @@ PROJECT_NAME = heritable_cancer
 ## Delete all external and interim data files
 .PHONY: clean_data
 clean_data:
-	find data/external/. -type f -name "*.txt.gz" -delete
 	find data/interim/. -type f -name "*.yaml" -delete
 	find data/interim/. -type f -name "*.txt.gz" -delete
+#	find data/external/. -type f -name "*.txt.gz" -delete
+# removed this because i don't want to accidentally delete datasets shared
+# by colleagues
 
 ## Delete all slurm log files in the logs/ directory
 .PHONY: clean_logs
@@ -32,6 +34,7 @@ zip:
 	$(PROJECT_NAME)/README.md \
 	$(PROJECT_NAME)/.gitignore \
 	$(PROJECT_NAME)/.git \
+	-x $(PROJECT_NAME)/**/*.bim \
 	-x $(PROJECT_NAME)/**/*.bed \
 	-x $(PROJECT_NAME)/**/*.fam \
 	-x $(PROJECT_NAME)/**/*.DS_Store
