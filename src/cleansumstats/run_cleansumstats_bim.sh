@@ -23,7 +23,7 @@ elif [[ "${TSD_PROJ}" == "p33" ]]; then
     export PYTHON="singularity exec --bind /ess/p33:/ess/p33,/usr/bin:/usr/bin --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export PLINK2="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
 else
-    export COMORMENT=/ess/p212/cluster/comorment
+    export COMORMENT=/ess/p212/cluster/github/comorment
     export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export PLINK2="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/gwas.sif plink2"
@@ -63,16 +63,16 @@ ${PYTHON} ${SCRIPT_DIR}/sum2bim.py --bfile ${BFILE} --bim ${WORK_DIR}/${TRAIT}.$
 mkdir -p ${OUT_DIR} && cp ${WORK_DIR}/{${BFILE_OUT}_tmp.bim,forceALT_betan_${BFILE_OUT}.txt} ${OUT_DIR}
 
 # Rotate alleles in bed file which were flipped by cleansumstats (files needed for external PLINK call: ${BFILE_OUT}_tmp.bim and forceALT_betan_${BFILE_OUT}.txt)
-#$PLINK2 --bed ${BFILE}.bed \
-#    --bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
-#    --fam ${BFILE}.fam \
-#    --alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
-#    --make-bed \
-#    --out ${OUT_DIR}/${BFILE_OUT}
+$PLINK2 --bed ${BFILE}.bed \
+    --bim ${WORK_DIR}/${BFILE_OUT}_tmp.bim \
+    --fam ${BFILE}.fam \
+    --alt1-allele force ${WORK_DIR}/forceALT_betan_${BFILE_OUT}.txt \
+    --make-bed \
+    --out ${OUT_DIR}/${BFILE_OUT}
 
 # Remove line suffix from RSIDS for multi-allelic SNPs (optional)
-#awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
-#mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
+awk '{split($2,a,"_"); print $1 "\t" a[1] "\t" $3 "\t" $4 "\t" $5 "\t" $6}' ${OUT_DIR}/${BFILE_OUT}.bim > ${OUT_DIR}/${BFILE_OUT}.bim_tmp
+mv ${OUT_DIR}/${BFILE_OUT}.bim_tmp ${OUT_DIR}/${BFILE_OUT}.bim
 
 # Test for bim_clsum==bim_plink
 #echo -e '

@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-5 # user input depending on the number of meta files in the trait list
+#SBATCH --array=6 # user input depending on the number of meta files in the trait list
 module purge
 test $SCRATCH # && module load singularity/3.7.3 
 source /cluster/bin/jobsetup

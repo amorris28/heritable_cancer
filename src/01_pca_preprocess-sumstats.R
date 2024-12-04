@@ -6,7 +6,6 @@ phsmodels = readr::read_lines(paste0(RAW_DATA, "phs-models.txt"))
 # Download and preprocess external sumstats files
 
 files = tools::file_path_sans_ext(basename(phsmodels), compression = TRUE)
-readr::write_lines(files, paste0(INTERIM_DATA, "sumstats_basenames"))
 
 for (url in phsmodels) {
   # import sumstats URLs and extract file names
@@ -37,27 +36,32 @@ for (url in phsmodels) {
 }
 
 # New model from Roshan
-
-PHS601 = readxl::read_excel(paste0(EXTERNAL_DATA, "01_geneticScore.finalModel.snplist.xlsx"))
-
-PHS601 = dplyr::select(PHS601,
-              rsID = SNP,
-              chr_name = Chromosome,
-              chr_position = `Position (GRCh37)`,
-              effect_allele = Effect,
-              other_allele = Ref,
-              effect_weight = Beta)
-
+PHS601_raw = paste0(EXTERNAL_DATA, "01_geneticScore.finalModel.snplist.xlsx")
 PHS601_preprocfile = paste0(INTERIM_DATA, "PHS601.txt.gz")
-
-if (!file.exists(PHS601_preprocfile)) {
-  readr::write_tsv(PHS601, PHS601_preprocfile)
-}
-
 PHS601_yamlfile = paste0(
                   tools::file_path_sans_ext(PHS601_preprocfile, compression = TRUE), 
                   ".yaml")
-if (!file.exists(PHS601_yamlfile)) {
-  readr::write_lines(paste0("cleansumstats_metafile_kind: minimal\ncol_SNP: rsID\ncol_CHR: chr_name\ncol_POS: chr_position\ncol_EffectAllele: effect_allele\ncol_OtherAllele: other_allele\ncol_BETA: effect_weight\npath_sumStats: ", basename(PHS601_preprocfile), "\nstats_Model: cox"),
-                     PHS601_yamlfile)
+
+if (file.exists(PHS601_raw)) {
+  PHS601 = readxl::read_excel(paste0(EXTERNAL_DATA, "01_geneticScore.finalModel.snplist.xlsx"))
+  
+  PHS601 = dplyr::select(PHS601,
+                rsID = SNP,
+                chr_name = Chromosome,
+                chr_position = `Position (GRCh37)`,
+                effect_allele = Effect,
+                other_allele = Ref,
+                effect_weight = Beta)
+  
+  
+  if (!file.exists(PHS601_preprocfile)) {
+    readr::write_tsv(PHS601, PHS601_preprocfile)
+  }
+  
+  if (!file.exists(PHS601_yamlfile)) {
+    readr::write_lines(paste0("cleansumstats_metafile_kind: minimal\ncol_SNP: rsID\ncol_CHR: chr_name\ncol_POS: chr_position\ncol_EffectAllele: effect_allele\ncol_OtherAllele: other_allele\ncol_BETA: effect_weight\npath_sumStats: ", basename(PHS601_preprocfile), "\nstats_Model: cox"),
+                       PHS601_yamlfile)
+  }
 }
+files = c(files, tools::file_path_sans_ext(basename(PHS601_preprocfile), compression = TRUE))
+readr::write_lines(files, paste0(INTERIM_DATA, "sumstats_basenames"))

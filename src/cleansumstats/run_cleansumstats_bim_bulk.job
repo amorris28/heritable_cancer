@@ -10,7 +10,7 @@
 #SBATCH --array=1 # user input depending on the number of meta files in the trait list
 
 module purge
-test $SCRATCH && module load singularity/3.7.3 
+test $SCRATCH #&& module load singularity/3.7.3 
 source /cluster/bin/jobsetup
 set -o errexit
 

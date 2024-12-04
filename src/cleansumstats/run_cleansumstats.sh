@@ -23,7 +23,7 @@ elif [[ "${TSD_PROJ}" == "p33" ]]; then
     export PYTHON="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export RSCRIPT="singularity exec --bind /ess/p33:/ess/p33 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 else
-    export COMORMENT=/ess/p212/cluster/comorment
+    export COMORMENT=/ess/p212/cluster/github/comorment
     export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
     export PYTHON="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/python3.sif python"
     export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"

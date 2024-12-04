@@ -36,6 +36,7 @@ data/**/bim_files/*
 *.pptx
 *.html
 *.pdf
+reports/
 
 # plink bfiles
 *.bim
