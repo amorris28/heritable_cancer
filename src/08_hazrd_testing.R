@@ -52,7 +52,8 @@ ggsave(paste0(figs, model, "_hist.png"), phs_hist)
 
 
 HR80_20 = get_hr(combined_data, CI = TRUE, boot = 300)
-OR80_20 = get_or(combined_data, or_age = 70, CI = TRUE, boot = 300)
+ages = c(60, 70, 80, 90)
+OR_80_20 = lapply(ages, function(x) {get_or(combined_data, or_age = x, CI = TRUE, boot = 300)})
 c_index = get_cindex(combined_data, CI = TRUE, boot = 300)
 indices = list(HR80_20, OR80_20, c_index)
 

@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.4.1",
+    "Version": "4.4.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -1008,6 +1008,23 @@
         "vctrs"
       ],
       "Hash": "9171f898db9d9c4c1b2c745adc2c1ef1"
+    },
+    "hazrd": {
+      "Package": "hazrd",
+      "Version": "0.1.0",
+      "Source": "Local",
+      "RemoteType": "local",
+      "RemoteUrl": "../hazrd_0.1.0.tar.gz",
+      "Requirements": [
+        "R",
+        "dplyr",
+        "ggplot2",
+        "scales",
+        "survival",
+        "tibble",
+        "tidyr"
+      ],
+      "Hash": "3b954be991b1bb2d838234ccb5b8d992"
     },
     "here": {
       "Package": "here",
