@@ -51,8 +51,8 @@ sumstats:
 ## Run cleansumstats pipeline
 .PHONY: cleansumstats
 cleansumstats:
-	sbatch src/cleansumstats/run_cleansumstats_bulk.job
-	sbatch src/cleansumstats/run_cleansumstats_bim_bulk.job
+	sbatch src/02_run-cleansumstats.batch
+	sbatch src/02_run-cleansumstats-bim.batch
 
 ## Identify cases/controls and harmonize in bfiles
 .PHONY: metadata

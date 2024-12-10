@@ -19,19 +19,21 @@ export INTERIM_DIR=${SLURM_SUBMIT_DIR}/data/interim/sumstats
 export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
 export TSD_PROJ=p212 # p697 or p33 or p212
 export PROCESSED_DIR=${SLURM_SUBMIT_DIR}/data/processed
+export COMORMENT=/ess/p212/cluster/github/comorment
+export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
+export SCRIPT_DIR=/ess/p212/home/p212-andrewmo/JF
 
 # Path and variable definition
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
 export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
 #export WORK_DIR=${SCRATCH}/out && mkdir -p ${WORK_DIR} && echo Temporary working directory: "${WORK_DIR}"
 
-# Get script location
-IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
-SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
+# # Get script location
+# IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
+# SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
-# bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ}
+bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${COMORMENT} ${CLEANSUMSTATS}
 
 export MODEL=`basename ${META_YAML} .yaml`
 
