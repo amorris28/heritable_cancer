@@ -52,3 +52,6 @@ scratch/
 *.log
 *.err
 *.out
+
+# git files
+*.bundle
