@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=16
-#SBATCH --array=1 # user input depending on the number of meta files in the trait list
+#SBATCH --array=2 # user input depending on the number of meta files in the trait list
 
 module purge
 test $SCRATCH #&& module load singularity/3.7.3 
@@ -22,7 +22,8 @@ export TSD_PROJ=p212 # p697 or p33 or p212
 
 # Path and variable definition
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
-export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
+export META_YAML=$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
+#export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
 #export WORK_DIR=${SCRATCH}/out && mkdir -p ${WORK_DIR} && echo Temporary working directory: "${WORK_DIR}"
 
 # Get script location
