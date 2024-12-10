@@ -37,6 +37,7 @@ data/**/bim_files/*
 *.html
 *.pdf
 reports/
+scratch/
 
 # plink bfiles
 *.bim

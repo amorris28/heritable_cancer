@@ -1,1 +1,2 @@
 data/raw/familial_cancer
+/cluster/projects/p212/moba_qc_imputation/BA/release6/moba_imputed_all
