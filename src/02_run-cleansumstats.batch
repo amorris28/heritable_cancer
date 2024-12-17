@@ -33,7 +33,7 @@ export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input me
 # SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${COMORMENT} ${CLEANSUMSTATS}
+bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 
 export MODEL=`basename ${META_YAML} .yaml`
 
