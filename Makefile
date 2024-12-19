@@ -23,6 +23,11 @@ clean_logs:
 	find logs/. -type f -name "*.err" -delete
 	find logs/. -type f -name "*.out" -delete
 
+## Bundle git repo
+.PHONY: bundle
+bundle:
+	git bundle create main.bundle HEAD main
+
 ## Zip contents of directory for upload/download to/from TSD
 .PHONY: zip
 zip:
