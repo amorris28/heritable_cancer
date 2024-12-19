@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=6 # user input depending on the number of meta files in the trait list
+#SBATCH --array=1-6 # user input depending on the number of meta files in the trait list
 module purge
 test $SCRATCH # && module load singularity/3.7.3 
 source /cluster/bin/jobsetup
@@ -15,7 +15,7 @@ set -o errexit
 
 # User input (list of meta files (.yaml), output directory and TSD project)
 export LIST=${SLURM_SUBMIT_DIR}/data/raw/traitlist.txt
-export INTERIM_DIR=${SLURM_SUBMIT_DIR}/data/interim/sumstats
+export INTERIM_DIR=${SLURM_SUBMIT_DIR}/data/interim
 export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
 export TSD_PROJ=p212 # p697 or p33 or p212
 export PROCESSED_DIR=${SLURM_SUBMIT_DIR}/data/processed
@@ -33,15 +33,7 @@ export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input me
 # SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
-
-# Pull out model SNP RSIDs
-while read VARIABLE;
-do
-  echo $VARIABLE
-  zcat data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz | awk '{ print $3 }' | tail -n +2 >> ${INTERIM_DIR}/phs_rsids
-  cp data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz data/processed/${VARIABLE}.txt.gz
-done < ${INTERIM_DIR}/sumstats_basenames 
+#bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR}/sumstats ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 
 # Move finished finals to processed dir
 export MODEL=`basename ${META_YAML} .yaml`

@@ -3,8 +3,8 @@ library(readxl)
 
 source("src/00_config.R")
 
-allData = read_excel("/tsd/p212/home/p212-andrewmo/FW__Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
-caseData = read_excel("/tsd/p212/home/p212-andrewmo/FW__Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
+allData = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
+caseData = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
 
 # Grab all male IDs
 allData %>% 
@@ -43,7 +43,7 @@ try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in co
 case = tibble(PTN_REGNR = as.character(prostateIDs))
 control = tibble(PTN_REGNR = as.character(controlIDs))
 
-xl = read_excel("/tsd/p212/home/p212-andrewmo/FW__Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
+xl = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
 
 bind_rows(case, control) %>% 
   left_join(xl, by = "PTN_REGNR") %>% 

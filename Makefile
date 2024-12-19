@@ -56,7 +56,7 @@ sumstats:
 ## Identify cases/controls and harmonize in bfiles
 .PHONY: metadata
 metadata:
-	Rscript 02_id-cases-controls_p212.R
+	$(RSCRIPT) 02_id-cases-controls_p212.R
 #	sbatch src/03_pca_preprocess-metadata.batch
 
 ## Identify IDs in antegenes to fix bfiles later
@@ -67,14 +67,15 @@ antegenes-ids:
 ## Run cleansumstats pipeline
 .PHONY: cleansumstats
 cleansumstats:
-	sbatch src/02_run-cleansumstats.batch
+	sbatch src/03_run-cleansumstats.batch; \
+	bash src/03_record-rsids.sh
 
 .PHONY: cleansumstats-bim
 cleansumstats-bim:
-	sbatch src/02_run-cleansumstats-bim.batch
+	sbatch src/04_run-cleansumstats-bim.batch
 
 ## Calculate PHS values for each model using matrix multiplication
 .PHONY: phs
 phs:
-	sbatch src/06_pca_calculate-phs.batch
+	sbatch src/05_calculate-phs.batch
 
