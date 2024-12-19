@@ -86,4 +86,4 @@ samples %>%
   right_join(combined_data, by = "PTN_REGNR") %>%
   select(-PTN_REGNR) -> phenotypes
 
-write_tsv(phenotypes, paste0(PROCESSED_DATA, "familial_cancer_phenotypes.tsv"))
+write_tsv(phenotypes, paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))

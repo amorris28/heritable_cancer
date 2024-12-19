@@ -55,14 +55,6 @@ mv ${INTERIM_DIR}/${BFILE_OUT}.bim_tmp ${INTERIM_DIR}/${BFILE_OUT}.bim
 
 $RSCRIPT src/05_pca_id-cases-controls.R
 
-# Pull out model SNP RSIDs
-while read VARIABLE;
-do
-  echo $VARIABLE
-  zcat data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz | awk '{ print $3 }' | tail -n +2 >> ${INTERIM_DIR}/phs_rsids
-  cp data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz data/processed/${VARIABLE}.txt.gz
-done < ${INTERIM_DIR}/sumstats_basenames 
-
 $PLINK	--bfile ${INTERIM_DIR}/${BFILE_OUT} \
 	--keep ${INTERIM_DIR}/bfile_id_samples.txt \
 	--extract ${INTERIM_DIR}/phs_rsids \

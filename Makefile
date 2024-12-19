@@ -46,18 +46,27 @@ zip:
 ## Download and pre-process sumstats
 .PHONY: sumstats
 sumstats:
-	Rscript src/01_pca_preprocess-sumstats.R
+	Rscript src/01_preprocess-sumstats.R
+
+## Identify cases/controls and harmonize in bfiles
+.PHONY: metadata
+metadata:
+	Rscript 02_id-cases-controls_p212.R
+#	sbatch src/03_pca_preprocess-metadata.batch
+
+## Identify IDs in antegenes to fix bfiles later
+.PHONY: antegenes-ids
+antegenes-ids:
+	Rscript 02_update-ids_antegenes.R
 
 ## Run cleansumstats pipeline
 .PHONY: cleansumstats
 cleansumstats:
 	sbatch src/02_run-cleansumstats.batch
-	sbatch src/02_run-cleansumstats-bim.batch
 
-## Identify cases/controls and harmonize in bfiles
-.PHONY: metadata
-metadata:
-	sbatch src/03_pca_preprocess-metadata.batch
+.PHONY: cleansumstats-bim
+cleansumstats-bim:
+	sbatch src/02_run-cleansumstats-bim.batch
 
 ## Calculate PHS values for each model using matrix multiplication
 .PHONY: phs

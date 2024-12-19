@@ -35,6 +35,15 @@ export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input me
 # Shell script call
 bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR} ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 
+# Pull out model SNP RSIDs
+while read VARIABLE;
+do
+  echo $VARIABLE
+  zcat data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz | awk '{ print $3 }' | tail -n +2 >> ${INTERIM_DIR}/phs_rsids
+  cp data/interim/sumstats/${VARIABLE}/${VARIABLE}.GRCh37.gz data/processed/${VARIABLE}.txt.gz
+done < ${INTERIM_DIR}/sumstats_basenames 
+
+# Move finished finals to processed dir
 export MODEL=`basename ${META_YAML} .yaml`
 
 mv ${INTERIM_DIR}/${MODEL}/${MODEL}.GRCh37.gz ${PROCESSED_DIR}/${MODEL}.txt.gz
