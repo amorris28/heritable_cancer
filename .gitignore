@@ -3,6 +3,12 @@
 .Rhistory
 .RData
 .Ruserdata
+*.Rproj
+.Rprofile
+
+# renv
+renv/
+renv.lock
 
 # IDE files
 .spyproject

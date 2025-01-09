@@ -52,15 +52,19 @@ ggsave(paste0(figs, model, "_hist.png"), phs_hist)
 
 
 HR80_20 = get_hr(combined_data, CI = TRUE, boot = 300)
-ages = c(60, 70, 80, 90)
+ages = c(60, 70, 80)
 OR80_20 = lapply(ages, function(x) {get_or(combined_data, or_age = x, CI = TRUE, boot = 300)})
 c_index = get_cindex(combined_data, CI = TRUE, boot = 300)
-indices = list(HR80_20, OR80_20, c_index)
+
+HR80_20$age = NA
+c_index$age = NA
+indices = list(HR80_20, OR80_20[[1]], OR80_20[[2]], OR80_20[[3]], c_index)
 
 perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
                                                                  value = x$value, 
                                                                  conf.low = x$conf.low, 
-                                                                 conf.high = x$conf.high)}))
+                                                                 conf.high = x$conf.high, 
+                                                                 age = x$age)}))
 write_tsv(perform, paste0(output, model, "_performance.txt"))
 
 
