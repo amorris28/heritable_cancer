@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=6
+#SBATCH --array=1-6
 
 module purge
 test $SCRATCH && module load R/4.4.1-gfbf-2023b 
@@ -20,12 +20,12 @@ export MODELLIST=$INTERIM_DIR/sumstats_basenames
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
 export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MODEL}" # get model from list
 #export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list
-export COMORMENT=/cluster/projects/p212/comorment
+export COMORMENT=/cluster/projects/p212/github/comorment
 export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 
 mkdir -p reports/figures
 
-Rscript src/07_pca_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.txt.gz $PROCESSED_DIR/familial_cancer_cs_PCa
+$RSCRIPT src/05_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.txt.gz $PROCESSED_DIR/moba_imputed_all_cs
 # Rscript src/phs_testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/familial_cancer_phenotypes.tsv TRUE
-Rscript src/08_hazrd_testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/familial_cancer_phenotypes.tsv TRUE
+Rscript src/05_hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE
 

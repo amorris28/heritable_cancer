@@ -54,7 +54,11 @@ samples %>%
   mutate(bfile_id2 = bfile_id) %>% 
   select(bfile_id, bfile_id2) ->
   bfile_id_samples
-bfile_id_samples$bfile_id = 0
+
+# This is necessary if using the antegenes imputation because the family IDs are zero
+# whereas with the MOBA/HRC imputation, family IDs = individual IDs
+#bfile_id_samples$bfile_id = 0
+
 write_tsv(bfile_id_samples, paste0(INTERIM_DATA, "bfile_id_samples.txt"), col_names = FALSE)
 
 ########################################################

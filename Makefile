@@ -9,8 +9,8 @@ PROJECT_NAME = heritable_cancer
 #################################################################################
 
 ## Delete all external and interim data files
-.PHONY: clean_data
-clean_data:
+.PHONY: cleandata
+cleandata:
 	find data/interim/. -type f -name "*.yaml" -delete
 	find data/interim/. -type f -name "*.txt.gz" -delete
 #	find data/external/. -type f -name "*.txt.gz" -delete
@@ -18,8 +18,8 @@ clean_data:
 # by colleagues
 
 ## Delete all slurm log files in the logs/ directory
-.PHONY: clean_logs
-clean_logs:
+.PHONY: cleanlogs
+cleanlogs:
 	find logs/. -type f -name "*.err" -delete
 	find logs/. -type f -name "*.out" -delete
 
@@ -56,7 +56,7 @@ sumstats:
 ## Identify cases/controls and harmonize in bfiles
 .PHONY: metadata
 metadata:
-	$(RSCRIPT) 02_id-cases-controls_p212.R
+	$(RSCRIPT) src/02_id-cases-controls_p212.R
 #	sbatch src/03_pca_preprocess-metadata.batch
 
 ## Identify IDs in antegenes to fix bfiles later
@@ -77,5 +77,5 @@ cleansumstats-bim:
 ## Calculate PHS values for each model using matrix multiplication
 .PHONY: phs
 phs:
-	sbatch src/05_calculate-phs.batch
+	sbatch src/05_test-phs.batch
 
