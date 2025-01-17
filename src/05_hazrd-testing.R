@@ -16,7 +16,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
 
-model = basename(args[1]) # filename for output
+model = gsub("\\_.*","", basename(args[1])) # filename for output
 
 metadata = read_tsv(args[2]) # Phenotype data
 
@@ -44,9 +44,12 @@ metadata %>%
 # Analyze PHS data
 
 # PHS Histogram
-phs_hist = phs_hist(combined_data, normalize = TRUE)
+phs_hist = 
+	phs_hist(combined_data, normalize = TRUE) +
+	labs(title = model) + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, model, "_hist.png"), phs_hist)
+ggsave(paste0(figs, model, "_hist.png"), phs_hist, 
+       units = "px", height = 1300, width = 1300)
 
 # Performance metrics
 
@@ -65,7 +68,8 @@ perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index
                                                                  conf.low = x$conf.low, 
                                                                  conf.high = x$conf.high, 
                                                                  age = x$age)}))
-write_tsv(perform, paste0(output, model, "_performance.txt"))
+perform = cbind(model, perform)
+write_tsv(perform, paste0(output, model, "_performance.tsv"))
 
 
 # KM Curves
@@ -105,13 +109,13 @@ km_curve = ggplot(km_curves, aes(x = time,
   theme_minimal() +
   xlim(40, 100) + 
   ylim(0, 1) +
-  labs(x = "Age", y = "Disease-free Survival") +
+  labs(x = "Age", y = "Disease-free Survival", title = model) +
   scale_color_brewer(palette = "Set1",
                      name = "Centile") +
   scale_fill_brewer(palette = "Set1",
-                    name = "Centile")
+                    name = "Centile")  + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, model, "_km_curve.png"),
-       km_curve)
+ggsave(paste0(figs, model, "_km_curve.png"), km_curve,
+       units = "px", height = 1300, width = 1600)
 
 
