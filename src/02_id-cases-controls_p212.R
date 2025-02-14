@@ -5,45 +5,72 @@ source("src/00_config.R")
 
 allData = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
 caseData = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
+rareVariants = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 3)
+fam_file = read_table("data/raw/moba_imputed_all.fam", col_names = FALSE) %>% as_tibble()
 
-# Grab all male IDs
-allData %>% 
-  filter(SEX == "M") %>% 
-  pull(PID) %>% 
-  unique() ->
-  allMaleIDs
+
 
 # Grab IDs of prostate cancer cases
 caseData %>% 
-  filter(pid %in% allMaleIDs) %>% 
   filter(icd9 == 185) %>% 
   pull(pid) %>% 
   unique ->
-  prostateIDs
+  caseIDs
 
 # Grab IDs of all cancer cases
-caseData %>% 
-  filter(pid %in% allMaleIDs) %>% 
-  pull(pid) %>% 
-  unique() ->
-  caseIDs
+#caseData %>% 
+#  filter(pid %in% allMaleIDs) %>% 
+#  pull(pid) %>% 
+#  unique() ->
+#  caseIDs
 
 # Grab IDs for all cancer-free males
 allData %>% 
-  filter(PID %in% allMaleIDs) %>% 
+  filter(SEX == "M") %>% 
   filter(!(PID %in% caseIDs)) %>% 
   pull(PID) %>% 
   unique() ->
   controlIDs
 
 # Double check no cancer cases or prostate cases are in control IDs
-try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
-try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
+#try(for (i in caseIDs) (if (i %in% controlIDs) stop("Found case ID in controls.")))
+#try(for (i in prostateIDs) (if (i %in% controlIDs) stop("Found prostate ID in controls.")))
 
-case = tibble(PTN_REGNR = as.character(prostateIDs))
+case = tibble(PTN_REGNR = as.character(caseIDs))
 control = tibble(PTN_REGNR = as.character(controlIDs))
 
 xl = read_excel("/tsd/p212/home/p212-andrewmo/FW_Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
+allData %>%
+	select(PTN_REGNR = PID) %>%
+	mutate(PTN_REGNR = as.character(PTN_REGNR)) %>%
+	left_join(xl, by = "PTN_REGNR") %>%
+  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
+  all_samples
+
+n_missing_in_geno = sum(!(all_samples$bfile_id %in% fam_file$X1)) # 564
+n_missing_in_pheno = sum(!(fam_file$X1 %in% all_samples$bfile_id)) # 0
+
+missing_subjects = all_samples$bfile_id[!(all_samples$bfile_id %in% fam_file$X1)]
+
+case %>%
+  left_join(xl, by = "PTN_REGNR") %>% 
+  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
+  case_samples
+
+control %>%
+  left_join(xl, by = "PTN_REGNR") %>% 
+  mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
+  control_samples
+
+sum(case_samples$bfile_id %in% missing_subjects) # 21
+sum(control_samples$bfile_id %in% missing_subjects) # 108
+
+bind_rows(case_samples, control_samples) %>%
+	mutate(bfile_id2 = bfile_id) %>% 
+	select(bfile_id, bfile_id2) ->
+	bfile_id_samples
+
+
 
 bind_rows(case, control) %>% 
   left_join(xl, by = "PTN_REGNR") %>% 

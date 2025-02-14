@@ -28,12 +28,12 @@ NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
 export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAML}" # get trait from list
 #export WORK_DIR=${SCRATCH}/out && mkdir -p ${WORK_DIR} && echo Temporary working directory: "${WORK_DIR}"
 
-# # Get script location
-# IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
-# SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
+## Get script location
+#IFS=' ' read -r SCRIPT_DIR _ <<< $(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
+#SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-#bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR}/sumstats ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
+bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR}/sumstats ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 
 # Move finished finals to processed dir
 export MODEL=`basename ${META_YAML} .yaml`

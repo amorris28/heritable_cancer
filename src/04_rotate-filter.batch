@@ -8,10 +8,10 @@
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=1
 
-#cat data/interim/moba_imputed_all_cs.GRCh37.rotate_alleles.sh | bash
+cat data/interim/moba_imputed_all_cs.GRCh37.rotate_alleles.sh | bash
 export OUT_DIR=data/interim
 export BFILE_OUT=moba_imputed_all_cs
 
-mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.bim data/processed/${BFILE_OUT}.bim
-mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.bed data/processed/${BFILE_OUT}.bed
-mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.fam data/processed/${BFILE_OUT}.fam
+#mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.bim data/processed/${BFILE_OUT}.bim
+#mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.bed data/processed/${BFILE_OUT}.bed
+#mv ${OUT_DIR}/${BFILE_OUT}.GRCh37.filter.fam data/processed/${BFILE_OUT}.fam
