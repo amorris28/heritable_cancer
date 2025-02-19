@@ -86,6 +86,10 @@ We first applied the Seibert model to the Nordic heritable cancer cohort.
 
 ## Discussion
 
+if we could get a bigger data set, we highlight the possiblity to identify a few Norwegian specific SNPs
+
 ## Acknowledgements
+
+This work was supported by a grant from the Research Council of Norway (award #324499). Acknowledge Sigma2 resources
 
 ## References
