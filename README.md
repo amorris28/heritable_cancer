@@ -15,14 +15,20 @@ Uses a modified version of the
 [cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF)
 from Julian (and dependent on the original 
 [cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats))
-available on TSD p33.
+available on TSD.
 
 ## Steps to reproduce analysis
 
 Scripts within `src/` are named with fields separated by underscores `_` and
-words within a field separated by dashes `-`. The leading number `01` is the
-order scripts run. The second field `pca` is specific to the project (in this
-case, pca = prostate cacer). The third field is a slug to describe the analysis
+words within a field separated by dashes `-`. The leading number is the TSD 
+project number, i.e., the remote cluster where the data are saved and where
+analyses were conducted:
+
+`p212` - The heritable cancer cohort
+`p2521` - The HUSK cohort
+
+The following sequential numbers (e.g., `01`) is the
+order scripts run. The third field is a slug to describe the analysis
 step.
 
 ### Preprocessing steps specific to the PCA project

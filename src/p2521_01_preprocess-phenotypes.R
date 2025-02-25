@@ -1,6 +1,5 @@
 # initialize packages
 library(tidyverse)
-library(readxl)
 library(lubridate)
 
 # constants
@@ -28,6 +27,13 @@ my_union = function(x, y) {
 		 return(x)
 	}
 }
+
+# ID Key
+age_dob_data %>%
+	select(subjectid = HUSKMentID,
+	       decode_subjectid) ->
+	id_key
+
 
 ###############################################################################################
 all_ids = c(avt_data$lopenr, som_data$lopenr, phv_data$lopenr, death_data$HUSKMENTID, kreft_data$huskmentid) %>%
@@ -244,5 +250,19 @@ diagnosedato %>%
 	na.omit() ->
 	phenotype_data
 
+phenotype_data %>%
+	left_join(id_key, by = join_by(subjectid)) %>%
+	mutate(subjectid = decode_subjectid) %>%
+	select(-decode_subjectid) ->
+	phenotype_data
+
 write_tsv(phenotype_data, paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
+
+
+tibble(X1 = 0, X2 = phenotype_data$subjectid) ->
+	pfile_ids
+
+# Write list of subject ids to processed folder
+# 
+write_tsv(pfile_ids, paste0(PROCESSED_DATA, "p2521_pfile_ids.txt"), col_names = FALSE)
 
