@@ -25,7 +25,7 @@ export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $C
 
 mkdir -p reports/figures
 
-$RSCRIPT src/05_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.txt.gz $PROCESSED_DIR/moba_imputed_all_cs
+$RSCRIPT src/05_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs
 # Rscript src/phs_testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/familial_cancer_phenotypes.tsv TRUE
 Rscript src/05_hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE
 

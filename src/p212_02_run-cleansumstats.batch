@@ -36,7 +36,8 @@ export META_YAML=${SLURM_SUBMIT_DIR}/$(sed "${NUM}q;d" ${LIST}) && echo Input me
 bash ${SCRIPT_DIR}/run_cleansumstats.sh ${META_YAML} ${INTERIM_DIR}/sumstats ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 
 # Move finished finals to processed dir
-export MODEL=`basename ${META_YAML} .yaml`
-
-mv ${INTERIM_DIR}/${MODEL}/${MODEL}.GRCh37.gz ${PROCESSED_DIR}/${MODEL}.txt.gz
-
+#export MODEL=`basename ${META_YAML} .yaml`
+#
+#cp ${INTERIM_DIR}/sumstats/${MODEL}/${MODEL}.GRCh37.gz ${PROCESSED_DIR}/${MODEL}.GRCh37.gz
+#cp ${INTERIM_DIR}/sumstats/${MODEL}/${MODEL}.GRCh38.gz ${PROCESSED_DIR}/${MODEL}.GRCh38.gz
+#
