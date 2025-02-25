@@ -1,11 +1,17 @@
 *
 !.gitignore
-!PGS000067.txt.gz                                                                                                                   
-!PGS000733.txt.gz
-!PGS000741.txt.gz
-!PGS000742.txt.gz
-!PGS003331.txt.gz
+!PGS000067.GRCh37.gz                                                                                                                   
+!PGS000733.GRCh37.gz
+!PGS000741.GRCh37.gz
+!PGS000742.GRCh37.gz
+!PGS003331.GRCh37.gz
+!PGS000067.GRCh38.gz                                                                                                                   
+!PGS000733.GRCh38.gz
+!PGS000741.GRCh38.gz
+!PGS000742.GRCh38.gz
+!PGS003331.GRCh38.gz
 !PHS601.txt.gz
-!phs_rsids
+!phs_rsids_GRCh37
+!phs_rsids_GRCh38
 !sumstats_basenames
 
