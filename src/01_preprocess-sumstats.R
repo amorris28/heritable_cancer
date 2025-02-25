@@ -64,4 +64,4 @@ if (file.exists(PHS601_raw)) {
   }
 }
 files = c(files, tools::file_path_sans_ext(basename(PHS601_preprocfile), compression = TRUE))
-readr::write_lines(files, paste0(INTERIM_DATA, "sumstats_basenames"))
+readr::write_lines(files, paste0(PROCESSED_DATA, "sumstats_basenames"))

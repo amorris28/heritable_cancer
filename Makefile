@@ -67,8 +67,8 @@ antegenes-ids:
 ## Run cleansumstats pipeline
 .PHONY: cleansumstats
 cleansumstats:
-	sbatch src/03_run-cleansumstats.batch; \
-	bash src/03_record-rsids.sh
+	sbatch src/02_run-cleansumstats.batch; \
+	bash src/02_record-rsids.sh
 
 .PHONY: cleansumstats-bim
 cleansumstats-bim:

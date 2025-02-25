@@ -16,7 +16,7 @@ set -o errexit
 
 export INTERIM_DIR=data/interim
 export PROCESSED_DIR=data/processed
-export MODELLIST=$INTERIM_DIR/sumstats_basenames
+export MODELLIST=$PROCESSED_DIR/sumstats_basenames
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
 export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MODEL}" # get model from list
 #export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list

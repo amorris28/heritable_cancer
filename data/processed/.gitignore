@@ -1,2 +1,11 @@
 *
 !.gitignore
+!PGS000067.txt.gz                                                                                                                   
+!PGS000733.txt.gz
+!PGS000741.txt.gz
+!PGS000742.txt.gz
+!PGS003331.txt.gz
+!PHS601.txt.gz
+!phs_rsids
+!sumstats_basenames
+
