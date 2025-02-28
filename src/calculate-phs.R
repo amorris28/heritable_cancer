@@ -25,7 +25,7 @@ percent_missingness = rowSums(is.na(genotype_filtered))/ncol(genotype_filtered)
 pm_tbl = as_tibble(percent_missingness, rownames = "RSID")
 pm_tbl = rename(pm_tbl, percent_missingness = value)
 pm_tbl = cbind(model, pm_tbl)
-write_tsv(pm_tbl, paste0("reports/", model, "_missingness.tsv"))
+write_tsv(pm_tbl, paste0("reports/", paste(tsd_proj, model, "missingness.tsv", sep = "_")))
 
 # Pre-process data so RSIDs match in sumstats and genotype
 sumstats_filtered = dplyr::filter(sumstats, RSID %in% rownames(genotype))
@@ -72,8 +72,8 @@ phses = genotype_filtered_sorted_imputed %*% betas
 #                    paste0(gsub("\\..*","", names(phses)[[i]]),
 #                           "_phs_imputed_antegenes"),
 #                    col_names = FALSE) })
-readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), paste0(PROCESSED_DATA, paste(tsd_proj, model,
-       "phs", sep = "_"), col_names = FALSE)
+readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), 
+		 paste0(PROCESSED_DATA, paste(tsd_proj, model, "phs", sep = "_")), col_names = FALSE)
 
 
 # Write diagnostics

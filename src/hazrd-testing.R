@@ -15,10 +15,10 @@ source("src/00_config.R")
 args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
+model = gsub("^.*?_", "", basename(model_file))
+model = gsub("\\_.*", "", model) # filename for output
 
-model = gsub("\\_.*","", basename(args[1])) # filename for output
-
-metadata = read_tsv(args[2]) # Phenotype data
+metadata_file = args[2] # Phenotype data
 
 inverse = args[3]
 
@@ -32,6 +32,10 @@ figs = "reports/figures/"
 # Import PHS data
 
 phs = read_tsv(model_file, col_names = c("bfile_id", "phs"))
+
+metadata = read_tsv(metadata_file) # Phenotype data
+
+colnames(metadata) = c("bfile_id", "age", "status")
 
 phs$phs = scale(phs$phs, center = TRUE, scale = TRUE)
 
@@ -71,7 +75,7 @@ perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index
                                                                  conf.high = x$conf.high, 
                                                                  age = x$age)}))
 perform = cbind(model, perform)
-write_tsv(perform, paste0(output, paste(tsd_proj, model, "performance.tsv")))
+write_tsv(perform, paste0(output, paste(tsd_proj, model, "performance.tsv", sep = "_")))
 
 
 # KM Curves
