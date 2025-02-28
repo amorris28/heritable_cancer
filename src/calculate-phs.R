@@ -12,6 +12,7 @@ model_file = args[1] # Sumstats file
 model = gsub("\\..*","", basename(args[1])) # filename for output
 
 genotype_bfiles = args[2] # PHS data
+tsd_proj = args[3] # PHS data
 
 sumstats = readr::read_tsv(model_file)
 
@@ -71,8 +72,8 @@ phses = genotype_filtered_sorted_imputed %*% betas
 #                    paste0(gsub("\\..*","", names(phses)[[i]]),
 #                           "_phs_imputed_antegenes"),
 #                    col_names = FALSE) })
-readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), paste0(PROCESSED_DATA, model,
-       "_phs"), col_names = FALSE)
+readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), paste0(PROCESSED_DATA, paste(tsd_proj, model,
+       "phs", sep = "_"), col_names = FALSE)
 
 
 # Write diagnostics
@@ -80,5 +81,5 @@ readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), paste0(PROCESSE
 diagnostics = tibble(model,
 		     missing_SNPs = sumstats$RSID[!(sumstats$RSID %in% rownames(genotype))], 
 		     beta = sumstats$B[!(sumstats$RSID %in% rownames(genotype))])
-readr::write_tsv(diagnostics, paste0("reports/", model, "_diagnostics.tsv"))
+readr::write_tsv(diagnostics, paste0("reports/", paste(tsd_proj, model, "diagnostics.tsv", sep = "_")))
 

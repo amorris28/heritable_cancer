@@ -22,6 +22,8 @@ metadata = read_tsv(args[2]) # Phenotype data
 
 inverse = args[3]
 
+tsd_proj = args[4]
+
 output = "reports/"
 
 figs = "reports/figures/"
@@ -48,7 +50,7 @@ phs_hist =
 	phs_hist(combined_data, normalize = TRUE) +
 	labs(title = model) + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, model, "_hist.png"), phs_hist, 
+ggsave(paste0(figs, paste(tsd_proj, model, "hist.png", sep = "_")), phs_hist, 
        units = "px", height = 1300, width = 1300)
 
 # Performance metrics
@@ -69,7 +71,7 @@ perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index
                                                                  conf.high = x$conf.high, 
                                                                  age = x$age)}))
 perform = cbind(model, perform)
-write_tsv(perform, paste0(output, model, "_performance.tsv"))
+write_tsv(perform, paste0(output, paste(tsd_proj, model, "performance.tsv")))
 
 
 # KM Curves
@@ -114,7 +116,7 @@ km_curve = ggplot(km_curves, aes(x = time,
   scale_fill_brewer(palette = "Set1",
                     name = "Centile")  + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, model, "_km_curve.png"), km_curve,
+ggsave(paste0(figs, paste(tsd_proj, model, "km_curve.png", sep = "_")), km_curve,
        units = "px", height = 1300, width = 1600)
 
 

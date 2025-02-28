@@ -246,7 +246,7 @@ diagnosedato %>%
 	rbind(sensurdato) %>%
 	full_join(fodselsdato, by = join_by(subjectid)) %>%
 	mutate(age = interval(fdato, dato) / years(1)) %>%
-	select(subjectid, status, age) %>%
+	select(subjectid, age, status) %>%
 	na.omit() ->
 	phenotype_data
 
@@ -264,5 +264,5 @@ tibble(X1 = 0, X2 = phenotype_data$subjectid) ->
 
 # Write list of subject ids to processed folder
 # 
-write_tsv(pfile_ids, paste0(PROCESSED_DATA, "p2521_pfile_ids.txt"), col_names = FALSE)
+write_tsv(pfile_ids, paste0(INTERIM_DATA, "p2521_bfile_ids.txt"), col_names = FALSE)
 

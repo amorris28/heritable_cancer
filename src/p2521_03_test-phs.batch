@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH --job-name=PHS
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
+#SBATCH --account=p2521_tsd
+#SBATCH --time=00:05:00
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=8000M
+#SBATCH --cpus-per-task=1
+#SBATCH --array=1-6
+
+export INTERIM_DIR=data/interim
+export PROCESSED_DIR=data/processed
+export MODELLIST=$PROCESSED_DIR/sumstats_basenames
+NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
+export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MODEL}" # get model from list
+#export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list
+export COMORMENT=/ess/p2521/cluster/users/espehage/github/comorment
+export RSCRIPT="singularity exec --bind /ess/p2521:/ess/p2521 --home $PWD $COMORMENT/containers/containers/1.9.0/r.sif Rscript"
+export TSD_PROJ=p2521
+
+mkdir -p reports/figures
+
+$RSCRIPT src/calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $INTERIM_DIR/husk_all.autosomes.v240619.plink1_cs.GRCh37.filter $TSD_PROJ
+$RSCRIPT src/hazrd-testing.R ${PROCESSED_DIR}/p2521_${MODEL}_phs ${PROCESSED_DIR}/husk_phenotypes.tsv FALSE $TSD_PROJ
+

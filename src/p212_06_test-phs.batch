@@ -22,10 +22,10 @@ export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MO
 #export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list
 export COMORMENT=/cluster/projects/p212/github/comorment
 export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
+export TSD_PROJ=p212
 
 mkdir -p reports/figures
 
-$RSCRIPT src/05_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs
-# Rscript src/phs_testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/familial_cancer_phenotypes.tsv TRUE
-Rscript src/05_hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE
+$RSCRIPT src/calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs $TSD_PROJ
+Rscript src/hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE
 
