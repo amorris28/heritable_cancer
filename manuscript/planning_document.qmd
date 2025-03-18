@@ -1,0 +1,123 @@
+---
+title: "Planning Document"
+format: html
+editor: visual
+---
+
+## 
+
+P212-hpc-01
+
+p33-appn-02
+
+ICD9 = 185
+
+ICD10 = C61
+
+<https://www.kreftregisteret.no/en/Cancers/Prostate-cancer/>
+
+## Research Questions
+
+-   validate that the 601 score (preprint Vassy et al.) works and that it is better than the 290 (Huynh-Le 2022) These are clinically interesting because they are being tested in a prospective clinical trial (5000 person study) <https://clinicaltrials.gov/study/NCT05926102>
+-   try to PCARE model of family history, PCA of ancestry (nordic specific PCA?)
+-   second preprint: focus on specificity: Age at metastasis high PGS increased risk of metastic disease (Dornisch et al.)
+-   If you have a high genetic score, are you more likely have a rare variant?
+-   Does the performance I get worse if I remove those with rare variants?
+-   How important is it that I haven't done WGS?
+-   Do you get the most bang for your buck from genotyping?
+-   If you have the PGS, do rare variants matter?
+-   What is the added value of WGS?
+-   How much can we stratify with prediction in the general population? plug in the prostate cancer rate for the general pop from kreftregisteret then straify by PHS score
+-   Stratify by risk of death (PCa death or all-cause mortality?) within 5 years of diagnosis
+-   Limitation of registry data is that if they don't have a diagnosis, it is possible controls include undiagnoses prostate cancer. Do a case-only analysis in HUSK.
+-   check prescription registry to see if PCa diagnoses got certain treatments, length of treatment, hormone therapy long-term
+
+## To Do
+
+Create a "check" script:
+
+-   [ ] Add a check to phenotype pre-processing script to check for subject IDs in genotype files and vice versa
+
+-   [ ] How many variants in the bim files
+
+-   [ ] Check missingness rate from plink file Check Bayram's breast cancer paper for preprocessing QC and filtering steps
+
+-   [ ] Are WGS PIDs matching PIDs in the rare variant table
+
+-   [ ] How many mutations
+
+-   [ ] How many subjects
+
+-   [ ] How many mutations per subjects
+
+-   [ ] How many per gene
+
+-   [ ] How many per mutation
+
+-   [ ] How many subjects per source
+
+More stuff
+
+-   [ ] Create a cumulative incidence curve for Norway (or for Rogaland)
+
+-   [ ] Compare cumulative incidence in Norway (or Rogaland) to HUSK or p212
+
+-   [ ] Plot cumulative incidence curves stratified by PHS
+
+Population incidence rate
+
+-   [ ] compare the baseline hazard for the Kreftregisteret to the population data in p212 and p2521
+
+Minor points to work into p212 scripts
+
+Run HUSK analysis on cases + controls and do a cases-only analysis
+
+-   [ ] Run case-only analysis
+
+Long-term immunotherapy
+
+-   [ ] Look in HUSK pharmacy registry for immunotherapy drugs
+
+-   [ ] check prescription registry to see if PCa diagnoses got certain treatments, length of treatment, hormone therapy long-term
+
+Risk of death 5 years after diagnosis
+
+-   [ ] Setup analysis in HUSK: pull out cases and model event (death) within 5 years of diagnosis stratified by PHS score
+
+Summary rare variant data
+
+Control for PCAs
+
+-   [ ] Figure out how to use the PCARE model
+
+-   [ ] Are the 1KG weights the minor allele frequency? Or is it the average weight (i.e., 2 x the average genotype)?
+
+-   [ ] Find a Nordic-specific PCA
+
+p3066
+
+-   [ ] merge.batch script to combine plink files for separate chromosomes
+
+How much can we stratify with prediction in the general population?
+
+-   [ ] Get prostate cancer incidence data from kreftregisteret.no
+
+-   [ ] plug in the prostate cancer rate for the general pop from kreftregisteret then straify by PHS score
+
+Convert these custom scripts to take any data and take positional arguments on the command line
+
+-   [ ] Make the processing scripts generalizable with positional arguments.
+
+-   [ ] Make the batch scripts customized for each TSD project.
+
+-   [ ] Prefix project-specific scripts with TSD project ID (e.g., p212, p33, ...)
+
+## Other
+
+-   Use LDProxy to look up missing SNPs (for now I am just imputing these instead)
+-   Link to my repo from the PHS repo once it is published
+-   Family history?
+
+## Acknowledg
+
+## References

@@ -90,6 +90,6 @@ if we could get a bigger data set, we highlight the possiblity to identify a few
 
 ## Acknowledgements
 
-This work was supported by a grant from the Research Council of Norway (award #324499). Acknowledge Sigma2 resources
+This work was supported by a grant from the Research Council of Norway (award #324499). Acknowledge Sigma2 resources (TSD project p212, p2521, others?)
 
 ## References
