@@ -1,0 +1,10 @@
+ICD;Site;Sex;Age;year;Region;prev_year;pop;cases
+C61;Prostata;Menn;00–09;2023;Norge;Alle;299 163;     0
+C61;Prostata;Menn;10–19;2023;Norge;Alle;339 324;     0
+C61;Prostata;Menn;20–29;2023;Norge;Alle;360 912;     0
+C61;Prostata;Menn;30–39;2023;Norge;Alle;394 142;     5
+C61;Prostata;Menn;40–49;2023;Norge;Alle;366 760;   150
+C61;Prostata;Menn;50–59;2023;Norge;Alle;377 784; 2 640
+C61;Prostata;Menn;60–69;2023;Norge;Alle;305 502;13 230
+C61;Prostata;Menn;70–79;2023;Norge;Alle;233 940;29 215
+C61;Prostata;Menn;80+;2023;Norge;Alle;103 066;18 460

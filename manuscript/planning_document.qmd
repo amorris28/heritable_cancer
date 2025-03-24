@@ -4,7 +4,27 @@ format: html
 editor: visual
 ---
 
-## 
+## Notes
+
+I want to investigate whether PHS can stratify individuals by prostate cancer diagnosis, risk of mortality within 5 years of first diagnosis, and metastatic disease (based on pharmaceutical registry). I would also like to know to what extent my study populations represent the larger population in Norway and in Rogaland. These are somewhat different populations because Rogaland is a random sample whereas the Heritable Cancer cohort is recruited based on self-reported family incidence of cancer. Therefore, the HC cohort likely has a higher rate of cancer than the general population whereas HUSK should be representative.
+
+What do I need to do to finish this paper and submit it?
+
+-   A question: Does a PCa PHS developed in another population effectively stratify PCa risk in an unobserved sample population (Norwegian)?
+
+-   Will this generalize to the whole population, not just the weird cohort that we have?
+
+-   Prospect cohort could include undiagnosed PCA, how does performance compare in a case-only analysis?
+
+-   How do rare variants compete with common variants/genetic risk scores for risk stratification?
+
+## Resources
+
+<https://www.emilyzabor.com/survival-analysis-in-r.html>
+
+<https://bookdown.org/rwnahhas/RMPH/survival.html>
+
+## Reference info
 
 P212-hpc-01
 
@@ -40,7 +60,9 @@ Create a "check" script:
 
 -   [ ] How many variants in the bim files
 
--   [ ] Check missingness rate from plink file Check Bayram's breast cancer paper for preprocessing QC and filtering steps
+-   [ ] Check missingness rate from plink file
+
+-   [ ] Check Bayram's breast cancer paper for preprocessing QC and filtering steps
 
 -   [ ] Are WGS PIDs matching PIDs in the rare variant table
 
@@ -56,7 +78,7 @@ Create a "check" script:
 
 -   [ ] How many subjects per source
 
-More stuff
+Norway data
 
 -   [ ] Create a cumulative incidence curve for Norway (or for Rogaland)
 
@@ -69,6 +91,8 @@ Population incidence rate
 -   [ ] compare the baseline hazard for the Kreftregisteret to the population data in p212 and p2521
 
 Minor points to work into p212 scripts
+
+-   [ ] Ask about family history data
 
 Run HUSK analysis on cases + controls and do a cases-only analysis
 
@@ -94,10 +118,6 @@ Control for PCAs
 
 -   [ ] Find a Nordic-specific PCA
 
-p3066
-
--   [ ] merge.batch script to combine plink files for separate chromosomes
-
 How much can we stratify with prediction in the general population?
 
 -   [ ] Get prostate cancer incidence data from kreftregisteret.no
@@ -114,10 +134,9 @@ Convert these custom scripts to take any data and take positional arguments on t
 
 ## Other
 
--   Use LDProxy to look up missing SNPs (for now I am just imputing these instead)
 -   Link to my repo from the PHS repo once it is published
 -   Family history?
 
-## Acknowledg
+## Potential Journals:
 
-## References
+-   Prostate Cancer and Prostatic Diseases
