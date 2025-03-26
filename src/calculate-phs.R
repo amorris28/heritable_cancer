@@ -9,9 +9,10 @@ source("src/00_config.R")
 args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # Sumstats file
-model = gsub("\\..*","", basename(args[1])) # filename for output
+model = gsub("\\..*","", basename(model_file)) # filename for output
 
 genotype_bfiles = args[2] # PHS data
+
 tsd_proj = args[3] # PHS data
 
 sumstats = readr::read_tsv(model_file)
@@ -34,22 +35,22 @@ sumstats_filtered_sorted = sumstats_filtered[order(sumstats_filtered$RSID), ]
 genotype_filtered = genotype[sumstats_filtered_sorted$RSID,]
 genotype_filtered_sorted = t(genotype_filtered[sort(rownames(genotype_filtered)), ])
 
-# Some SNPs from PHS models missing in genotype data imputed from moba
-impute_col_means = function(x) {
-  for (i in seq_len(ncol(x))) {
-    x[is.na(x[, i]), i] = mean(x[, i], na.rm = TRUE)
-  }
-  return(x)
-}
-# 
-# genotype_filtered_sorted_imputed = lapply(genotype_filtered_sorted, impute_col_means)
-genotype_filtered_sorted_imputed = impute_col_means(genotype_filtered_sorted)
+# # Some SNPs from PHS models missing in genotype data imputed from moba
+# impute_col_means = function(x) {
+#   for (i in seq_len(ncol(x))) {
+#     x[is.na(x[, i]), i] = mean(x[, i], na.rm = TRUE)
+#   }
+#   return(x)
+# }
+
+# # genotype_filtered_sorted_imputed = lapply(genotype_filtered_sorted, impute_col_means)
+# genotype_filtered_sorted_imputed = impute_col_means(genotype_filtered_sorted)
 
 # Check that sumstats rows and matrix columns match order
 # mapply(function(x, y) x$RSID != colnames(y), sumstats_filtered_sorted, genotype_filtered_sorted_imputed) %>%
 #   lapply(sum)
 
-mismatches = sum(sumstats_filtered_sorted$RSID != colnames(genotype_filtered_sorted_imputed))
+mismatches = sum(sumstats_filtered_sorted$RSID != colnames(genotype_filtered_sorted))
 if (mismatches > 0) {
   stop("There are ", mismatches, " mismatches between RSIDs in sumstats and genotype.")
 }
@@ -61,9 +62,8 @@ betas = sumstats_filtered_sorted$B
 
 # Calcuate PHSes with matrix multiplication
 # phses = mapply('%*%', genotype_filtered_sorted_imputed, betas, SIMPLIFY = FALSE)
-
-phses = genotype_filtered_sorted_imputed %*% betas
-
+genotype_filtered_sorted[is.na(genotype_filtered_sorted)] = 0
+phses = genotype_filtered_sorted %*% betas
 # # Save PHSes
 # lapply(seq_along(phses), 
 #        function(i) { 
