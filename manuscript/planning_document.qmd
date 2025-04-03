@@ -4,6 +4,76 @@ format: html
 editor: visual
 ---
 
+## To Do
+
+Modify PHS calculation script
+
+-   [ ] How many variants in the bim files - this should be in the PHS calculation file
+
+How much can we stratify with prediction in the general population?
+
+-   [x] Create a cumulative incidence curve for Norway (or for Rogaland)
+
+-   [ ] Compare cumulative incidence in Norway (or Rogaland) to HUSK or p212
+
+-   [ ] Plot cumulative incidence curves stratified by PHS
+
+-   [ ] Get prostate cancer incidence data from kreftregisteret.no
+
+-   [ ] plug in the prostate cancer rate for the general pop from kreftregisteret then straify by PHS score
+
+Population incidence rate
+
+-   [ ] compare the baseline hazard for the Kreftregisteret to the population data in p212 and p2521
+
+Minor points to work into p212 scripts
+
+-   [ ] Ask about family history data
+
+Run HUSK analysis on cases + controls and do a cases-only analysis
+
+-   [ ] Run case-only analysis
+
+Long-term immunotherapy
+
+-   [ ] Ask someone where the pharmacy data is (Espen?)
+
+-   [ ] Look in HUSK pharmacy registry for immunotherapy drugs
+
+-   [ ] check prescription registry to see if PCa diagnoses got certain treatments, length of treatment, hormone therapy long-term
+
+-   [ ] Ask Trine for help with this
+
+Risk of death 5 years after diagnosis
+
+-   [ ] Setup analysis in HUSK: pull out cases and model event (death) within 5 years of diagnosis stratified by PHS score
+
+Control for PCAs
+
+-   [ ] Figure out how to use the PCARE model
+
+-   [ ] Are the 1KG weights the minor allele frequency? Or is it the average weight (i.e., 2 x the average genotype)?
+
+-   [ ] Find a Nordic-specific PCA
+
+Convert these custom scripts to take any data and take positional arguments on the command line
+
+-   [ ] Make scripts generalizable with positional arguments:
+
+    -   [x] PHS calculation
+
+    -   [x] PHS evaluation
+
+    -   [ ] ?
+
+-   [x] Make the batch scripts customized for each TSD project.
+
+-   [x] Prefix project-specific scripts with TSD project ID (e.g., p212, p33, ...)
+
+Writing
+
+-   [ ] Check Bayram's breast cancer paper for preprocessing QC and filtering steps
+
 ## Notes
 
 I want to investigate whether PHS can stratify individuals by prostate cancer diagnosis, risk of mortality within 5 years of first diagnosis, and metastatic disease (based on pharmaceutical registry). I would also like to know to what extent my study populations represent the larger population in Norway and in Rogaland. These are somewhat different populations because Rogaland is a random sample whereas the Heritable Cancer cohort is recruited based on self-reported family incidence of cancer. Therefore, the HC cohort likely has a higher rate of cancer than the general population whereas HUSK should be representative.
@@ -52,90 +122,14 @@ ICD10 = C61
 -   Limitation of registry data is that if they don't have a diagnosis, it is possible controls include undiagnoses prostate cancer. Do a case-only analysis in HUSK.
 -   check prescription registry to see if PCa diagnoses got certain treatments, length of treatment, hormone therapy long-term
 
-## To Do
-
-Create a "check" script:
-
--   [ ] Add a check to phenotype pre-processing script to check for subject IDs in genotype files and vice versa
-
--   [ ] How many variants in the bim files
-
--   [ ] Check missingness rate from plink file
-
--   [ ] Check Bayram's breast cancer paper for preprocessing QC and filtering steps
-
--   [ ] Are WGS PIDs matching PIDs in the rare variant table
-
--   [ ] How many mutations
-
--   [ ] How many subjects
-
--   [ ] How many mutations per subjects
-
--   [ ] How many per gene
-
--   [ ] How many per mutation
-
--   [ ] How many subjects per source
-
-Norway data
-
--   [ ] Create a cumulative incidence curve for Norway (or for Rogaland)
-
--   [ ] Compare cumulative incidence in Norway (or Rogaland) to HUSK or p212
-
--   [ ] Plot cumulative incidence curves stratified by PHS
-
-Population incidence rate
-
--   [ ] compare the baseline hazard for the Kreftregisteret to the population data in p212 and p2521
-
-Minor points to work into p212 scripts
-
--   [ ] Ask about family history data
-
-Run HUSK analysis on cases + controls and do a cases-only analysis
-
--   [ ] Run case-only analysis
-
-Long-term immunotherapy
-
--   [ ] Look in HUSK pharmacy registry for immunotherapy drugs
-
--   [ ] check prescription registry to see if PCa diagnoses got certain treatments, length of treatment, hormone therapy long-term
-
-Risk of death 5 years after diagnosis
-
--   [ ] Setup analysis in HUSK: pull out cases and model event (death) within 5 years of diagnosis stratified by PHS score
-
-Summary rare variant data
-
-Control for PCAs
-
--   [ ] Figure out how to use the PCARE model
-
--   [ ] Are the 1KG weights the minor allele frequency? Or is it the average weight (i.e., 2 x the average genotype)?
-
--   [ ] Find a Nordic-specific PCA
-
-How much can we stratify with prediction in the general population?
-
--   [ ] Get prostate cancer incidence data from kreftregisteret.no
-
--   [ ] plug in the prostate cancer rate for the general pop from kreftregisteret then straify by PHS score
-
-Convert these custom scripts to take any data and take positional arguments on the command line
-
--   [ ] Make the processing scripts generalizable with positional arguments.
-
--   [ ] Make the batch scripts customized for each TSD project.
-
--   [ ] Prefix project-specific scripts with TSD project ID (e.g., p212, p33, ...)
-
 ## Other
 
 -   Link to my repo from the PHS repo once it is published
 -   Family history?
+
+## Someday/Maybe
+
+-   [ ] Check missingness rate from plink file
 
 ## Potential Journals:
 
