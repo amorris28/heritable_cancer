@@ -27,5 +27,5 @@ export TSD_PROJ=p212
 mkdir -p reports/figures
 
 $RSCRIPT src/calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs $TSD_PROJ
-Rscript src/hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE
+Rscript src/hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE $TSD_PROJ
 

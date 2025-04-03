@@ -23,6 +23,12 @@ cleanlogs:
 	find logs/. -type f -name "*.err" -delete
 	find logs/. -type f -name "*.out" -delete
 
+## Delete all output in reports/ directory
+.PHONY: cleanreports
+cleanreports:
+	find reports/. -type f -name "*.tsv" -delete
+	find reports/. -type f -name "*.png" -delete
+
 ## Bundle git repo
 .PHONY: bundle
 bundle:
@@ -77,5 +83,5 @@ cleansumstats-bim:
 ## Calculate PHS values for each model using matrix multiplication
 .PHONY: phs
 phs:
-	sbatch src/05_test-phs.batch
+	sbatch src/p212_06_test-phs.batch
 

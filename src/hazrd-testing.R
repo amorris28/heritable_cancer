@@ -1,4 +1,5 @@
 library(tidyverse)
+library(stringr)
 library(hazrd)
 source("src/00_config.R")
 
@@ -15,8 +16,9 @@ source("src/00_config.R")
 args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
-model = gsub("^.*?_", "", basename(model_file))
-model = gsub("\\_.*", "", model) # filename for output
+# model = gsub("^.*?_", "", basename(model_file))
+# model = gsub("\\_.*", "", model) # filename for output
+model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 metadata_file = args[2] # Phenotype data
 
