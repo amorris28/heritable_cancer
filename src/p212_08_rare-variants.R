@@ -70,6 +70,50 @@ full_data %>%
     filter(!is.na(phs)) -> #remove more missing genotype people
     combined_any_variant
 sum(is.na(combined_any_variant$phs))
+
+# Add BRCA 2info
+rare_variants_filtered %>%
+    select(bfile_id, GENE) %>%
+    filter(GENE == "BRCA2") %>%
+    mutate(BRCA2 = 1) %>%
+    select(-GENE) %>%
+    right_join(combined_any_variant, by = "bfile_id") %>%
+    mutate(BRCA2 = if_else(is.na(BRCA2), 0, 1)) %>%
+    filter(!is.na(phs)) ->
+    combined_data
+
+combined_data %>%
+    select(BRCA2, status) %>%
+    table() ->
+    BRCA2_table
+
+# no difference in case rate between BRCA2 carriers and non
+fisher.test(BRCA2_table)
+
+# Add BRCA1
+rare_variants_filtered %>%
+    select(bfile_id, GENE) %>%
+    filter(GENE == "BRCA1") %>%
+    mutate(BRCA1 = 1) %>%
+    select(-GENE) %>%
+    right_join(combined_data, by = "bfile_id") %>%
+    mutate(BRCA1 = if_else(is.na(BRCA1), 0, 1)) %>%
+    filter(!is.na(phs)) ->
+    combined_data
+combined_data %>%
+    rowwise %>%
+    mutate(any_BRCA = if_else(sum(BRCA1, BRCA2) == 2, 1, sum(BRCA1, BRCA2))) ->
+    combined_data
+combined_data %>% print(n = 1000)
+combined_data %>%
+    select(any_BRCA, status) %>%
+    table() ->
+    any_BRCA_table
+
+# No difference in case rate between carriers and non carriers
+fisher.test(any_BRCA_table)
+
+
 # Test if PHS predicts any variant
 # n.s.
 anyvariant_fit <- glm(carrier~phs, family="binomial", data=combined_any_variant)
