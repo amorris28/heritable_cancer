@@ -11,13 +11,28 @@ fam_file = read_table("data/raw/moba_imputed_all.fam", col_names = FALSE) %>% as
 
 # kreftregisteret statistics
 incidence = read_delim("data/external/Incidence_20250320_150713.csv", delim = ";", col_select = 1:11, n_max = 9)
+
+# p212 phenotype data
+p212_data = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
+
 # prev_norge = read_delim("data/external/Prevalence_20250320_163654.csv", delim = ";")
 # prev_rogaland = read_delim("data/external/Prevalence_20250320_163603_Rogaland.csv", delim = ";")
 
 # prev_rogaland$cases = as.numeric(gsub(" ", "", prev_rogaland$cases))
 # prev_norge$cases = as.numeric(gsub(" ", "", prev_norge$cases))
 
-# Try to run survival analysis on kreftregisteret data
+# Try to plot cumulatice incidence with p212 data using coxph 
+library(survival)
+fit = coxph(Surv(age, status) ~ 1, data = p212_data)
+p212_incidence = basehaz(fit)
+p212_incidence %>%
+    mutate(cum_inc_per_100k = hazard * 100000) ->
+    p212_incidence
+p1 = ggplot(basehaz(fit), aes(x = time, y = hazard)) +
+        geom_point()
+ggsave("reports/figures/p212_incidence.png", p1)
+
+# Plot cumulative incidence based on kreftregisteret data
 
 incidence %>%
     mutate(ASR_cumsum = cumsum(Aldersspesifikkrate)) %>%
@@ -36,11 +51,19 @@ spline_int <- as.data.frame(spline(t, y))
 ########
 # At least a plot of the cumulative incidence from cancer registry
 # With age-specific rate per 100,000 on the y-axis
-ggplot(spline_int, aes(x, y)) +
+p2 = ggplot(spline_int, aes(x, y)) +
            geom_line() +
         geom_point(aes(x = Age_group, y = ASR_cumsum), data = new_incidence, color = "red")
 
+ggsave("reports/figures/kreftregisteret_incidence.png", p2)
 
+
+# Incidence combined
+
+p3 = ggplot() +
+        geom_line(aes(x, y), data = spline_int) +
+        geom_point(aes(time, cum_inc_per_100k), data = p212_incidence)
+ggsave("reports/figures/combined_incidence.png", p3)
 
 #     # mutate(new_cases = cases - lag(cases))
 # prev_norge %>% 
