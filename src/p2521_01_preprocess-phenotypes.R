@@ -272,6 +272,11 @@ phenotype_data %>%
 	select(-decode_subjectid) ->
 	phenotype_data
 
+# Subjects missing decode ID and thus missing genotype data (I guess)
+phenotype_data %>% 
+	filter(!is.na(subjectid)) ->
+	phenotype_data
+
 write_tsv(phenotype_data, paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
 
 
