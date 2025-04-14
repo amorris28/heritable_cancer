@@ -17,6 +17,31 @@ incidence = read_delim("data/external/Incidence_20250320_150713.csv", delim = ";
 # prev_rogaland$cases = as.numeric(gsub(" ", "", prev_rogaland$cases))
 # prev_norge$cases = as.numeric(gsub(" ", "", prev_norge$cases))
 
+# Try to run survival analysis on kreftregisteret data
+
+incidence %>%
+    mutate(ASR_cumsum = cumsum(Aldersspesifikkrate)) %>%
+    mutate(Age_group = as.numeric(substr(Alder, 0, 2))) ->
+    new_incidence
+t = new_incidence$Age_group
+y = new_incidence$ASR_cumsum
+    
+add_nls <- nls(y ~ a*exp(r*t), 
+               start = list(a = 0.5, r = 0.2))
+nls_coef = coef(add_nls)
+y = nls_coef[1]*exp(nls_coef[2]*t)
+spline_int <- as.data.frame(spline(t, y))
+
+
+########
+# At least a plot of the cumulative incidence from cancer registry
+# With age-specific rate per 100,000 on the y-axis
+ggplot(spline_int, aes(x, y)) +
+           geom_line() +
+        geom_point(aes(x = Age_group, y = ASR_cumsum), data = new_incidence, color = "red")
+
+
+
 #     # mutate(new_cases = cases - lag(cases))
 # prev_norge %>% 
 #     mutate(cases = as.numeric(gsub(" ", "", cases))) %>% 
