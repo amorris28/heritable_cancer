@@ -51,3 +51,18 @@ specificity <- TN / (TN + FP)
 # Print results
 cat("Sensitivity:", round(sensitivity, 3), "\n")
 cat("Specificity:", round(specificity, 3), "\n")
+
+# Calculate True Positives (TP), False Positives (FP), True Negatives (TN), False Negatives (FN)
+TP <- sum(predicted_events == 1 & actual_events == 1)
+TN <- sum(predicted_events == 0 & actual_events == 0)
+FP <- sum(predicted_events == 1 & actual_events == 0)
+FN <- sum(predicted_events == 0 & actual_events == 1)
+
+# Calculate Positive Predictive Value (PPV) and Negative Predictive Value (NPV)
+PPV <- TP / (TP + FP)  # Proportion of positive predictions that are true positives
+NPV <- TN / (TN + FN)  # Proportion of negative predictions that are true negatives
+
+# Print results
+cat("Positive Predictive Value (PPV):", PPV, "\n")
+cat("Negative Predictive Value (NPV):", NPV, "\n")
+
