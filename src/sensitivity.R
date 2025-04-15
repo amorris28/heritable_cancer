@@ -1,8 +1,5 @@
-#library(hazrd)
 library(survival)
-# library(timeROC)
 library(tidyverse)
-# library(survivalROC)
 source("src/00_config.R")
 
 phenotypes_p212 = read_tsv("data/processed/heritable_cancer_phenotypes.tsv")
@@ -52,7 +49,8 @@ specificity <- TN / (TN + FP)
 cat("Sensitivity:", round(sensitivity, 3), "\n")
 cat("Specificity:", round(specificity, 3), "\n")
 
-# Calculate True Positives (TP), False Positives (FP), True Negatives (TN), False Negatives (FN)
+# Calculate True Positives (TP), False Positives (FP), 
+# True Negatives (TN), False Negatives (FN)
 TP <- sum(predicted_events == 1 & actual_events == 1)
 TN <- sum(predicted_events == 0 & actual_events == 0)
 FP <- sum(predicted_events == 1 & actual_events == 0)
@@ -63,6 +61,6 @@ PPV <- TP / (TP + FP)  # Proportion of positive predictions that are true positi
 NPV <- TN / (TN + FN)  # Proportion of negative predictions that are true negatives
 
 # Print results
-cat("Positive Predictive Value (PPV):", PPV, "\n")
-cat("Negative Predictive Value (NPV):", NPV, "\n")
+cat("PPV:", round(PPV, 3), "\n")
+cat("NPV:", round(NPV, 3), "\n")
 
