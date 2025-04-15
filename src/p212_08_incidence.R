@@ -41,7 +41,7 @@ summary(p2521_fit)
 p2521_survfit = survfit(p2521_fit)
 summary(p2521_survfit)
 
-p2521_incidence = basehaz(fit)
+p2521_incidence = basehaz(p2521_fit)
 p2521_incidence %>%
     mutate(cum_inc_per_100k = hazard * 100000) ->
     p2521_incidence
@@ -79,8 +79,14 @@ ggsave("reports/figures/kreftregisteret_incidence.png", p2)
 
 p3 = ggplot() +
         geom_line(aes(x, y), data = spline_int) +
+        geom_point(aes(time, cum_inc_per_100k), data = p212_incidence)
+ggsave("reports/figures/combined_incidence_p212.png", p3)
+# Incidence combined
+
+p4 = ggplot() +
+        geom_line(aes(x, y), data = spline_int) +
         geom_point(aes(time, cum_inc_per_100k), data = p2521_incidence)
-ggsave("reports/figures/combined_incidence.png", p3)
+ggsave("reports/figures/combined_incidence_p2521.png", p4)
 
 #     # mutate(new_cases = cases - lag(cases))
 # prev_norge %>% 
