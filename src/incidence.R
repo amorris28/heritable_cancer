@@ -12,10 +12,114 @@ source("src/00_config.R")
 
 # kreftregisteret statistics
 incidence = read_delim("data/external/Incidence_20250320_150713.csv", delim = ";", col_select = 1:11, n_max = 9)
+incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
 
 # p212 phenotype data
 p212_data = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
 p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
+
+###############################################################################
+# plot incidence in Norway
+###############################################################################
+
+# preprocess data
+incidence %>%
+    mutate(agegroup = as.numeric(substr(Alder, 1, 2))) %>%
+    mutate(log_incidencerate = log(Aldersspesifikkrate)) ->
+    incidence
+incidence %>%
+    filter(agegroup > 30) %>%
+    mutate(agegroup_minus35 = agegroup - 35) ->
+    incidence_over35
+
+# Visualize age-specific incidence rate on log scale
+# with polynomial fit
+ggplot(incidence_over35, aes(x = agegroup_minus35, y = log_incidencerate)) +
+    geom_point() +
+    stat_smooth(method='lm', formula = y ~ poly(x,2)) +
+    theme_classic() +
+    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
+
+
+# Compare polynomial fit between fitting a linear model to the log-transformed
+# data or fit a non-linear model to the original data
+lm_fit = lm(log_incidencerate ~ poly(agegroup_minus35, 2, raw = TRUE), data = incidence_over35)
+plot(incidence_over35$agegroup_minus35, resid(lm_fit))
+abline(h = 0, lty = 2)
+
+nls_fit <- nls(Aldersspesifikkrate ~ b0 * exp(b1 * agegroup_minus35 + b2 * agegroup_minus35 ^ 2), 
+               data = incidence_over35,
+               start = list(b0 = 0.5, b1 = 0.4, b2 = -0.005))
+coef(nls_fit)
+plot(incidence_over35$agegroup_minus35, resid(nls_fit))
+abline(h = 0, lty = 2)
+
+# The linear model is more uniformly distributed residuals than the 
+# non-linear model, likely because variance increases with the 
+
+
+B0 = lm_fit$coefficients[1]
+B1 = lm_fit$coefficients[2]
+B2 = lm_fit$coefficients[3]
+
+x = incidence_over35$agegroup_minus35
+
+pca_incidence_poly = function(x) {
+    B0 + B1 * x + B2 * x ^ 2
+}
+
+new_data = incidence_over35 %>% select(agegroup_minus35)
+
+y_equation = pca_incidence_poly(x)
+y_predict = predict(fit2, new_data)
+
+y = y_equation
+
+ggplot(mapping = aes(x, y)) + 
+    geom_smooth() + #loess
+    geom_point(aes(x = agegroup_minus35, y = log_incidencerate), data = incidence_over35) +
+    theme_classic() +
+    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
+
+###########################
+# if I take the log of y and fit a second-order polynomial model I get this:
+# log(y) = log(b0) + b1 * x + b2 * x ^ 2 
+# To exponentiate it this back to linear space, we take the exp of both sizes
+# the exp(log()) cancels out for y and b0 and we are left with:
+# y = b0 + e ^ {b1 * x + b2 * x ^ 2}
+
+b0 = exp(B0)
+b1 = B1
+b2 = B2
+
+pca_incidence_poly_linearized = function(x) {
+    b0 + exp(b1 * x + b2 * x ^ 2)
+}
+
+x_new = seq(from = 0, to = 50, by = 0.01)
+y_new = pca_incidence_poly_linearized(x_new)
+
+# Exponentiate the model prediction to return it to the original units
+ggplot() +
+    geom_point(aes(x = agegroup_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_smooth(aes(x_new, y_new)) +
+    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic()
+# The model doesn't match up very well with the original in this case
+# Try the nls model:
+new_data = data.frame(agegroup_minus35 = x_new)
+y_predict = predict(nls_fit, new_data)
+y = y_predict
+ggplot()  +
+    geom_point(aes(x = agegroup_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_smooth(aes(x_new, y)) +
+    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic()
+# The non-linear model seems to fit better
 
 # prev_norge = read_delim("data/external/Prevalence_20250320_163654.csv", delim = ";")
 # prev_rogaland = read_delim("data/external/Prevalence_20250320_163603_Rogaland.csv", delim = ";")
