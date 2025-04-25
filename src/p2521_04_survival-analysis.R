@@ -97,7 +97,8 @@ all_data_acm_plus_censoring %>% print(width = Inf, n = 100)
 
 casesfit = coxph(Surv(years, dead_at_5) ~ phs + age, data = all_data_acm_plus_censoring)
 summary(casesfit)
-
+casesfit = coxph(Surv(years, dead_at_5) ~ phs, data = all_data_acm_plus_censoring)
+summary(casesfit)
 
 # Case-only survival anlysis (death FROM PCA within 5 years of diagnosis as event)
 all_data_acm_plus_censoring %>%
@@ -105,6 +106,8 @@ all_data_acm_plus_censoring %>%
     all_data_pca_mortality
 
 casesfit = coxph(Surv(years, died_of_pca_at_5) ~ phs + age, data = all_data_pca_mortality)
+summary(casesfit)
+casesfit = coxph(Surv(years, died_of_pca_at_5) ~ phs, data = all_data_pca_mortality)
 summary(casesfit)
 # Full survival analysis (metastatic disease as event with metastatic disease
 # defined as long-term immunotherapy from drug registry)
