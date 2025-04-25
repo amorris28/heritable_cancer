@@ -45,7 +45,7 @@ incidence %>%
 # First cases are in age group 35-40
 incidence %>%
     filter(median_age >= 35) %>%
-    mutate(median_age_minus35 = median_age - min(median_age)) ->
+    mutate(median_age_minus35 = median_age - 35) ->
     incidence_over35
 
 # Visualize age-specific incidence rate on log scale
@@ -117,7 +117,7 @@ pca_incidence_poly_linearized = function(x) {
     b0 + exp(b1 * x + b2 * x ^ 2)
 }
 
-x_new = seq(from = 0, to = 50, by = 0.01)
+x_new = seq(from = min(incidence_over35$median_age_minus35), to = max(incidence_over35$median_age_minus35), by = 0.01)
 y_new = pca_incidence_poly_linearized(x_new)
 
 # Exponentiate the model prediction to return it to the original units
