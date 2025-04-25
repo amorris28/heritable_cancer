@@ -16,44 +16,61 @@ incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = "
 
 # p212 phenotype data
 p212_data = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
+p212_phs = read_tsv(paste0(PROCESSED_DATA, "p212_PHS601_phs"), col_names = c("bfile_id", "phs"))
+
+p212_data %>%
+    full_join(phs_p212, by = "bfile_id") %>%
+    filter(!is.na(phs)) %>%
+    filter(!is.na(age)) ->
+    full_data
+
+# p2521 data
 p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
 
 ###############################################################################
 # plot incidence in Norway
 ###############################################################################
-
-# preprocess data
+# According to SSB, the average life expectancy for males in Norway at age 85 is 6 years
+# So I will use 85-91 as the top interval.
+# Then, I calculate the median age for each interval
+incidence$Alder[incidence$Alder == "85+"] = "85-91"
+incidence %>% 
+    rowwise() %>%
+    mutate(median_age = median(seq(as.numeric(substr(Alder, 1, 2)), as.numeric(substr(Alder, 4, 5))))  ) ->
+    incidence
+# calculate natural log of incidence rate
 incidence %>%
-    mutate(agegroup = as.numeric(substr(Alder, 1, 2))) %>%
     mutate(log_incidencerate = log(Aldersspesifikkrate)) ->
     incidence
+# First cases are in age group 35-40
 incidence %>%
-    filter(agegroup > 30) %>%
-    mutate(agegroup_minus35 = agegroup - 35) ->
+    filter(median_age >= 35) %>%
+    mutate(median_age_minus35 = median_age - min(median_age)) ->
     incidence_over35
 
 # Visualize age-specific incidence rate on log scale
 # with polynomial fit
-ggplot(incidence_over35, aes(x = agegroup_minus35, y = log_incidencerate)) +
+ggplot(incidence_over35, aes(x = median_age_minus35, y = log_incidencerate)) +
     geom_point() +
     stat_smooth(method='lm', formula = y ~ poly(x,2)) +
     theme_classic() +
-    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
-    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
-
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
+    p
+ggsave("reports/figures/log_incidence_rate.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 # Compare polynomial fit between fitting a linear model to the log-transformed
 # data or fit a non-linear model to the original data
-lm_fit = lm(log_incidencerate ~ poly(agegroup_minus35, 2, raw = TRUE), data = incidence_over35)
-plot(incidence_over35$agegroup_minus35, resid(lm_fit))
-abline(h = 0, lty = 2)
+lm_fit = lm(log_incidencerate ~ poly(median_age_minus35, 2, raw = TRUE), data = incidence_over35)
+# plot(incidence_over35$agegroup_minus35, resid(lm_fit))
+# abline(h = 0, lty = 2)
 
-nls_fit <- nls(Aldersspesifikkrate ~ b0 * exp(b1 * agegroup_minus35 + b2 * agegroup_minus35 ^ 2), 
+nls_fit <- nls(Aldersspesifikkrate ~ b0 * exp(b1 * median_age_minus35 + b2 * median_age_minus35 ^ 2), 
                data = incidence_over35,
                start = list(b0 = 0.5, b1 = 0.4, b2 = -0.005))
 coef(nls_fit)
-plot(incidence_over35$agegroup_minus35, resid(nls_fit))
-abline(h = 0, lty = 2)
+# plot(incidence_over35$agegroup_minus35, resid(nls_fit))
+# abline(h = 0, lty = 2)
 
 # The linear model is more uniformly distributed residuals than the 
 # non-linear model, likely because variance increases with the 
@@ -63,25 +80,27 @@ B0 = lm_fit$coefficients[1]
 B1 = lm_fit$coefficients[2]
 B2 = lm_fit$coefficients[3]
 
-x = incidence_over35$agegroup_minus35
+x = incidence_over35$median_age_minus35
 
 pca_incidence_poly = function(x) {
     B0 + B1 * x + B2 * x ^ 2
 }
 
-new_data = incidence_over35 %>% select(agegroup_minus35)
+new_data = incidence_over35 %>% select(median_age_minus35)
 
 y_equation = pca_incidence_poly(x)
-y_predict = predict(fit2, new_data)
+y_predict = predict(lm_fit, new_data)
 
 y = y_equation
 
 ggplot(mapping = aes(x, y)) + 
     geom_smooth() + #loess
-    geom_point(aes(x = agegroup_minus35, y = log_incidencerate), data = incidence_over35) +
+    geom_point(aes(x = median_age_minus35, y = log_incidencerate), data = incidence_over35) +
     theme_classic() +
-    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
-    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
+    p
+ggsave("reports/figures/log_incidence_rate_lmfit.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 ###########################
 # if I take the log of y and fit a second-order polynomial model I get this:
@@ -103,23 +122,57 @@ y_new = pca_incidence_poly_linearized(x_new)
 
 # Exponentiate the model prediction to return it to the original units
 ggplot() +
-    geom_point(aes(x = agegroup_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
     geom_smooth(aes(x_new, y_new)) +
-    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic()
+    theme_classic() ->
+    p
+ggsave("reports/figures/log_incidence_rate_lmfit_exp.png", p, width = 4.5, height = 3.5, dpi = 300)
+
 # The model doesn't match up very well with the original in this case
 # Try the nls model:
-new_data = data.frame(agegroup_minus35 = x_new)
+new_data = data.frame(median_age_minus35 = x_new)
 y_predict = predict(nls_fit, new_data)
 y = y_predict
 ggplot()  +
-    geom_point(aes(x = agegroup_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
     geom_smooth(aes(x_new, y)) +
-    scale_x_continuous(labels = c(35, 45, 55, 65, 75, 85)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic() ->
+    p1
+ggsave("reports/figures/norway_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
+
+# The non-linear model seems to fit better
+
+fit = coxph(Surv(age, status) ~ 1, data = p212_data)
+p212_incidence = basehaz(fit)
+p212_incidence %>%
+    mutate(cum_inc_per_100k = hazard * 100000) %>%
+    mutate(age_minus_35 = time - 37) ->
+    p212_incidence
+p1 = ggplot(p212_incidence, aes(x = time, y = cum_inc_per_100k)) +
+        geom_point()
+ggsave("reports/figures/p212_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
+
+
+p3 = ggplot() +
+    geom_smooth(aes(x_new, y)) +
+    geom_point(aes(age_minus_35, cum_inc_per_100k), data = p212_incidence) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic()
-# The non-linear model seems to fit better
+ggsave("reports/figures/combined_incidence_p212.png", p3, width = 4.5, height = 3.5, dpi = 300)
+
+#################################################################################################
+# Adjust curves by phs groups
+
+fit = coxph(Surv(age, status) ~ phs, data = full_data)
+summary(fit)
+new_data = data.frame(phs = quantile(full_data$phs, 0.80))
+percentile_80 = predict(fit, new_data)
+
 
 # prev_norge = read_delim("data/external/Prevalence_20250320_163654.csv", delim = ";")
 # prev_rogaland = read_delim("data/external/Prevalence_20250320_163603_Rogaland.csv", delim = ";")
