@@ -26,8 +26,13 @@ p212_data %>%
 
 # p2521 data
 p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
+p2521_phs = read_tsv(paste0(PROCESSED_DATA, "p2521_PHS601_phs"), col_names = c("subjectid", "phs"))
 
-
+p2521_data %>%
+    full_join(p2521_phs, by = "subjectid") %>%
+    filter(!is.na(phs)) %>%
+    filter(!is.na(age)) ->
+    full_data
 
 ################################################################################
 # 1. Plot incidence curve for Norway
@@ -199,7 +204,7 @@ H %>%
 
 
 ggplot() +
-    geom_point(aes(time_minus_35, I_100000), H) +
+    geom_point(aes(time_minus_35, I_100000), H, color = "red") +
     geom_point(aes(x = median_age_minus35, y = cumulative_incidence), yearly_data) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
@@ -209,6 +214,7 @@ ggplot() +
 
 ggsave("reports/figures/cumulative_comparison.png", p, width = 4.5, height = 3.5, dpi = 300)
 
+#############################################################################
 
 quantiles = quantile(full_data$phs, probs = c(0, 0.2, 0.5, 0.8, 1))
 
