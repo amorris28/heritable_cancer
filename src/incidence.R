@@ -206,10 +206,9 @@ H %>%
 ggplot() +
     geom_point(aes(time_minus_35, I_100000), H, color = "red") +
     geom_point(aes(x = median_age_minus35, y = cumulative_incidence), yearly_data) +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80), limits = c(0, 70)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic() +
-    lims(x = c(0, 70)) ->
+    theme_classic() ->
     p
 
 ggsave("reports/figures/cumulative_comparison.png", p, width = 4.5, height = 3.5, dpi = 300)
