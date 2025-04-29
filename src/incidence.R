@@ -4,14 +4,7 @@ library(survival)
 
 source("src/00_config.R")
 
-# p212 heritable cancer data
-# allData = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
-# caseData = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
-# rareVariants = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 3)
-# fam_file = read_table("data/raw/moba_imputed_all.fam", col_names = FALSE) %>% as_tibble()
-
-# kreftregisteret statistics
-incidence = read_delim("data/external/Incidence_20250320_150713.csv", delim = ";", col_select = 1:11, n_max = 9)
+# cancer registry incidence data
 incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
 
 # p212 phenotype data
@@ -85,17 +78,16 @@ coef(nls_fit)
 B0 = lm_fit$coefficients[1]
 B1 = lm_fit$coefficients[2]
 B2 = lm_fit$coefficients[3]
-
-x = incidence_over35$median_age_minus35
-
 pca_incidence_poly = function(x) {
     B0 + B1 * x + B2 * x ^ 2
 }
 
+x = incidence_over35$median_age_minus35
+
 new_data = incidence_over35 %>% select(median_age_minus35)
 
 y_equation = pca_incidence_poly(x)
-y_predict = predict(lm_fit, new_data)
+y_predict = predict(lm_fit, new_data) # should return the same
 
 y = y_equation
 
@@ -137,6 +129,7 @@ ggplot() +
 #ggsave("reports/figures/log_incidence_rate_lmfit_exp.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 # The model doesn't match up very well with the original in this case
+
 # Try the nls model:
 x_new = seq(from = min(incidence_over35$median_age_minus35), to = max(incidence_over35$median_age_minus35), by = 0.01)
 
@@ -154,6 +147,7 @@ ggplot()  +
 
 # The non-linear model seems to fit better
 
+# Predict the incidence rate at the midpoint of each 1-year age group
 yearly_data = data.frame(median_age_minus35 = seq(from = min(incidence_over35$median_age_minus35) + 0.5, to = max(incidence_over35$median_age_minus35) + 0.5, by = 1))
 yearly_data$y_predict = predict(nls_fit, yearly_data)
 ggplot()  +
@@ -166,6 +160,7 @@ ggplot()  +
     p1
 ggsave("reports/figures/norway_incidence_yearly.png", p1, width = 4.5, height = 3.5, dpi = 300)
 
+# Now, take the cumulative incidence for later comparison to p212 and p2521
 yearly_data %>%
     mutate(cumulative_incidence = cumsum(y_predict)) ->
     yearly_data
@@ -177,21 +172,7 @@ ggplot(yearly_data, aes(x = median_age_minus35, y = cumulative_incidence)) +
 ggsave("reports/figures/norway_cumulative_incidence.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 ###################################################################################
-# 2. Fit p212 model to get HR for 20th and 80th percentiles relative to the 50% percentile
-
-# 3 approachs:
-# 1. fit a coxph model with each quantile (20%. 50%, 80%)
-# 2. Fit a grouped model
-# 3. 
-
-
-# Step 1, fit the PHS model
-
-# Step 2, calculate the 20th, 50th, and 80th percentile
-
-# Step 3, take the difference in HR between 20th, 50th and 80th, 50th
-# hazard_vec(cnt)-hazard_vec(prctile_list==50)
-
+# Plot the time-to-event data from the two cohorts next to the cancer registry data
 
 fit = coxph(Surv(age, status) ~ phs, data = full_data)
 H = data.frame(basehaz(fit)) # This is the cumulative baseline hazard
@@ -214,6 +195,7 @@ ggplot() +
 ggsave("reports/figures/cumulative_comparison.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 #############################################################################
+# Next, stratify the cancer registry by percentiles
 
 quantiles = quantile(full_data$phs, probs = c(0, 0.2, 0.5, 0.8, 1))
 
