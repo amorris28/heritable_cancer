@@ -207,7 +207,7 @@ ggplot() +
     geom_point(aes(time_minus_35, I_100000), H, color = "red") +
     geom_point(aes(x = median_age_minus35, y = cumulative_incidence), yearly_data) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), labels = c(40, 50, 60, 70, 80, 90), limits = c(0, 55)) +
-    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    labs(x = "Age", y = "Cumulative Incidence Rate (per 100,000)") +
     theme_classic() ->
     p
 
