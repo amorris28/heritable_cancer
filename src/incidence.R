@@ -19,7 +19,7 @@ p212_data = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
 p212_phs = read_tsv(paste0(PROCESSED_DATA, "p212_PHS601_phs"), col_names = c("bfile_id", "phs"))
 
 p212_data %>%
-    full_join(phs_p212, by = "bfile_id") %>%
+    full_join(p212_phs, by = "bfile_id") %>%
     filter(!is.na(phs)) %>%
     filter(!is.na(age)) ->
     full_data
@@ -27,9 +27,10 @@ p212_data %>%
 # p2521 data
 p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
 
-###############################################################################
-# plot incidence in Norway
-###############################################################################
+
+
+################################################################################
+# 1. Plot incidence curve for Norway
 # According to SSB, the average life expectancy for males in Norway at age 85 is 6 years
 # So I will use 85-91 as the top interval.
 # Then, I calculate the median age for each interval
@@ -57,7 +58,7 @@ ggplot(incidence_over35, aes(x = median_age_minus35, y = log_incidencerate)) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
     p
-ggsave("reports/figures/log_incidence_rate.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave("reports/figures/log_incidence_rate.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 # Compare polynomial fit between fitting a linear model to the log-transformed
 # data or fit a non-linear model to the original data
@@ -100,7 +101,7 @@ ggplot(mapping = aes(x, y)) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
     p
-ggsave("reports/figures/log_incidence_rate_lmfit.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave("reports/figures/log_incidence_rate_lmfit.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 ###########################
 # if I take the log of y and fit a second-order polynomial model I get this:
@@ -128,10 +129,12 @@ ggplot() +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p
-ggsave("reports/figures/log_incidence_rate_lmfit_exp.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave("reports/figures/log_incidence_rate_lmfit_exp.png", p, width = 4.5, height = 3.5, dpi = 300)
 
 # The model doesn't match up very well with the original in this case
 # Try the nls model:
+x_new = seq(from = min(incidence_over35$median_age_minus35), to = max(incidence_over35$median_age_minus35), by = 0.01)
+
 new_data = data.frame(median_age_minus35 = x_new)
 y_predict = predict(nls_fit, new_data)
 y = y_predict
@@ -142,31 +145,119 @@ ggplot()  +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p1
-ggsave("reports/figures/norway_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
+#ggsave("reports/figures/norway_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
 
 # The non-linear model seems to fit better
 
-fit = coxph(Surv(age, status) ~ 1, data = p212_data)
-p212_incidence = basehaz(fit)
-p212_incidence %>%
-    mutate(cum_inc_per_100k = hazard * 100000) %>%
-    mutate(age_minus_35 = time - 37) ->
-    p212_incidence
-p1 = ggplot(p212_incidence, aes(x = time, y = cum_inc_per_100k)) +
-        geom_point()
-ggsave("reports/figures/p212_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
-
-
-p3 = ggplot() +
-    geom_smooth(aes(x_new, y)) +
-    geom_point(aes(age_minus_35, cum_inc_per_100k), data = p212_incidence) +
+yearly_data = data.frame(median_age_minus35 = seq(from = min(incidence_over35$median_age_minus35) + 0.5, to = max(incidence_over35$median_age_minus35) + 0.5, by = 1))
+yearly_data$y_predict = predict(nls_fit, yearly_data)
+ggplot()  +
+    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_smooth(aes(x_new, y_predict)) +
+    geom_point(aes(median_age_minus35, y_predict), yearly_data, color = "red") +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic()
-ggsave("reports/figures/combined_incidence_p212.png", p3, width = 4.5, height = 3.5, dpi = 300)
+    theme_classic() ->
+    p1
+ggsave("reports/figures/norway_incidence_yearly.png", p1, width = 4.5, height = 3.5, dpi = 300)
 
-#################################################################################################
-# Adjust curves by phs groups
+yearly_data %>%
+    mutate(cumulative_incidence = cumsum(y_predict)) ->
+    yearly_data
+
+ggplot(yearly_data, aes(x = median_age_minus35, y = cumulative_incidence)) +
+    geom_point() ->
+    p
+
+ggsave("reports/figures/norway_cumulative_incidence.png", p, width = 4.5, height = 3.5, dpi = 300)
+
+###################################################################################
+# 2. Fit p212 model to get HR for 20th and 80th percentiles relative to the 50% percentile
+
+# 3 approachs:
+# 1. fit a coxph model with each quantile (20%. 50%, 80%)
+# 2. Fit a grouped model
+# 3. 
+
+
+# Step 1, fit the PHS model
+
+# Step 2, calculate the 20th, 50th, and 80th percentile
+
+# Step 3, take the difference in HR between 20th, 50th and 80th, 50th
+# hazard_vec(cnt)-hazard_vec(prctile_list==50)
+
+
+fit = coxph(Surv(age, status) ~ phs, data = full_data)
+H = data.frame(basehaz(fit)) # This is the cumulative baseline hazard
+H %>%
+    mutate(S = exp(-hazard)) %>% # This is the cumulative surival
+    mutate(I = 1-S) %>%
+    mutate(I_100000 = I * 100000) %>%
+    mutate(time_minus_35 = time - 35) -> # This is the cumulative incidence
+    H
+
+
+ggplot() +
+    geom_point(aes(time_minus_35, I_100000), H) +
+    geom_point(aes(x = median_age_minus35, y = cumulative_incidence), yearly_data) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic() +
+    lims(x = c(0, 70)) ->
+    p
+
+ggsave("reports/figures/cumulative_comparison.png", p, width = 4.5, height = 3.5, dpi = 300)
+
+
+quantiles = quantile(full_data$phs, probs = c(0, 0.2, 0.5, 0.8, 1))
+
+as.numeric(quantiles)
+new_data = data.frame(phs = quantiles)
+phs_prediction = predict(fit, new_data)
+HR_80_50 = phs_prediction["80%"] - phs_prediction["50%"]
+HR_20_50 = phs_prediction["20%"] - phs_prediction["50%"]
+HR_50 = phs_prediction["50%"]
+
+##############################################################################
+# 3. Stratify incidence curve by HRs
+x_new
+H0 = y_predict
+H_80 = H0*exp(HR_80_50)
+S_80 = exp(-H_80)
+
+H_50 = H0*exp(HR_50)
+S_50 = exp(-H_50)
+
+H_20 = H0*exp(HR_20_50)
+S_20 = exp(-H_20)
+
+ggplot(mapping = aes(x = x_new)) +
+    geom_line(aes(y = H0)) +
+    geom_line(aes(y = H_20)) +
+    geom_line(aes(y = H_50)) +
+    geom_line(aes(y = H_80)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic() ->
+    p
+ggsave("reports/figures/straified_incidence.png", p, width = 4.5, height = 3.5, dpi = 300)
+
+
+ggplot(mapping = aes(x = x_new)) +
+    geom_line(aes(y = S_20)) +
+    geom_line(aes(y = S_50)) +
+    geom_line(aes(y = S_80)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "Survival Rate") +
+    theme_classic() ->
+    p
+ggsave("reports/figures/straified_survival.png", p, width = 4.5, height = 3.5, dpi = 300)
+
+
+
+
+full_data %>% 
 
 fit = coxph(Surv(age, status) ~ phs, data = full_data)
 summary(fit)
