@@ -73,7 +73,7 @@ phses = genotype_filtered_sorted %*% betas
 #                           "_phs_imputed_antegenes"),
 #                    col_names = FALSE) })
 readr::write_tsv(tibble::as_tibble(phses, rownames = "Subject"), 
-		 paste0(PROCESSED_DATA, paste(tsd_proj, model, "phs", sep = "_")), col_names = FALSE)
+		 paste0(PROCESSED_DATA, paste(model, "phs", sep = "_")), col_names = FALSE)
 
 
 # Write diagnostics

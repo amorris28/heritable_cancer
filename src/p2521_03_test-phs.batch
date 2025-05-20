@@ -22,5 +22,5 @@ export TSD_PROJ=p2521
 mkdir -p reports/figures
 
 $RSCRIPT src/calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $INTERIM_DIR/husk_all.autosomes.v240619.plink1_cs.GRCh37.filter $TSD_PROJ
-$RSCRIPT src/hazrd-testing.R ${PROCESSED_DIR}/p2521_${MODEL}_phs ${PROCESSED_DIR}/husk_phenotypes.tsv FALSE $TSD_PROJ
+$RSCRIPT src/hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/husk_phenotypes.tsv FALSE $TSD_PROJ
 
