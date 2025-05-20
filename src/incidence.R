@@ -238,7 +238,7 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     scale_color_brewer(name = "", 
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
                          palette = "Set1") +
-    lims(y = c(0, 1500)) +
+    lims(y = c(0, 2000)) +
     coord_fixed(ratio = 1/50) +
     theme_classic() ->
     p
@@ -273,6 +273,7 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     p
 ggsave("reports/figures/stratified_incidence_cumulative.png", p, width = 5, height = 3, dpi = 300)
 
+####################################################################################################
 
 ggplot(mapping = aes(x = x_new)) +
     geom_line(aes(y = S_20)) +
