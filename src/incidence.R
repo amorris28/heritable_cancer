@@ -239,7 +239,8 @@ ggplot(adj_curve, aes(age, value, color = name)) +
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%")) +
     lims(y = c(0, 40000)) +
     coord_fixed(ratio = 1/1000) +
-    theme_classic() ->
+    theme_classic() +
+    scale_color_brewer(palette = "Set1") ->
     p
 ggsave("reports/figures/stratified_incidence.png", p, width = 5, height = 3, dpi = 300)
 

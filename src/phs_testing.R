@@ -138,7 +138,7 @@ mod_data %>%
 
 kmcurve = ggplot(mod_data, aes(x = time, y = estimate, color = percentile)) +
   geom_step() +
-  theme_minimal() +
+  theme_classic() +
   xlim(40, 100) + 
 #  geom_line(aes(x = agevals, y = value, color = percentile), S_tibble) + 
   scale_color_brewer(palette = "Set1") +
