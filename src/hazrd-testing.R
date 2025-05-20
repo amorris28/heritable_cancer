@@ -82,7 +82,7 @@ write_tsv(perform, paste0(output, paste(tsd_proj, model, "performance.tsv", sep 
 
 # KM Curves
 curves = data.frame(curve0_20 = c(0,   0.2),
-                    curve20_70 = c(0.2, 0.7),
+                    curve20_80 = c(0.2, 0.8),
                     curve80_100 = c(0.8, 1.0))
 
 label_generator = function(x, y) {

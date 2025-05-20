@@ -55,8 +55,8 @@ ggsave(paste0(figs, model, "_hist.png"), phs_hist)
 
 agevals = 40:100
 reference_PHS = combined_data$phs
-prctile_list = c(0, 0.2, 0.7, 0.8, 0.98, 1)
-prctile_labels = c('0-20th', '20-70th', '70-80th', '80-98th', '98-100th')
+prctile_list = c(0, 0.2, 0.8, 1)
+prctile_labels = c('0-20th', '20-80th', '80-100th')
 combined_data$percentile = 
   with(combined_data,
        cut(phs, breaks = quantile(phs, probs = prctile_list),
@@ -68,7 +68,7 @@ cox_model = coxph(Surv(age, status) ~ phs, data = combined_data)
 bt = cox_model$coefficients[["phs"]]
 
 combined_data %>% 
-  filter(percentile %in% c('0-20th', '20-70th', '80-98th', '98-100th')) ->
+  filter(percentile %in% c('0-20th', '20-80th', '80-100th')) ->
   combined_data
 
 combined_data %>% 

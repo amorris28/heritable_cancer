@@ -208,13 +208,13 @@ HR_20_50 = phs_prediction["20%"] - phs_prediction["50%"]
 ##############################################################################
 # 3. Stratify incidence curve by HRs
 #x_new
-#H0 = y_predict
-H0 = yearly_data$cumulative_incidence
+H0 = yearly_data$y_predict
+#H0 = yearly_data$cumulative_incidence
 H_80 = H0*exp(HR_80_50)
-S_80 = exp(-H_80)
+#S_80 = exp(-H_80)
 
 H_20 = H0*exp(HR_20_50)
-S_20 = exp(-H_20)
+#S_20 = exp(-H_20)
 adj_curve = data.frame(age = yearly_data$median_age_minus35,
                         H0,
                         H_20,
@@ -229,12 +229,12 @@ adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
 #     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
 #     theme_classic() ->
 #     p
-ratio = with(adj_curve, ggthemes::bank_slopes(age, value, method = "as"))
+#ratio = with(adj_curve, ggthemes::bank_slopes(age, value, method = "as"))
 ggplot(adj_curve, aes(age, value, color = name)) +
     geom_line() +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
                        labels = c(40, 50, 60, 70, 80, 90)) +
-    labs(x = "Age", y = expression(atop("Cumulative Incidence Rate", "(per 100,000)"))) +
+    labs(x = "Age", y = expression(atop("Age-specific Incidence Rate", "(per 100,000)"))) +
     scale_color_brewer(name = "", 
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
                          palette = "Set1") +
