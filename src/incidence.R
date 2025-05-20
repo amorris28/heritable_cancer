@@ -238,11 +238,40 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     scale_color_brewer(name = "", 
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
                          palette = "Set1") +
+    lims(y = c(0, 1500)) +
+    coord_fixed(ratio = 1/50) +
+    theme_classic() ->
+    p
+ggsave("reports/figures/stratified_incidence_agespecific.png", p, width = 5, height = 3, dpi = 300)
+
+
+#H0 = yearly_data$y_predict
+H0 = yearly_data$cumulative_incidence
+H_80 = H0*exp(HR_80_50)
+#S_80 = exp(-H_80)
+
+H_20 = H0*exp(HR_20_50)
+#S_20 = exp(-H_20)
+adj_curve = data.frame(age = yearly_data$median_age_minus35,
+                        H0,
+                        H_20,
+                        H_80) %>%
+                pivot_longer(!age)
+adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
+
+ggplot(adj_curve, aes(age, value, color = name)) +
+    geom_line() +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
+                       labels = c(40, 50, 60, 70, 80, 90)) +
+    labs(x = "Age", y = expression(atop("Cumulative Incidence Rate", "(per 100,000)"))) +
+    scale_color_brewer(name = "", 
+                         labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
+                         palette = "Set1") +
     lims(y = c(0, 40000)) +
     coord_fixed(ratio = 1/1000) +
     theme_classic() ->
     p
-ggsave("reports/figures/stratified_incidence.png", p, width = 5, height = 3, dpi = 300)
+ggsave("reports/figures/stratified_incidence_cumulative.png", p, width = 5, height = 3, dpi = 300)
 
 
 ggplot(mapping = aes(x = x_new)) +
