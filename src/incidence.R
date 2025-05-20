@@ -234,13 +234,13 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     geom_line() +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
                        labels = c(40, 50, 60, 70, 80, 90)) +
-    labs(x = "Age", y = expression(atop("Age-specific Incidence Rate", "(per 100,000)"))) +
-    scale_color_discrete(name = "", 
-                         labels = c("PHS 80%", "Population Baseline", "PHS 20%")) +
+    labs(x = "Age", y = expression(atop("Cumulative Incidence Rate", "(per 100,000)"))) +
+    scale_color_brewer(name = "", 
+                         labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
+                         palette = "Set1") +
     lims(y = c(0, 40000)) +
     coord_fixed(ratio = 1/1000) +
-    theme_classic() +
-    scale_color_brewer(palette = "Set1") ->
+    theme_classic() ->
     p
 ggsave("reports/figures/stratified_incidence.png", p, width = 5, height = 3, dpi = 300)
 

@@ -113,13 +113,13 @@ km_curve = ggplot(km_curves, aes(x = time,
   geom_ribbon(alpha = 0.1,
               color = 0) +
   geom_step() +
-  theme_minimal() +
+  theme_classic() +
   xlim(40, 100) + 
   ylim(0, 1) +
   labs(x = "Age", y = "Disease-free Survival", title = model) +
-  scale_color_brewer(palette = "Set1",
+  scale_color_brewer(palette = "Set1", direction = -1,
                      name = "Centile") +
-  scale_fill_brewer(palette = "Set1",
+  scale_fill_brewer(palette = "Set1", direction = -1,
                     name = "Centile")  + theme(aspect.ratio=1)
 
 ggsave(paste0(figs, paste(tsd_proj, model, "km_curve.png", sep = "_")), km_curve,
