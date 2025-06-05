@@ -57,7 +57,7 @@ $RSCRIPT src/05_pca_id-cases-controls.R
 
 $PLINK	--bfile ${INTERIM_DIR}/${BFILE_OUT} \
 	--keep ${OUT_DIR}/bfile_id_samples.txt \
-	--extract ${OUT_DIR}/phs_rsids_GRCh37 \
+	--extract ${INTERIM_DIR}/phs_rsids \
 	--make-bed \
 	--out ${OUT_DIR}/${BFILE_OUT}_PCa
 

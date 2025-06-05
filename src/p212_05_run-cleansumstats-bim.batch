@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=16
-#SBATCH --array=2 # user input depending on the number of meta files in the trait list
+#SBATCH --array=3 # user input depending on the number of meta files in the trait list
 
 module purge
 test $SCRATCH #&& module load singularity/3.7.3 
@@ -34,5 +34,5 @@ export META_YAML=$(sed "${NUM}q;d" ${LIST}) && echo Input meta file: "${META_YAM
 # SCRIPT_DIR=$(dirname ${SCRIPT_DIR}) && echo Script location: "$SCRIPT_DIR"
 
 # Shell script call
-bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${META_YAML} ${OUT_DIR} ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
+bash ${SCRIPT_DIR}/run_cleansumstats_bim.sh ${SLURM_SUBMIT_DIR}/${META_YAML} ${OUT_DIR} ${WORK_DIR} ${TSD_PROJ} ${COMORMENT} ${CLEANSUMSTATS}
 

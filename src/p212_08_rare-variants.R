@@ -8,6 +8,9 @@ allData = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220
 caseData = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
 rareVariants = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 3)
 
+decode_variants = read_csv("data/raw/deCODE_variant_data.coding_only.20250408.csv")
+sample_phenotype_map = read_csv("data/raw/deCODE_variant_data.coding_only.20250408.sample_phenotype_map.csv")
+
 phenotypes = read_tsv("data/processed/heritable_cancer_phenotypes.tsv")
 
 phs = read_tsv(paste0(PROCESSED_DATA, "p212_PHS601_phs"), col_names = c("bfile_id", "phs"))
@@ -21,6 +24,82 @@ phenotypes %>%
 full_data %>%
     filter(!is.na(phs)) ->
     full_data
+
+# devode variants
+sample_phenotype_map %>%
+    select(deCODE_ID, EID) %>%
+    full_join(decode_variants) %>%
+    mutate(bfile_id = paste0("Eivind_", EID)) ->
+    decode_variants
+
+decode_variants %>%
+    filter(CPSR_CLASSIFICATION_SOURCE == "ClinVar") %>%
+    filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
+    select(bfile_id, SYMBOL) %>%
+    right_join(full_data) ->
+    full_data_decode_variants
+
+# Filter individuals with WGS
+allData %>%
+    filter(WGS == 1) %>%
+    mutate(PID = as.character(PID)) %>%
+    select(PID, WGS) ->
+    wgs
+
+xl = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
+
+xl %>%
+    mutate(bfile_id = paste0("Eivind_", EDTANR)) %>%
+    select(bfile_id, regnr = PTN_REGNR) ->
+    id_key
+
+wgs %>%
+    left_join(id_key, by = join_by(PID == regnr)) %>%
+    select(-PID) ->
+    wgs
+
+pca_pathogenic_variants = c("BRCA2", "BRCA1", "HOXB13", "MLH1", "MSH2", "MSH6")
+pca_pathogenic_variants = c("BRCA2", "BRCA1", "HOXB13", "MLH1", "MSH2", "MSH6", "SAMHD1", "ATM", "CHEK2", "FAM111A", "BIK")
+
+full_data_decode_variants %>%
+    left_join(wgs) %>%
+    mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
+    mutate(any_variant = if_else(is.na(SYMBOL), 0, 1)) %>%
+    mutate(hoxb13 = if_else(SYMBOL == "HOXB13", 1, 0)) %>%
+    mutate(brca2 = if_else(SYMBOL == "BRCA2", 1, 0)) %>%
+    mutate(prostate_variants = if_else(SYMBOL %in% pca_pathogenic_variants, 1, 0)) ->
+    full_data_decode_variants
+
+full_data_decode_variants %>%
+    filter(WGS == 1) ->
+    wgs_data_decode_variants
+# test decode variants
+cph_fit_phs = coxph(Surv(age, status) ~ phs, wgs_data_decode_variants)
+summary(cph_fit_phs)
+
+cph_fit_any_variant = coxph(Surv(age, status) ~ any_variant, wgs_data_decode_variants)
+summary(cph_fit_any_variant)
+
+cph_fit_prostate_variants = coxph(Surv(age, status) ~ prostate_variants, wgs_data_decode_variants)
+summary(cph_fit_prostate_variants)
+
+cph_fit_brca2 = coxph(Surv(age, status) ~ brca2, wgs_data_decode_variants)
+summary(cph_fit_brca2)
+sum(wgs_data_decode_variants$brca2, na.rm = T)/nrow(wgs_data_decode_variants)
+cph_fit_hoxb13 = coxph(Surv(age, status) ~ hoxb13, wgs_data_decode_variants)
+summary(cph_fit_hoxb13)
+sum(wgs_data_decode_variants$hoxb13, na.rm = T)/nrow(wgs_data_decode_variants)
+cph_fit_hoxb13_predict0 = predict(cph_fit_hoxb13, data.frame(age = wgs_data_decode_variants$age, status = 0, hoxb13 = 0), type = "survival")
+cph_fit_hoxb13_predict1 = predict(cph_fit_hoxb13, data.frame(age = wgs_data_decode_variants$age, status = 0, hoxb13 = 1), type = "survival")
+df = data.frame(age = wgs_data_decode_variants$age,
+            y0 = cph_fit_hoxb13_predict0,
+            y1 = cph_fit_hoxb13_predict1)
+df %>% 
+    pivot_longer(y0:y1) %>%
+    ggplot(aes(x = age, y = value, color = name)) +
+    geom_step() ->
+    p1
+ggsave("reports/figures/hoxb13_predict.png", p1)
 # Filter individuals from rare variants in phenotype data
 rareVariants %>%
     mutate(bfile_id = paste0("Eivind_", PID)) %>%
