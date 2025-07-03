@@ -53,7 +53,7 @@ format:
 
 ## Introduction
 
-Prostate carcinoma (PCa) is the second most prevalant form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men.
+Prostate carcinoma (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane \[This is a pretty old review from 2013. Consider citing some newer recommendations\] review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men.
 
 One potential approach to reduce the false positive rate for early screening and to reduce the risk of harms due to DRE is to employ polygenic hazard scores (PHS) to stratify individuals based on predicted age of onset for prostate cancer (Seibert or another PHS citation). This approach has been shown to accurately predict risk and age of onset for PCa in multiple ethnic groups (Huynh-Le et al. 2021). Furthermore, PHS can be combined with PSA screening and family history to potentially improve the positive predictive value of these screening measures (Seibert et al. 2018). By stratifying individuals using PHS, we can identify individuals who would benefit most through early PSA screening. Stratifying individuals by PHS score could also improve future pharmaceutical studies by identifying individuals with the highest risk of developing prostate cancer.
 
@@ -61,7 +61,9 @@ Currently, few studies have tested published PHS models in populations that diff
 
 In this study, we evaluated the latest published PHS model for individual-level early diagnosis of PCa by performing external validation in Nordic populations. The PHS601 is
 
-Rare variants: Rare pathogenic variants with large effect sizes are typically considered more
+Norway offers a unique opportunity for investigating these questions because of their well-developed electronic health records system, which allows investigators to link patient data from disparate health registries including the cancer registry and the death registry.
+
+The most common form of genetic screening in use today is using rare pathogenic variants associated with significantly increased risk. Rare pathogenic variants with large effect sizes are typically considered more useful diagnostically than genetic risk scores consisting of common variants with small effect sizes. Several RPVs PRVs? have been associated with increased risk of prostate cancer diagnosis or associated with worse outcomes including BRCA1 and BRCA2, HOXB13, and MSH1... HOXB13 has the strongest association with prostate cancer, but is rare in the general population at a frequency of 0.1% However, Scandinavian populations have a much higher frequency of this RPV at 1.4% (Seibert). We are interested in investigating if any of these variants could be useful in genetic screening for prostate cancer in Norwegian populations.
 
 ### Side Notes
 
@@ -71,27 +73,37 @@ In addition, Mohamed et al. 2019 commented on the original Seibert paper critici
 
 ## Methods
 
-### Subjects
+### Subjects/Study Population
+
+Two Norwegian cohorts were included in this study. The first we will refer to as the Norwegian Familial Cancer Study (NFCS) (Norske Familiekreftstudien? and the second is the Hordaland Health Studies (Helseundersøkelsene i Hordaland) (HUSK).
 
 ### Genotyping
 
-Subjects were genotyped using the \_\_\_ chip and genotype data were imputed using the \_\_\_ pipeline with the 1KG as a reference panel.
+Subjects were genotyped using the \_\_\_ chip and genotype data were imputed using the \_\_\_ pipeline with the MOBA reference panel.
+
+### Sequencing
 
 ### Clean summary statistics
 
-Summary statistics from previous PHS GWAS were acquired from the GWAS catalog from the supplementary materials of individual publications. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel. This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this).
-
-Some PHS models included SNPs that were absent from our imputed genotype data. For these SNPs, we used the LDlink tool LDproxy to identify SNPs in strong LD with the SNPs that were missing from our dataset (cite machiela 2015). One SNP was replaced with another SNP in LD. Two SNPs were removed because one was monoallelic in the European population and the second was absent in the European 1KG reference panel.
+Summary statistics from previously published PHS models were acquired from the GRS. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel. This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this). After this pipeline, XXX SNPs remained from the PHS601 model. In addition, XX SNPs were missing in the HUSK genotype data and XX from the NFCC leaving.
 
 ### Calculation of polygenic hazard scores
 
 ## Results
 
-We first applied the Seibert model to the Nordic heritable cancer cohort.
+-   Test PHS in HUSK, NFCC predicting any diagnosis
+
+-   Compare to metastatic at diagnosis in both cohorts
+
+-   Compare to rare variants (BRCA2 is associated with worse outcomes, HOXB13 is at higher frequency in the Norwegian population)
+
+Individuals with PHS in the top top quintile had 5 times greater risk than individuals in the bottom quintile (HR80_20: 95% CI \[\]) and 20% greater risk than the median individual (HR80_50, should I do this as top 20 versus middle 50? Or middle 60 to match Figure 1? Or should I somehow do it as top 20 versus everyone?
 
 ## Discussion
 
-if we could get a bigger data set, we highlight the possiblity to identify a few Norwegian specific SNPs
+Future Directions
+
+One limitation of this study is the limited sample size of subjects with diagnosis data, age of diagnosis, and metastasis code. If we could get a bigger data set, we could potentially identify additional SNPs specific to the Norwegian population.
 
 ## Acknowledgements
 
