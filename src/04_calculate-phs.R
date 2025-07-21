@@ -20,6 +20,22 @@ sumstats = readr::read_tsv(model_file)
 # Import genotypes
 genotype = genio::read_plink(genotype_bfiles)$X
 
+# if (tsd_proj == "p212") {
+# 	phenotypes = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
+# 	phenotypes %>%
+# 		select(bfile_id, hoxb13_snp) %>%
+# 		mutate(hoxb13_snp = if_else(hoxb13_snp == 0, 1, 0)) ->
+# 		hoxb13
+# 	hoxb13_df = as.data.frame(hoxb13)
+#     m <- as.matrix(hoxb13_df[,-1])
+#     dimnames(m) <- list(hoxb13_df[,1], "rs138213197")
+#     genotype = t(genotype)
+# 	merged = merge(genotype, m, by = "row.names", all = TRUE)
+# 	genotype = as.matrix(merged[-1])
+# 	rownames(genotype) = merged[, 1]
+# 	genotype = t(genotype)
+# }
+
 # Check for missing SNPs in genotype data
 genotype_filtered = genotype[rownames(genotype) %in% sumstats$RSID, ]
 percent_missingness = rowSums(is.na(genotype_filtered))/ncol(genotype_filtered)

@@ -59,11 +59,10 @@ zip:
 sumstats:
 	Rscript src/01_preprocess-sumstats.R
 
-## Identify cases/controls and harmonize in bfiles
+## Preprocess metadata
 .PHONY: metadata
 metadata:
-	$(RSCRIPT) src/02_id-cases-controls_p212.R
-#	sbatch src/03_pca_preprocess-metadata.batch
+	sbatch src/01_p212_preprocess-metadata.batch
 
 ## Identify IDs in antegenes to fix bfiles later
 .PHONY: antegenes-ids

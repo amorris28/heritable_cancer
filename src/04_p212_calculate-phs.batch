@@ -9,10 +9,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-6
 
-module purge
-test $SCRATCH && module load R/4.4.1-gfbf-2023b 
-source /cluster/bin/jobsetup
-set -o errexit
+module load R/4.4.2-gfbf-2024a
 
 export INTERIM_DIR=data/interim
 export PROCESSED_DIR=data/processed
@@ -21,11 +18,10 @@ NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
 export MODEL=$(sed "${NUM}q;d" ${MODELLIST}) && echo Input sumstats model: "${MODEL}" # get model from list
 #export PHS=$(sed "${NUM}q;d" ${PHSLIST}) # get model from list
 export COMORMENT=/cluster/projects/p212/github/comorment
-export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
+#export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 export TSD_PROJ=p212
 
 mkdir -p reports/figures
 
-$RSCRIPT src/calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs $TSD_PROJ
-Rscript src/hazrd-testing.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE $TSD_PROJ
+Rscript src/04_calculate-phs.R ${PROCESSED_DIR}/${MODEL}.GRCh37.gz $PROCESSED_DIR/moba_imputed_all_cs $TSD_PROJ
 
