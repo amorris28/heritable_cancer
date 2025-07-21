@@ -53,17 +53,25 @@ format:
 
 ## Introduction
 
-Prostate carcinoma (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane \[This is a pretty old review from 2013. Consider citing some newer recommendations\] review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men.
+Prostate carcinoma (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane \[This is a pretty old review from 2013. Consider citing some newer recommendations\] review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men. Therefore, there is a demand for identifying individuals at elevated risk of aggressive, metastatic, or clinically-significant prostate cancer for early screening of prostate cancer via PSA and MRI to avoid over-diagnosis and over-treatment of indolent disease.
 
-One potential approach to reduce the false positive rate for early screening and to reduce the risk of harms due to DRE is to employ polygenic hazard scores (PHS) to stratify individuals based on predicted age of onset for prostate cancer (Seibert or another PHS citation). This approach has been shown to accurately predict risk and age of onset for PCa in multiple ethnic groups (Huynh-Le et al. 2021). Furthermore, PHS can be combined with PSA screening and family history to potentially improve the positive predictive value of these screening measures (Seibert et al. 2018). By stratifying individuals using PHS, we can identify individuals who would benefit most through early PSA screening. Stratifying individuals by PHS score could also improve future pharmaceutical studies by identifying individuals with the highest risk of developing prostate cancer.
+One potential approach to reduce the false positive rate for early screening and to reduce the risk of harms due to DRE is to employ genetic screening to stratify individuals based on cancer risk. The most common approach to genetic screening for cancer is with rare pathogenic variants (RPVs). For example, women carrying a pathogenic mutation in the BRCA2 gene have a 60% chance of developing breast cancer in their lifetime \[citation\]. There are a number of RPVs associated with increased risk of PCa that are, in some cases, associated with worse prognosis, including BRCA1, BRCA2, and HOXB13 G84E \[cite Tyler's paper\]. Carrying one of these variants can increase an individual's risk by factor of 1-8.5 \[Tyler\]. However, these variants are at relatively low frequency in the population (typically, 0.05-0.10%) and therefore are of limited use in stratifying most people.
 
-Currently, few studies have tested published PHS models in populations that differ from the development set. One example of this was the PHS model of Alzheimer's disease from Desikan et al. (2017), which was tested in novel Nordic cohorts from Norway and Denmark (Motazedi 2023). While several PHS models for prostate cancer age-of-diagnosis have been published since 2018 (Seibert, others), to our knowledge, none have been externally validated in other populations that may have missing or imputed SNPs from the model.
+An alternative approach to screening for RPVs is to use polygenic scores (PGS). In this case, many common SNPs with small effect sizes are combined to calculate a PGS for an individual. Individuals with high (2-3x) or very high (3.5-9x) risk based on PGS---comparable in magnitude to carrying a single RPV---make up as much as 20-25% of the population. Therefore, PGSs can potentially be more useful for identifying many more individuals at increased risk of cancer to target for further screening. Furthermore, screening for individuals using genotyping is much cheaper than alternatives such as whole-genome sequencing.
 
-In this study, we evaluated the latest published PHS model for individual-level early diagnosis of PCa by performing external validation in Nordic populations. The PHS601 is
+\[One of the arguments for genotyping is that it is much cheaper than whole-genome sequencing, but if you are screening individuals for, for example, a BRCA2 mutation, you wouldn't WGS them, you would probably do a targeted sequencing panel, so I am not sure how strong of an argument that is).
 
-Norway offers a unique opportunity for investigating these questions because of their well-developed electronic health records system, which allows investigators to link patient data from disparate health registries including the cancer registry and the death registry.
+Typical PGS models use case-control designs with logistic regression to calculate a polygenic risk score (PRS), to estimate the risk of developing cancer at some point in their lifetime. More recently, investigators have begun using information about age of diagnosis or age of onset in a survival modeling framework to estimate the risk of developing disease at an early age. Genetic risk scores using this survival modeling framework are called polygenic hazard scores (PHS) and have been demonstrated to stratify individuals based on predicted age of onset for prostate cancer in multi-ethnic groups (Seibert or another PHS citation, Huynh-Le et al. 2021 \[cite the PHS601 paper\]). The most recent PHS for PCa has also been shown to be sensitive/specific enough to identify individuals at greater risk of metastatic/aggressive disease. Furthermore, PHS can be combined with PSA screening and family history to potentially improve the positive predictive value of these screening measures (Seibert et al. 2018). By stratifying individuals using PHS, we can identify individuals who would benefit most from early PSA screening. Stratifying individuals by PHS score could also improve future pharmaceutical studies by identifying individuals with the highest risk of developing prostate cancer.
 
-The most common form of genetic screening in use today is using rare pathogenic variants associated with significantly increased risk. Rare pathogenic variants with large effect sizes are typically considered more useful diagnostically than genetic risk scores consisting of common variants with small effect sizes. Several RPVs PRVs? have been associated with increased risk of prostate cancer diagnosis or associated with worse outcomes including BRCA1 and BRCA2, HOXB13, and MSH1... HOXB13 has the strongest association with prostate cancer, but is rare in the general population at a frequency of 0.1% However, Scandinavian populations have a much higher frequency of this RPV at 1.4% (Seibert). We are interested in investigating if any of these variants could be useful in genetic screening for prostate cancer in Norwegian populations.
+Currently, few studies have tested published PHS models in populations that differ from the development set. One example of this was the PHS model of Alzheimer's disease from Desikan et al. (2017), which was tested in novel Nordic cohorts from Norway and Denmark (Motazedi 2023). While several PHS models for prostate cancer age-of-diagnosis have been published (Seibert, others), to our knowledge, none have been externally validated in populations that may have missing or imputed SNPs from the model. The earliest models in this area were criticized for being developed in European populations and for not being generalizable to non-European populations. However, more recent PCa PHS models have been developed in more diverse cohorts, such as the Million Veterans Program in the US, and have been shown to stratify individuals in multi-ethnic populations (Huynh-Le et al., 2021, Seibert, 2025 pre-print).
+
+In this study, we evaluated the latest published PHS model for individual-level early diagnosis of PCa by performing external validation in two Nordic populations. In addition, we performed whole-genome sequencing on a subset of individuals to identify RPVs and compare the efficacy of screening using PHS and RPVs. Lastly, we validated whether the PHS601 model is sensitive enough to identify individuals at increased risk of metastatic disease.
+
+Norway offers a unique opportunity for investigating these questions because of their well-developed electronic health records system, which allows investigators to link patient data from disparate health registries including the cancer registry and the death registry. This provides comprehensive information on
+
+It is typically assumed that rare variants are better for predicting disease than polgenic scores, but is this true? Genotyping is cheaper and easier than sequencing. Can we meet or exceed the predictive performance of WGS with genetic risk scores? The most common form of genetic screening in use today is using rare pathogenic variants associated with significantly increased risk. Rare pathogenic variants with large effect sizes are typically considered more useful diagnostically than genetic risk scores consisting of common variants with small effect sizes. Several RPVs PRVs? have been associated with increased risk of prostate cancer diagnosis or associated with worse outcomes including BRCA1 and BRCA2, HOXB13, and MSH1... HOXB13 has the strongest association with prostate cancer, but is rare in the general population at a frequency of 0.1% However, Scandinavian populations have a much higher frequency of this RPV at 1.4% (Seibert). We are interested in investigating if any of these variants could be useful in genetic screening for prostate cancer in Norwegian populations.
+
+Why survival analysis instead of case-control logistic regression? For diseases like cancer or dementia, the question is not "will" you develop the disease but "when"? Many people will develop indolent prostate cancer or will develop the disease so late in life that it does not contribute to increased mortality. This is the difference between dying of prostate cancer and dying with prostate cancer. Survival analysis allows us to identify not all if someone will develop prostate cancer, but when. Early onset is associated with increased risk of aggressive/metastatic disease (even if it is not metastatic at the first diagnosis). Identifying individuals with high risk of early-onset prostate cancer identifies them for earlier monitoring of PSA, counseling on lifestyle changes to mitigate risk, and early treatment with pharmaceuticals for mitigating the risk of aggressive disease. In addition, stratifying individuals into high risk of early-onset can reduce the cost of pharmaceutical studies to investigate treatments for prostate cancer by allowing the investigator to enroll individuals at high risk of early onset allowing for small sample sizes and shorter study durations to see an effect.
 
 ### Side Notes
 
@@ -71,39 +79,71 @@ Huynh-LE 2020 and Seibert 2018 say that stratifying individuals by PHS improves 
 
 In addition, Mohamed et al. 2019 commented on the original Seibert paper criticizing it for 1) not being generalizable to non-European populations and 2) for lacking family history data.
 
+As discussed in Lewontin 1974, though there is probably a more recent reference, disease etiology and thus clinical interventions may differ between subjects with rare deleterious gene alleles than those whose phenotypes arise from the interaction between the environment and the normal array of segregating genes with minor effect.
+
 ## Methods
 
 ### Subjects/Study Population
 
-Two Norwegian cohorts were included in this study. The first we will refer to as the Norwegian Familial Cancer Study (NFCS) (Norske Familiekreftstudien? and the second is the Hordaland Health Studies (Helseundersøkelsene i Hordaland) (HUSK).
-
-### Genotyping
-
-Subjects were genotyped using the \_\_\_ chip and genotype data were imputed using the \_\_\_ pipeline with the MOBA reference panel.
+Two Norwegian cohorts were included in this study. The first we will refer to as the Norwegian Familial Cancer Study (NFCS). Subjects in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland) \[cite Mattingsdal\]. The genotyped dataset consisted of 15,769 subjects with 713,014 SNPs. Genotype data were imputed using a reference panel from The Norwegian Mother, Father and Child Cohort (MoBa) with the MoBa pipeline \[cite Corfield et al. I guess\]. The second cohort is the Hordaland Health Studies (Helseundersøkelsene i Hordaland) (HUSK). \[How was HUSK genotyping and imputation performed? Using the MoBa pipeline, I presume, but which reference panel was used?\]
 
 ### Sequencing
 
+Information on number of subjects with wgs. Variant calling was performed using the CPSR package \[Nakken et al. 2021\].
+
 ### Clean summary statistics
 
-Summary statistics from previously published PHS models were acquired from the GRS. Each summary statistics file was run through the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel. This pipeline removed palindromes, indels, and impossible allele pairs. Removed SNPs from the major histocompatibility complex (MHC) (cite this). After this pipeline, XXX SNPs remained from the PHS601 model. In addition, XX SNPs were missing in the HUSK genotype data and XX from the NFCC leaving.
+Summary statistics from previously published PCa PHS models were acquired from the PGS Catalog. Each summary statistics file was pre-processed with the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel \[reference?\]. This pipeline removed palindromes, indels, and impossible allele pairs and removed SNPs from the major histocompatibility complex (MHC) (cite this). After this pipeline, XXX SNPs remained from the PHS601 model. In addition, the genotype files from the two cohorts were also processed through the cleansumstats pipeline to insure that RSIDs and effect alleles matched between the models and the genotype data. XX SNPs were missing in the HUSK genotype data and XX from the NFCS. This left \### SNPs from the PHS601 model to be included in the NFCS PHS calculation and \### SNPs in the HUSK PHS calculation.
 
 ### Calculation of polygenic hazard scores
 
+Polygenic hazard scores were calculated for each model-cohort combination using matrix multiplication. The resulting PHSs were centered and scaled prior to modeling.
+
 ## Results
 
--   Test PHS in HUSK, NFCC predicting any diagnosis
+Question 1: PHS performance in Norwegian cohort
 
--   Compare to metastatic at diagnosis in both cohorts
+### PHS601 performance in HUSK, NFCS any PCa
 
--   Compare to rare variants (BRCA2 is associated with worse outcomes, HOXB13 is at higher frequency in the Norwegian population)
+1.  Kaplan-Meier curve plot for NFCS and HUSK
+2.  Table or inline coxph results
 
 Individuals with PHS in the top top quintile had 5 times greater risk than individuals in the bottom quintile (HR80_20: 95% CI \[\]) and 20% greater risk than the median individual (HR80_50, should I do this as top 20 versus middle 50? Or middle 60 to match Figure 1? Or should I somehow do it as top 20 versus everyone?
 
+Question 2: Sensitivity to metastatic disease
+
+### PHS601 performance in HUSK, NFCS metastatic PCa
+
+1.  Kaplan-Meier curve plot for NFCS and HUSK
+2.  Table or inline coxph results
+
+Question 3: Comparison of performance for RPV and PHS
+
+### RPV performance in NFCS any PCa
+
+1.  Subsample WGS samples
+2.  Plot KM curves
+3.  Stats
+
+### PHS601 versus PHS290
+
+1.  is this an improvement over the previous model?
+
 ## Discussion
+
+The strong stratification in the HUSK cohort demonstrates good risk stratification in the general population. In addition, the NFCS cohort was recruited based on self-reported family history of cancer and showed elevated cancer-risk relative to the general Norwegian population. Therefore, the strong risk stratification in both HUSK and the NFCS cohorts demonstrates that this model not only performs good risk stratification in the general population, but also in people with a family history or with concerns about cancer. Even in a group with a family history of cancer, there is a huge stratification between low and high risk. This suggests that genetics isn't just a proxy for family history.
+
+Applications/Public Helpful
+
+The benefit of this approach is that I can tell you before I have screened you how likely you are to develop disease and how likely you are to develop agressive/metastatic/clinically significant disease. You should know this before you decide whether to do measure PSA.
+
+In addition, compared to screening for BRCA2 or even HOXB13, PHS has a bigger public health benefit in this case. Even in the case of low numbers, for example, in the NFCS case we had only 300 cases of prostatic cancer and 80 cases of metastatic disease, the polygenic score was more useful than sequencing in the same sample size. If BRAC2 is not useful for stratifying risk in a popualtion of 3000, how useful is it in the clinic when looking at a single patient? In addition, genotyping for polygenic scoring costs a fraction of sequencing (source? numbers on this?). A much larger percentage of the population are affected by a high risk score than are affected by currently known PRVs. High polygenic risk affects 50x more people than BRCA2 mutations, which means genetic risk scoring is more useful for more people. If someone is carrier of a pathogenic mutation in BRCA2 or HOXB13, that tells you they have a relatively high risk of developing cancer, however, it provides no information about the relative risk of patients without those rare variants. Whereas, a polygenic risk score can inform risk in all patients. Evaluating how this could work in Norway, there is more value per NOK for PHS screening than for sequencing.
 
 Future Directions
 
 One limitation of this study is the limited sample size of subjects with diagnosis data, age of diagnosis, and metastasis code. If we could get a bigger data set, we could potentially identify additional SNPs specific to the Norwegian population.
+
+While information on metastatic or aggressive disease is often lacking in study populations and sample sizes for metastatic disease are relatively small resulting in decreased power, advances in electronic health records systems and biobanks could improve the sample sizes and information necessary to identify individuals with metastatic disease. Therefore, future studies should develop models that are specific to the development of metastatic or aggressive disease
 
 ## Acknowledgements
 
