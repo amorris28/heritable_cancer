@@ -140,6 +140,7 @@ km_curve = ggplot(km_curves, aes(x = time,
 ggsave(paste0(figs, paste(tsd_proj, model, "km_curve.png", sep = "_")), km_curve,
        units = "px", height = 1300, width = 1600)
 
+saveRDS(km_curve, paste0(PROCESSED_DATA, paste(tsd_proj, model, "km_curve.rds", sep = "_")))
 
 # BRCA2, HOXB13
 combined_data %>%
