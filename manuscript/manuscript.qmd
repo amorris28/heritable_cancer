@@ -43,7 +43,7 @@ format:
         keep-tex: true
         cite-method: natbib
         natbiboptions: numbers
-        biblio-style: naturemag
+        # biblio-style: naturemag
         include-in-header:
             - text: |
                 \usepackage{lineno}\linenumbers
