@@ -51,6 +51,10 @@ format:
     #     csl: nature.csl
 ---
 
+```{r}
+knitr::opts_knit$set(root.dir = '..')
+```
+
 ## Introduction
 
 Prostate carcinoma (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane \[This is a pretty old review from 2013. Consider citing some newer recommendations\] review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men. Therefore, there is a demand for identifying individuals at elevated risk of aggressive, metastatic, or clinically-significant prostate cancer for early screening of prostate cancer via PSA and MRI to avoid over-diagnosis and over-treatment of indolent disease.
@@ -79,7 +83,7 @@ Huynh-LE 2020 and Seibert 2018 say that stratifying individuals by PHS improves 
 
 In addition, Mohamed et al. 2019 commented on the original Seibert paper criticizing it for 1) not being generalizable to non-European populations and 2) for lacking family history data.
 
-As discussed in Lewontin 1974, though there is probably a more recent reference, disease etiology and thus clinical interventions may differ between subjects with rare deleterious gene alleles than those whose phenotypes arise from the interaction between the environment and the normal array of segregating genes with minor effect.
+As discussed in Lewontin 1974, though there is probably a more recent reference, disease etiology and thus clinical interventions may differ between subjects with rare deleterious gene alleles than those whose phenotypes arise from the interaction between the environment and the normal array of segregating genes with m
 
 ## Methods
 
@@ -101,9 +105,14 @@ Polygenic hazard scores were calculated for each model-cohort combination using 
 
 ## Results
 
-Question 1: PHS performance in Norwegian cohort
-
 ### PHS601 performance in HUSK, NFCS any PCa
+
+```{r}
+library(ggplot2)
+p <- readRDS("data/processed/p212_PHS601_km_curve.rds")
+p
+
+```
 
 1.  Kaplan-Meier curve plot for NFCS and HUSK
 2.  Table or inline coxph results
