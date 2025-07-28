@@ -36,25 +36,37 @@ bibliography: references.bib
 output: 
     pdf_document:
         extra_dependencies: ["flafter"]
+output_format: all
 format:
     pdf:
-        editor: visual
+        editor: source
         papersize: A4
-        keep-tex: true
+        keep-tex: false
+        fig.path: "figures/"
         cite-method: natbib
         natbiboptions: numbers
         # biblio-style: naturemag
         include-in-header:
             - text: |
                 \usepackage{lineno}\linenumbers
+    docx:
+        reference_docx: reference.docx
+        number_sections: true
     # docx: 
     #     csl: nature.csl
 ---
 
-```{r}
+```{r initialize, echo = FALSE, warning = FALSE, message = FALSE}
 knitr::opts_knit$set(root.dir = '..')
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
+```{r load}
+library(ggplot2)
+library(tidyverse)
+
+source("src/00_config.R")
+```
 ## Introduction
 
 Prostate carcinoma (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, the most recent Cochrane \[This is a pretty old review from 2013. Consider citing some newer recommendations\] review of prostate cancer screening using prostate-specific antigen (PSA) testing and digital rectal examination (DRE) showed that there was no difference in prostate-cancer specific mortality between screening and control groups. Furthermore, there was a significant increase in moderate-severity harms due to screening including anxiety and bleeding as well as the risk of false-positives with over-diagnosis and over-treatment (Ilic et al. 2013). Therefore, there is a need for both less-invasive and more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences for screening among men. Therefore, there is a demand for identifying individuals at elevated risk of aggressive, metastatic, or clinically-significant prostate cancer for early screening of prostate cancer via PSA and MRI to avoid over-diagnosis and over-treatment of indolent disease.
@@ -91,9 +103,10 @@ As discussed in Lewontin 1974, though there is probably a more recent reference,
 
 Two Norwegian cohorts were included in this study. The first we will refer to as the Norwegian Familial Cancer Study (NFCS). Subjects in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland) \[cite Mattingsdal\]. The genotyped dataset consisted of 15,769 subjects with 713,014 SNPs. Genotype data were imputed using a reference panel from The Norwegian Mother, Father and Child Cohort (MoBa) with the MoBa pipeline \[cite Corfield et al. I guess\]. The second cohort is the Hordaland Health Studies (Helseundersøkelsene i Hordaland) (HUSK). \[How was HUSK genotyping and imputation performed? Using the MoBa pipeline, I presume, but which reference panel was used?\]
 
-### Sequencing
+Metastatic disease was defined as disease prevalence at the time of diagnosis that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structure.
 
-Information on number of subjects with wgs. Variant calling was performed using the CPSR package \[Nakken et al. 2021\].
+
+### Genotyping
 
 ### Clean summary statistics
 
@@ -101,42 +114,128 @@ Summary statistics from previously published PCa PHS models were acquired from t
 
 ### Calculation of polygenic hazard scores
 
-Polygenic hazard scores were calculated for each model-cohort combination using matrix multiplication. The resulting PHSs were centered and scaled prior to modeling.
+Polygenic hazard scores were calculated for each model-cohort combination with matrix multiplication. The resulting PHSs were centered and scaled prior to modeling.
+
+### Sequencing
+
+Information on number of subjects with wgs. 
+
+### Variant calling
+
+Variant calling was performed using the CPSR package \[Nakken et al. 2021\]. We identified individuals with 1 or 2 copies of pathogenic variants known to be associated with incrased risk of PCa including mutations within the genes ATM, BRCA1, BRCA2, HOXB13, MLH1, MLH2, and MSH6.
+
+### Statistics
+
+Polygenic hazard scores were evaluated using Cox proportional hazards models using the `coxph` function from the `survival` package in `R` (cite). For the any-PCa model, events were defined as age of first PCa diagnosis and controls were censored at age of last observation. For the metastatic PCa model, events were defined as age at first metastatic disease diagnosis. The sole predictor for these models was PHS, which were centered and scaled prior to model fit. After model fitting, subjects were separated by centile range of polygenic hazard score into the top 20%, the bottom 20%, and the middle 60% for plotting of K-M curves. Performance of each model is reported as HR~80/20~, which is the hazard ratio between the top 20% and the bottom 20% as well as HR~80/60~, which is the hazard ratio between the top 20% and the middle 60%. For these metrics, confidence intervals were generated using 999 bootstrap iterations. 
+
+To test whether RPVs were at higher frequency in cases than in controls, we used the Fisher's exact test. Two genes for which no variants were observed in our cohort (MSH2 and MSH6) were removed prior to analysis. The remaining 5 genes were tested individually as well as aggregated as individuals carrying any of the variants. The p-values from these tests were adjusted using the Benjamini & Hochberg correction (1995). Genes at elevated frequency in the cases were then used in a survival analysis to quantify the increased risk of PCa associated with carrying one of these pathogenic variants. To test whether individuals with high PHS were more likely to carry a rare variant, we used logistic regression.
 
 ## Results
 
-### PHS601 performance in HUSK, NFCS any PCa
+### PHS601 performance on any PCa diagnosis
+```{r phs-plot}
+#| eval: false
+#| label: phs-plot
+#| fig-cap: "Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of \"failure\" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval."
+#| out-width: "70%"
+#| fig-width: 6
+#| fig-asp: 0.618
+#| fig-align: center
 
-```{r}
-library(ggplot2)
-p <- readRDS("data/processed/p212_PHS601_km_curve.rds")
-p
+p212 <- readRDS("data/results/p212_PHS601_any_pca_km_curve.rds")
+p212 + ggtitle(NULL)
+# p2521 <- readRDS("data/processed/p2521_PHS601_km_curve.rds")
+# p2521 + ggtitle(NULL)
+# ggarrange(p212, p2521, common.legend = TRUE)
 
 ```
 
-1.  Kaplan-Meier curve plot for NFCS and HUSK
-2.  Table or inline coxph results
+![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_km_curve){#fig-phs width=70%}
 
-Individuals with PHS in the top top quintile had 5 times greater risk than individuals in the bottom quintile (HR80_20: 95% CI \[\]) and 20% greater risk than the median individual (HR80_50, should I do this as top 20 versus middle 50? Or middle 60 to match Figure 1? Or should I somehow do it as top 20 versus everyone?
+```{r stats}
 
-Question 2: Sensitivity to metastatic disease
+PHS601 = readr::read_tsv("data/results/p212_PHS601_any_pca_performance.tsv")
+PHS601_meta = readr::read_tsv("data/results/p212_PHS601_metastatic_performance.tsv")
+sample_size = readr::read_tsv("data/results/p212_PHS601_sample_size.tsv")
+coxph_results = readr::read_tsv("data/results/p212_PHS601_coxph.tsv")
+wgs_summary = readr::read_tsv("data/results/p212_wgs_summary.tsv")
+fisher = readr::read_tsv("data/results/p212_fisher.tsv")
+wgs_phs = readr::read_tsv("data/results/p212_PHS601_wgs_phs_performance.tsv")
+binomial_phs_hoxb13 = readr::read_tsv("data/results/p212_PHS601_binomial_phs_hoxb13.tsv")
+```
 
-### PHS601 performance in HUSK, NFCS metastatic PCa
+In the NFCS cohort, there were `{r} sample_size[1, 3]` individuals with a PCa diagnosis and `{r} sample_size[1, 4]` controls. The Cox proportional hazards model showed an `{r} (round(coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa for a 1 standard deviation increase in PHS (HR = `{r} sprintf("%.2f", round(coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(coxph_results[1, "p.value"])`). Individuals with PHS in the top quintile had over `{r} floor(PHS601[1, 3])` times greater risk of any PCa than individuals in the bottom quintile (HR~80/20~: `{r} sprintf("%.2f", round(PHS601[1, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(PHS601[1, 4], 2))`, `{r} sprintf("%.2f", round(PHS601[1, 5], 2))`\]) and `{r} (round(PHS601[2, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/60~: `{r} sprintf("%.2f", round(PHS601[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(PHS601[2, 4], 2))`, `{r} sprintf("%.2f", round(PHS601[2, 5], 2))`\]; @fig-phs)
 
-1.  Kaplan-Meier curve plot for NFCS and HUSK
-2.  Table or inline coxph results
+### PHS601 specificity for metastatic PCa diagnosis
 
-Question 3: Comparison of performance for RPV and PHS
+```{r phs-plot-meta}
+#| eval: false
+#| label: phs-plot-meta
+#| fig-cap: "Kaplan-Meier survival curves of metastatic prostate cancer-free survival by centile ranges of polygenic hazard score. Time of \"failure\" is age at diagnosis of metastatic prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval."
+#| out-width: "70%"
+#| fig-width: 6
+#| fig-asp: 0.618
+#| fig-align: center
 
-### RPV performance in NFCS any PCa
+p212_meta <- readRDS("data/results/p212_PHS601_metastatic_km_curve.rds")
+p212_meta + ggtitle(NULL)
+# p2521 <- readRDS("data/processed/p2521_PHS601_km_curve.rds")
+# p2521 + ggtitle(NULL)
+# ggarrange(p212, p2521, common.legend = TRUE)
 
-1.  Subsample WGS samples
-2.  Plot KM curves
-3.  Stats
+```
+![Kaplan-Meier survival curves of metastatic prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at diagnosis of metastatic prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_km_curve_metastatic){#fig-meta width=70%}
+
+
+In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of any PCa, we were also interested in the specificity of PHS601 for aggressive disease. In the NFCS cohort, `{r} sample_size[2, 3]` individuals had been diagnosed with metastatic disease leaving `{r} sample_size[2, 4]` controls. The Cox proportional hazards model of metastatic disease showed a `{r} (round(coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease for a 1 standard deviation increase in PHS (HR = `{r} sprintf("%.2f", round(coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(coxph_results[2, "p.value"])`). Individuals with PHS in the top quintile had over `{r} floor(PHS601_meta[1, 3])` times greater risk of metastatic disease than individuals in the bottom quintile (HR~80/20~: `{r} sprintf("%.2f", round(PHS601_meta[1, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(PHS601_meta[1, 4], 2))`, `{r} sprintf("%.2f", round(PHS601_meta[1, 5], 2))`\]) and `{r} (round(PHS601_meta[2, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/60~: `{r} sprintf("%.2f", round(PHS601_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(PHS601_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(PHS601_meta[2, 5], 2))`\]; @fig-meta)
+
+
+### Performance comparison of RPVs and PHS
+
+```{r hoxb13-plot}
+#| label: hoxb13-plot
+#| eval: false
+#| out-width: "90%"
+#| fig-width: 8
+#| fig-asp: 0.618
+#| fig-align: center
+#| fig-cap: "Kaplan-Meier survival curves of prostate cancer-free survival for **(A)** HOXB13 carriers and **(B)** centile ranges of polygenic hazard score. Time of \"failure\" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval."
+
+library(patchwork)
+margin = theme(plot.margin = unit(c(2,2,2,2), "cm"))
+wgs_hoxb13 <- readRDS("data/results/p212_PHS601_hoxb13_km_curve.rds")
+wgs_phs_km <- readRDS("data/results/p212_PHS601_phs_wgs_km_curve.rds")
+wgs_hoxb13 = wgs_hoxb13 + 
+       ggtitle(NULL) +
+       theme(legend.position = "bottom") 
+wgs_phs_km = wgs_phs_km + 
+       ggtitle(NULL) +
+       theme(legend.position = "bottom") 
+#wgs_hoxb13
+#wgs_phs_km
+  wgs_hoxb13 + wgs_phs_km  +
+    plot_annotation(tag_levels = 'A')
+# gridExtra::grid.arrange(wgs_hoxb13, wgs_phs_km,
+#   widths = c(5, 1, 5),
+#   layout_matrix = rbind(c(1, NA, 2))
+# )
+
+```
+![Kaplan-Meier survival curves of prostate cancer-free survival for **(A)** centile ranges of polygenic hazard score and **(B)** HOXB13 carriers. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_wgs_km_curve){#fig-wgs width=90%}
+
+We compared the performance of RPVs and PHSes in predicting any-PCa. Only the NFCS cohort received whole-genome sequencing so the HUSK cohort was excluded from these analyses. We first subsetted our dataset to include only subjects that received both whole genome sequencing and genotyping. We then re-analyzed the PHS data on this smaller subsample to compare it to the performance of the rare pathogenic variants. There were a total of `{r} wgs_summary[2]` subjects with whole-genome sequencing of which `{r} wgs_summary[1]` were cases and `{r} wgs_summary[2] - wgs_summary[1]` were controls. Among these individuals, a total of `{r} wgs_summary[10]` had a deleterious mutation in one of the seven genes that we investigated. No subjects were observed with mutations in MSH2 or MSH6 so these genes were removed from the analysis.
+
+As a preliminary analysis, we tested whether the frequency of mutations was greater in cases than in controls for each gene using a one-sided Fisher's exact test. Only the HOXB13 gene showed increased frequency in the cases than in the controls (OR = `r sprintf("%.2f", round(fisher[2, "estimate"], 2))`, 95% lower confidence bound = `r sprintf("%.2f", round(fisher[2, "conf.low"], 2))`, adj. p = `{r} pvalr(fisher[2, "p.adjust"], digits = 2)`). Therefore, we only proceeded with testing the risk of diagnosis with this gene. The HOXB13 gene mutation was at a frequency of `r round(wgs_summary$hoxb13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% in the WGS subsample and having a high polygenic score does not appear to be associated with being more likely to carry a rare variant (OR = `{r} sprintf("%.2f", round(binomial_phs_hoxb13[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(binomial_phs_hoxb13[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(binomial_phs_hoxb13[2, "conf.high"], 2))`], p = `{r} pvalr(binomial_phs_hoxb13[[2, "p.value"]])`).
+
+Using the subsetted WGS dataset, the Cox proportional hazards model for PHS showed an `{r} (round(coxph_results[3, "estimate"], 2) * 100) - 100`\% greater risk of PCa for a 1 standard deviation increase in PHS (HR = `{r} sprintf("%.2f", round(coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[3, "conf.high"], 2))`], p < 0.001). Individuals with PHS in the top quintile had over `{r} floor(wgs_phs[1, 3])` times greater risk of any PCa than individuals in the bottom quintile (HR~80/20~: `{r} sprintf("%.2f", round(wgs_phs[1, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(wgs_phs[1, 4], 2))`, `{r} sprintf("%.2f", round(wgs_phs[1, 5], 2))`\]) and `{r} (round(wgs_phs[2, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/60~: `{r} sprintf("%.2f", round(wgs_phs[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(wgs_phs[2, 4], 2))`, `{r} sprintf("%.2f", round(wgs_phs[2, 5], 2))`\]; @{fig-wgs}A). By comparison, the Cox proportional hazards model for HOXB13 carriers showed a `{r} round(wgs_phs[1, 3])` times greater risk of PCa for carriers of HOXB13 mutations than non-carriers (HR = `{r} sprintf("%.2f", round(coxph_results[4, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[4, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[4, "conf.high"], 2))`], p `{r} pvalr(coxph_results[[4, "p.value"]])`; ; @{fig-wgs}B). 
+
+Combining these two predictors into a single Cox model, we find that both PHS and HOXB13 carrier status can independently contribute to increased PCa risk. In the combined main effect model, a 1 standard deviation increase in PHS led to a `{r} (round(coxph_results[5, 2], 2) * 100) - 100`\% increase PCa risk (HR = `{r} sprintf("%.2f", round(coxph_results[5, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[5, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[5, "conf.high"], 2))`], p `{r} pvalr(coxph_results[[5, "p.value"]])`) while carrying a HOXB13 mutation increase risk by `{r} round(coxph_results[6, 2], 1)` times (HR = `{r} sprintf("%.2f", round(coxph_results[6, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[6, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[6, "conf.high"], 2))`], p = `{r} pvalr(coxph_results[[6, "p.value"]])`). The interaction term was not significant (HR = `{r} sprintf("%.2f", round(coxph_results[9, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[9, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[9, "conf.high"], 2))`], p = `{r} pvalr(coxph_results[[9, "p.value"]])`), therefore we have presented only the main effect model here. 
+
 
 ### PHS601 versus PHS290
 
-1.  is this an improvement over the previous model?
+Is this an improvement over the previous model?
+
 
 ## Discussion
 
@@ -147,6 +246,10 @@ Applications/Public Helpful
 The benefit of this approach is that I can tell you before I have screened you how likely you are to develop disease and how likely you are to develop agressive/metastatic/clinically significant disease. You should know this before you decide whether to do measure PSA.
 
 In addition, compared to screening for BRCA2 or even HOXB13, PHS has a bigger public health benefit in this case. Even in the case of low numbers, for example, in the NFCS case we had only 300 cases of prostatic cancer and 80 cases of metastatic disease, the polygenic score was more useful than sequencing in the same sample size. If BRAC2 is not useful for stratifying risk in a popualtion of 3000, how useful is it in the clinic when looking at a single patient? In addition, genotyping for polygenic scoring costs a fraction of sequencing (source? numbers on this?). A much larger percentage of the population are affected by a high risk score than are affected by currently known PRVs. High polygenic risk affects 50x more people than BRCA2 mutations, which means genetic risk scoring is more useful for more people. If someone is carrier of a pathogenic mutation in BRCA2 or HOXB13, that tells you they have a relatively high risk of developing cancer, however, it provides no information about the relative risk of patients without those rare variants. Whereas, a polygenic risk score can inform risk in all patients. Evaluating how this could work in Norway, there is more value per NOK for PHS screening than for sequencing.
+
+It is possible that clinical interventions differ between individuals whose phenotype arises from rare deleterious mutations and individuals whose phenotype arises from the interaction of environment with genotype of the normal array of segregating genes of minor effect. Furthermore, RPVs and PHSes have different implications for genetic counseling for the risk of offspring being affected in the case of RPVs.
+
+This suggests that both the normal array of segregating genes as well as rare deleterious mutations contribute independently to PCa risk. As we show, having a high PHS score does not appear to predict being a carrier of HOXB13 G84E. Therefore, both of these genetic factors can provide valuable information about 
 
 Future Directions
 

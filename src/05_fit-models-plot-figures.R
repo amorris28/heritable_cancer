@@ -2,7 +2,14 @@ library(tidyverse)
 library(stringr)
 library(hazrd)
 library(survival)
+library(patchwork)
 source("src/00_config.R")
+
+###########################################
+# Output flags
+bootstrap_iters = 1
+perform_bool = FALSE
+
 
 #########################################
 # First argument: PHS file
@@ -32,8 +39,7 @@ inverse = args[3]
 inverse = FALSE
 tsd_proj = args[4]
 tsd_proj = "p212"
-output = "reports/"
-
+results = "data/results/"
 figs = "reports/figures/"
 
 #########################################
@@ -55,8 +61,14 @@ metadata %>%
   filter(!(is.na(phs))) ->
   combined_data
 
+# Remove samples with missing genotype data or phenotype data
+combined_data %>%
+  drop_na(phs, age, status) ->
+  combined_data
+
 #########################################
 # Analyze PHS data
+
 
 # PHS Histogram
 phs_hist = 
@@ -66,19 +78,22 @@ phs_hist =
 ggsave(paste0(figs, paste(tsd_proj, model, "hist.png", sep = "_")), phs_hist, 
        units = "px", height = 1300, width = 1300)
 
+# Coxph
+
+fit = coxph(Surv(age, status) ~ phs, data = combined_data)
+any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
+
 # Performance metrics
-
-
-HR80_20 = get_hr(combined_data, CI = TRUE, boot = 300)
+HR80_20 = get_hr(combined_data, CI = TRUE, boot = bootstrap_iters)
 HR80_60 = get_hr(combined_data, 
                  lower_interval = c(0.2, 0.80),
                  upper_interval = c(0.8, 1.0),
                  CI = TRUE, 
-                 boot = 300)
+                 boot = bootstrap_iters)
 
 ages = c(60, 70, 80)
-OR80_20 = lapply(ages, function(x) {get_or(combined_data, or_age = x, CI = TRUE, boot = 300)})
-c_index = get_cindex(combined_data, CI = TRUE, boot = 300)
+OR80_20 = lapply(ages, function(x) {get_or(combined_data, or_age = x, CI = TRUE, boot = bootstrap_iters)})
+c_index = get_cindex(combined_data, CI = TRUE, boot = bootstrap_iters)
 
 HR80_20$age = NA
 HR80_60$age = NA
@@ -92,8 +107,9 @@ perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index
                                                                  conf.high = x$conf.high, 
                                                                  age = x$age)}))
 perform = cbind(model, perform)
-write_tsv(perform, paste0(output, paste(tsd_proj, model, "performance.tsv", sep = "_")))
-
+if (perform_bool) {
+  write_tsv(perform, paste0(results, paste(tsd_proj, model, "any_pca_performance.tsv", sep = "_")))
+}
 
 # KM Curves
 curves = data.frame(curve0_20 = c(0,   0.2),
@@ -103,13 +119,14 @@ curves = data.frame(curve0_20 = c(0,   0.2),
 label_generator = function(x, y) {
   x = x * 100
   y = y * 100
-  out = paste0("PHS ", x, "-", y, "th centile")
+  # out = paste0("PHS ", x, "-", y, "th centile")
+  out = paste0(x, "-", y, "th")
   return(out)
 }
 
 km_curves = data.frame()
 for (i in seq_len(length(curves))) {
-  curven <- km_curve(data = combined_data,  
+  curven <- km_curve(data = combined_data,
                      interval = curves[[i]],
                      age_range = 40:100, 
                      scale = FALSE, 
@@ -131,103 +148,18 @@ km_curve = ggplot(km_curves, aes(x = time,
   theme_classic() +
   xlim(40, 100) + 
   ylim(0, 1) +
-  labs(x = "Age", y = "Disease-free Survival", title = model) +
+  labs(x = "Age", y = "Disease-free Survival") +
   scale_color_brewer(palette = "Set1", direction = -1,
-                     name = "Centile") +
+                     name = "PHS Centile") +
   scale_fill_brewer(palette = "Set1", direction = -1,
-                    name = "Centile")  + theme(aspect.ratio=1)
+                    name = "PHS Centile")  + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, paste(tsd_proj, model, "km_curve.png", sep = "_")), km_curve,
-       units = "px", height = 1300, width = 1600)
+ggsave(paste0(results, paste(tsd_proj, model, "km_curve.pdf", sep = "_")), km_curve,
+       height = 6 * 0.618, width = 6)
+ggsave(paste0(results, paste(tsd_proj, model, "km_curve.png", sep = "_")), km_curve,
+       height = 6 * 0.618, width = 6)
 
-saveRDS(km_curve, paste0(PROCESSED_DATA, paste(tsd_proj, model, "km_curve.rds", sep = "_")))
-
-# BRCA2, HOXB13
-combined_data %>%
-  select(status, age, phs, wgs, brca2_carrier:hoxb13_snp) %>%
-  mutate(across(brca2_carrier:atm_carrier, ~ if_else(is.na(.x), 0, .x))) ->
-  carriers
-
-carriers %>%
-  filter(wgs == 1) %>%
-  mutate(any_carrier = case_when(if_any(brca2_carrier:atm_carrier, ~ .x == 1) ~ 1, .default = 0)) %>%
-  mutate(all_carrier = rowSums(across(brca2_carrier:atm_carrier))) ->
-  wgs
-wgs %>%
-  select(-msh2_carrier, -msh6_carrier) ->
-  wgs
-  # 0 subjects with these mutations
-
- #Fisher test
-variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any", "all")
-fisher_results = list()
-for (i in 1:length(variants)) {
-  variant = paste0(variants[i], "_carrier")
-  print(variant)
-  wgs %>%
-    select(status, all_of(variant)) %>%
-    table() %>%
-    fisher.test() ->
-    fisher_results[[variant]]
-}
-
-# survival analysis
-
-phs_hoxb13_wgs_fit = coxph(Surv(age, status) ~ phs + hoxb13_carrier, wgs)
-summary(phs_hoxb13_wgs_fit)
-hoxb13_wgs_fit = coxph(Surv(age, status) ~ hoxb13_carrier, wgs)
-summary(hoxb13_wgs_fit)
-
-phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, carriers)
-summary(phs_hoxb13_snp_fit)
-hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, carriers)
-summary(hoxb13_snp_fit)
-
-
-## Write a function that returns a pretty ggplot with curves separated by covariate
-
-
-fit = coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)
-#fit = coxph(Surv(age, status) ~ hoxb13_snp, data = carriers)
-summary(fit)
-new_data0 = data.frame(hoxb13_carrier = c(0))
-new_data1 = data.frame(hoxb13_carrier = c(1))
-fit_surv0 = survfit(fit, newdata = new_data0)
-df0 = data.frame(hoxb13_carrier = 0, 
-                 surv = fit_surv0$surv, 
-                 time = fit_surv0$time,
-                 lower = fit_surv0$lower, 
-                 upper = fit_surv0$upper)
-fit_surv1 = survfit(fit, newdata = new_data1)
-df1 = data.frame(hoxb13_carrier = 1, 
-                 surv = fit_surv1$surv, 
-                 time = fit_surv1$time,
-                 lower = fit_surv1$lower, 
-                 upper = fit_surv1$upper)
-prediction = rbind(df0, df1) %>%
-    mutate(hoxb13_carrier = as.factor(hoxb13_carrier))
-
-p = ggplot(prediction, aes(x = time, 
-                       y = surv, 
-                       ymin = lower,
-                       ymax = upper,
-                       color = hoxb13_carrier,
-                       fill = hoxb13_carrier)) +
-    geom_ribbon(alpha = 0.1,
-                color = 0) +
-    geom_step() +
-    theme_classic() +
-    xlim(40, 106) + 
-    ylim(0, 1) +
-    labs(x = "Age", y = "Disease-free Survival") +
-    scale_color_brewer(palette = "Set1",
-                       name = "Hoxb13 Carrier") +
-    scale_fill_brewer(palette = "Set1",
-                      name = "Hoxb13 Carrier")
-
-ggsave(paste0(figs, paste(tsd_proj, model, "hoxb13_km_curve.png", sep = "_")), p,
-       units = "px", height = 1300, width = 1600)
-
+saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "any_pca_km_curve.rds", sep = "_")))
 
 # Time to metastatic diseaes
 
@@ -235,28 +167,64 @@ combined_data %>%
   mutate(metastasis = if_else(is.na(metastasis), 0, metastasis)) %>%
   mutate(age_of_metastasis = if_else(is.na(age_of_metastasis), age_lastobs, age_of_metastasis)) ->
   combined_data
+# Coxph
+
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
-summary(metastasis_fit)
+metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = TRUE)
 
-combined_data %>%
-  select(age_lastobs, age_diagnosis, age, age_of_metastasis, age_at_death) %>%
-  rowwise() %>%
-  mutate(max = max(c_across(age_lastobs:age_at_death), na.rm = T)) ->
-  ages
+# combined_data %>%
+#   select(age_lastobs, age_diagnosis, age, age_of_metastasis, age_at_death) %>%
+#   rowwise() %>%
+#   mutate(max = max(c_across(age_lastobs:age_at_death), na.rm = T)) ->
+#   ages
 
+# Performance metrics
+HR80_20 = get_hr(combined_data,
+                 age = "age_of_metastasis",
+                 status = "metastasis",
+                 CI = TRUE, 
+                 boot = bootstrap_iters)
+HR80_60 = get_hr(combined_data,
+                 age = "age_of_metastasis",
+                 status = "metastasis",
+                 lower_interval = c(0.2, 0.80),
+                 upper_interval = c(0.8, 1.0),
+                 CI = TRUE, 
+                 boot = bootstrap_iters)
 
+ages = c(60, 70, 80)
+OR80_20 = lapply(ages, function(x) {get_or(combined_data,
+                                           age = "age_of_metastasis",
+                                           status = "metastasis", 
+                                           or_age = x, 
+                                           CI = TRUE, 
+                                           boot = bootstrap_iters)})
+c_index = get_cindex(combined_data,
+                     age = "age_of_metastasis",
+                     status = "metastasis", 
+                     CI = TRUE, 
+                     boot = bootstrap_iters)
 
+HR80_20$age = NA
+HR80_60$age = NA
+HR80_60$index = "HR80_60"
+c_index$age = NA
+indices = list(HR80_20, HR80_60, OR80_20[[1]], OR80_20[[2]], OR80_20[[3]], c_index)
+
+perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                 value = x$value, 
+                                                                 conf.low = x$conf.low, 
+                                                                 conf.high = x$conf.high, 
+                                                                 age = x$age)}))
+perform = cbind(model, perform)
+if (perform_bool) {
+  write_tsv(perform, paste0(results, paste(tsd_proj, model, "metastatic_performance.tsv", sep = "_")))
+}
 # KM Curves for metastatic disease
 curves = data.frame(curve0_20 = c(0,   0.2),
                     curve20_80 = c(0.2, 0.8),
                     curve80_100 = c(0.8, 1.0))
 
-label_generator = function(x, y) {
-  x = x * 100
-  y = y * 100
-  out = paste0("PHS ", x, "-", y, "th centile")
-  return(out)
-}
 
 km_curves = data.frame()
 for (i in seq_len(length(curves))) {
@@ -284,11 +252,287 @@ km_curve = ggplot(km_curves, aes(x = time,
   theme_classic() +
   xlim(40, 100) + 
   ylim(0, 1) +
-  labs(x = "Age", y = "Disease-free Survival", title = model) +
+  labs(x = "Age", y = "Disease-free Survival") +
   scale_color_brewer(palette = "Set1", direction = -1,
-                     name = "Centile") +
+                     name = "PHS Centile") +
   scale_fill_brewer(palette = "Set1", direction = -1,
-                    name = "Centile")  + theme(aspect.ratio=1)
+                    name = "PHS Centile")  + theme(aspect.ratio=1)
 
-ggsave(paste0(figs, paste(tsd_proj, model, "km_curve_metastatic.png", sep = "_")), km_curve,
-       units = "px", height = 1300, width = 1600)
+ggsave(paste0(results, paste(tsd_proj, model, "km_curve_metastatic.pdf", sep = "_")), km_curve,
+       height = 6 * 0.618, width = 6)
+ggsave(paste0(results, paste(tsd_proj, model, "km_curve_metastatic.png", sep = "_")), km_curve,
+       height = 6 * 0.618, width = 6)
+saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "metastatic_km_curve.rds", sep = "_")))
+
+# Gather sample sizes
+
+combined_data %>%
+  select(phs, age, status) ->
+  any_pca_sample_size
+any_pca_sample_size_cases = sum(any_pca_sample_size$status)
+any_pca_sample_size_total = nrow(any_pca_sample_size)
+any_pca_sample_size_controls = any_pca_sample_size_total - any_pca_sample_size_cases
+
+
+combined_data %>%
+  select(phs, age_of_metastasis, metastasis) %>%
+  drop_na() ->
+  metastatic_sample_size
+metastatic_sample_size_cases = sum(metastatic_sample_size$metastasis)
+metastatic_sample_size_total = nrow(metastatic_sample_size)
+metastatic_sample_size_controls = 
+  metastatic_sample_size_total - 
+  metastatic_sample_size_cases
+
+sample_size = tibble(group = c("any_pca", "metastatic"),
+       total = c(any_pca_sample_size_total, metastatic_sample_size_total),
+       cases = c(any_pca_sample_size_cases, metastatic_sample_size_cases),
+       controls = c(any_pca_sample_size_controls, metastatic_sample_size_controls))
+
+write_tsv(sample_size, paste0(results, paste(tsd_proj, model, "sample_size.tsv", sep = "_")))
+
+# RPVs
+
+# BRCA2, HOXB13
+combined_data %>%
+  select(status, age, phs, age_of_metastasis, metastasis, wgs, brca2_carrier:hoxb13_snp) %>%
+  mutate(across(brca2_carrier:atm_carrier, ~ if_else(is.na(.x), 0, .x))) ->
+  carriers
+
+carriers %>%
+  filter(wgs == 1) %>%
+  # any_carrier is 1 for people who have any of the listed RPVs
+  mutate(any_carrier = case_when(if_any(brca2_carrier:atm_carrier, ~ .x == 1) ~ 1, .default = 0)) ->#%>%
+  # all_carrier is the sum of all RPVs that each individual has (in this case, nobody has
+  # more than one)
+  # mutate(all_carrier = rowSums(across(brca2_carrier:atm_carrier))) ->
+  wgs
+
+wgs %>%
+  select(status, wgs:atm_carrier, any_carrier) %>%
+  summarize(across(everything(), list(sum))) ->
+  wgs_summary
+
+write_tsv(wgs_summary, paste0(results, paste(tsd_proj, "wgs_summary.tsv", sep = "_")))
+
+
+wgs %>%
+  select(-msh2_carrier, -msh6_carrier) ->
+  wgs
+  # 0 subjects with these mutations
+
+ #Fisher test
+variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any")#, "all")
+fisher_results = list()
+for (i in 1:length(variants)) {
+  variant = paste0(variants[i], "_carrier")
+  print(variant)
+  wgs %>%
+    select(status, all_of(variant)) %>%
+    mutate(case_factor = factor(status, levels = c(1, 0), labels = c("Cases", "Controls"))) %>%
+    mutate(carrier_factor = factor(.data[[variant]], levels = c(1, 0), labels = c("Carrier", "Not_Carrier"))) %>%
+    select(case_factor, carrier_factor) %>%
+    table() %>%
+    fisher.test(alternative = "g") ->
+    # fisher.test() ->
+    fisher_results[[variant]]
+}
+fisher_tibble = NULL
+for (i in seq_along(fisher_results)) {
+  temp = broom::tidy(fisher_results[[i]])
+  temp$gene = names(fisher_results)[i]
+  fisher_tibble = rbind(fisher_tibble, temp)
+}
+fisher_tibble %>%
+  mutate(p.adjust = p.adjust(p.value, method = "fdr")) ->
+  fisher_tibble
+fisher_tibble
+write_tsv(fisher_tibble, paste0(results, paste(tsd_proj, "fisher.tsv", sep = "_")))
+
+
+# survival analysis
+phs_wgs_fit = coxph(Surv(age, status) ~ phs, wgs)
+summary(phs_wgs_fit)
+phs_wgs_coxph = broom::tidy(phs_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
+cox.zph(phs_wgs_fit)
+
+hoxb13_wgs_fit = coxph(Surv(age, status) ~ hoxb13_carrier, wgs)
+summary(hoxb13_wgs_fit)
+hoxb13_wgs_coxph = broom::tidy(hoxb13_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
+cox.zph(hoxb13_wgs_fit)
+# hoxb13_wgs_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_carrier, wgs)
+# summary(hoxb13_wgs_fit)
+
+phs_hoxb13_wgs_fit = coxph(Surv(age, status) ~ phs + hoxb13_carrier, wgs)
+summary(phs_hoxb13_wgs_fit)
+phs_hoxb13_wgs_coxph = broom::tidy(phs_hoxb13_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
+
+cox.zph_test <- cox.zph(phs_hoxb13_wgs_fit)
+plot(cox.zph_test)
+
+phs_hoxb13_wgs_inter = coxph(Surv(age, status) ~ phs * hoxb13_carrier, wgs)
+summary(phs_hoxb13_wgs_inter)
+phs_hoxb13_inter_coxph = broom::tidy(phs_hoxb13_wgs_inter, exponentiate = TRUE, conf.int = TRUE)
+
+
+# phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, carriers)
+# summary(phs_hoxb13_snp_fit)
+# hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, carriers)
+# summary(hoxb13_snp_fit)
+
+## New performance indices for PHS 
+
+# Performance metrics
+HR80_20 = get_hr(wgs,
+                 CI = TRUE, 
+                 boot = bootstrap_iters)
+HR80_60 = get_hr(wgs,
+                 lower_interval = c(0.2, 0.80),
+                 upper_interval = c(0.8, 1.0),
+                 CI = TRUE, 
+                 boot = bootstrap_iters)
+
+ages = c(60, 70, 80)
+OR80_20 = lapply(ages, function(x) {get_or(wgs,
+                                           or_age = x, 
+                                           CI = TRUE, 
+                                           boot = bootstrap_iters)})
+c_index = get_cindex(wgs,
+                     CI = TRUE, 
+                     boot = bootstrap_iters)
+
+HR80_20$age = NA
+HR80_60$age = NA
+HR80_60$index = "HR80_60"
+c_index$age = NA
+indices = list(HR80_20, HR80_60, OR80_20[[1]], OR80_20[[2]], OR80_20[[3]], c_index)
+
+perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                 value = x$value, 
+                                                                 conf.low = x$conf.low, 
+                                                                 conf.high = x$conf.high, 
+                                                                 age = x$age)}))
+perform = cbind(model, perform)
+if (perform_bool) {
+  write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance.tsv", sep = "_")))
+}
+
+## New plot of PHS km curves but on the subsetted WGS dataset
+
+
+# KM Curves
+curves = data.frame(curve0_20 = c(0,   0.2),
+                    curve20_80 = c(0.2, 0.8),
+                    curve80_100 = c(0.8, 1.0))
+
+km_curves = data.frame()
+for (i in seq_len(length(curves))) {
+  curven <- km_curve(data = wgs,
+                     interval = curves[[i]],
+                     age_range = 40:100,
+                     scale = FALSE, 
+                     inverse = FALSE)
+  curven$label = label_generator(curves[1, i], curves[2, i])
+  km_curves = rbind(km_curves, curven)
+}
+
+
+wgs_km = ggplot(km_curves, aes(x = time,
+                      y = estimate,
+                      ymin = conf.low,
+                      ymax = conf.high,
+                      col = label,
+                      fill = label)) +
+  geom_ribbon(alpha = 0.1,
+              color = 0) +
+  geom_step() +
+  theme_classic() +
+  xlim(40, 100) + 
+  ylim(0, 1) +
+  labs(x = "Age", y = "Disease-free Survival") +
+  scale_color_brewer(palette = "Set1", direction = -1,
+                     name = "PHS Centile") +
+  scale_fill_brewer(palette = "Set1", direction = -1,
+                    name = "PHS Centile") + 
+  theme(aspect.ratio = 1) +
+       theme(legend.position = "bottom") 
+
+# ggsave(paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.png", sep = "_")), wgs_km,
+#        height = 6 * 0.618, width = 6)
+
+#saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.rds", sep = "_")))
+
+
+## Plot of HOXB13 km curve on WGS data
+
+
+fit = coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)
+#fit = coxph(Surv(age, status) ~ hoxb13_snp, data = carriers)
+summary(fit)
+new_data0 = data.frame(hoxb13_carrier = c(0))
+new_data1 = data.frame(hoxb13_carrier = c(1))
+fit_surv0 = survfit(fit, newdata = new_data0)
+df0 = data.frame(hoxb13_carrier = 0, 
+                 surv = fit_surv0$surv, 
+                 time = fit_surv0$time,
+                 lower = fit_surv0$lower, 
+                 upper = fit_surv0$upper)
+fit_surv1 = survfit(fit, newdata = new_data1)
+df1 = data.frame(hoxb13_carrier = 1, 
+                 surv = fit_surv1$surv, 
+                 time = fit_surv1$time,
+                 lower = fit_surv1$lower, 
+                 upper = fit_surv1$upper)
+prediction = rbind(df0, df1) %>%
+    mutate(hoxb13_carrier = as.factor(hoxb13_carrier))
+
+hoxb13_p = ggplot(prediction, aes(x = time, 
+                       y = surv, 
+                       ymin = lower,
+                       ymax = upper,
+                       color = hoxb13_carrier,
+                       fill = hoxb13_carrier)) +
+    geom_ribbon(alpha = 0.1,
+                color = 0) +
+    geom_step() +
+    theme_classic() +
+    xlim(40, 100) + 
+    ylim(0, 1) +
+    labs(x = "Age", y = "Disease-free Survival") +
+    scale_color_brewer(palette = "Set1",
+                       name = "HOXB13 Carrier") +
+    scale_fill_brewer(palette = "Set1",
+                      name = "HOXB13 Carrier") + 
+  theme(aspect.ratio = 1) +
+       theme(legend.position = "bottom") 
+
+wgs_p = wgs_km +
+    hoxb13_p + 
+    plot_annotation(tag_levels = 'A')
+ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.pdf", sep = "_")), wgs_p,
+           height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.png", sep = "_")), wgs_p,
+           height = 8 * 0.618, width = 8)
+#saveRDS(p, paste0(results, paste(tsd_proj, model, "hoxb13_km_curve.rds", sep = "_")))
+
+
+# Does having a high PHS icnrease your risk of carrying a rare variant?
+binomial_phs_hoxb13 <- glm(hoxb13_carrier ~ phs, family="binomial", data=wgs)
+summary(binomial_phs_hoxb13)
+broom::tidy(binomial_phs_hoxb13, conf.int = TRUE, exponentiate = TRUE) %>%
+  write_tsv(paste0(results, paste(tsd_proj, model, "binomial_phs_hoxb13.tsv", sep = "_")))
+
+# Combine Coxph results
+any_pca_coxph$model = "any_pca"
+metastatic_coxph$model = "metastatic"
+phs_wgs_coxph$model = "phs_wgs"
+hoxb13_wgs_coxph$model = "hoxb13_wgs"
+phs_hoxb13_wgs_coxph$model = "phs_hoxb13"
+phs_hoxb13_inter_coxph$model = "phs_hoxb13_inter"
+rbind(any_pca_coxph, metastatic_coxph, phs_wgs_coxph, hoxb13_wgs_coxph, phs_hoxb13_wgs_coxph, phs_hoxb13_inter_coxph) ->
+coxph_results
+write_tsv(coxph_results, paste0(results, paste(tsd_proj, model, "coxph.tsv", sep = "_")))
+
+# Hoxb13 frequency in WGS samples
+hoxb13_freq = sum(wgs$hoxb13_carrier) / nrow(wgs)
+
