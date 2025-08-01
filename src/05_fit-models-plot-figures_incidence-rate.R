@@ -4,28 +4,64 @@ library(survival)
 
 source("src/00_config.R")
 
+
+#########################################
+# First argument: PHS file
+# tab delimited file, no header, first column ID, second column PHS score
+# Second argument: metadata file
+# column names. Missing is okay, different order is okay, must match string exactly: 
+# pid	death	wgs	age_lastobs	age_diagnosis	status	age	bfile_id	age_of_metastasis	
+# metastasis_code	metastasis	conversion_to_metastasis_years	doed_av_pca	age_at_death	
+# diagnosis_to_death_years	brca2_carrier	hoxb13_carrier	hoxb13_snp
+# tab delimited file with column names bfile_id, age, status. 
+# Additional columns will be ignored.
+# Third argument: 
+# boolean indicating whether to inverse (x * -1) the PHS scores
+# to reverse the direction of effect.
+
+args = commandArgs(trailingOnly=TRUE)
+
+model_file = args[1] # PHS file
+model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
+
+metadata_file = args[2] # Phenotype data
+inverse = args[3]
+tsd_proj = args[4]
+
+results = "data/results/"
+
+#########################################
+# Import data
+
 # cancer registry incidence data
 incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
 
-# p212 phenotype data
-p212_data = read_tsv(paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
-p212_phs = read_tsv(paste0(PROCESSED_DATA, "p212_PHS601_phs"), col_names = c("bfile_id", "phs"))
+# phenotype data
+phs_data = read_tsv(model_file, col_names = c("bfile_id", "phs"))
 
-p212_data %>%
-    full_join(p212_phs, by = "bfile_id") %>%
+phs_data %>%
+  mutate(phs = as.vector(scale(phs, center = TRUE, scale = TRUE))) ->
+  phs_data
+
+if (inverse) {mutate(phs_data, phs = phs * -1) -> phs_data}
+
+metadata = read_tsv(metadata_file)
+
+metadata %>%
+    full_join(phs_data, by = "bfile_id") %>%
     filter(!is.na(phs)) %>%
     filter(!is.na(age)) ->
     full_data
 
 # p2521 data
-p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
-p2521_phs = read_tsv(paste0(PROCESSED_DATA, "p2521_PHS601_phs"), col_names = c("subjectid", "phs"))
+# p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
+# p2521_phs = read_tsv(paste0(PROCESSED_DATA, "p2521_PHS601_phs"), col_names = c("subjectid", "phs"))
 
-p2521_data %>%
-    full_join(p2521_phs, by = "subjectid") %>%
-    filter(!is.na(phs)) %>%
-    filter(!is.na(age)) ->
-    full_data
+# p2521_data %>%
+#     full_join(p2521_phs, by = "subjectid") %>%
+#     filter(!is.na(phs)) %>%
+#     filter(!is.na(age)) ->
+#     full_data
 
 ################################################################################
 # 1. Plot incidence curve for Norway
@@ -56,7 +92,7 @@ ggplot(incidence_over35, aes(x = median_age_minus35, y = log_incidencerate)) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
     p
-#ggsave("reports/figures/log_incidence_rate.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave(paste0(results, "log_incidence_rate.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 # Compare polynomial fit between fitting a linear model to the log-transformed
 # data or fit a non-linear model to the original data
@@ -98,7 +134,7 @@ ggplot(mapping = aes(x, y)) +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
     p
-#ggsave("reports/figures/log_incidence_rate_lmfit.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave(paste0(results, "log_incidence_rate_lmfit.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 ###########################
 # if I take the log of y and fit a second-order polynomial model I get this:
@@ -126,7 +162,7 @@ ggplot() +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p
-#ggsave("reports/figures/log_incidence_rate_lmfit_exp.png", p, width = 4.5, height = 3.5, dpi = 300)
+#ggsave(paste0(results, "log_incidence_rate_lmfit_exp.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 # The model doesn't match up very well with the original in this case
 
@@ -143,7 +179,7 @@ ggplot()  +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p1
-#ggsave("reports/figures/norway_incidence.png", p1, width = 4.5, height = 3.5, dpi = 300)
+#ggsave(paste0(results, "norway_incidence.png"), p1, width = 4.5, height = 3.5, dpi = 300)
 
 # The non-linear model seems to fit better
 
@@ -158,9 +194,10 @@ ggplot()  +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p1
-ggsave("reports/figures/norway_incidence_yearly.png", p1, width = 4.5, height = 3.5, dpi = 300)
+ggsave(paste0(results, "norway_incidence_yearly.png"), p1,
+           height = 8 * 0.618, width = 8)
 
-# Now, take the cumulative incidence for later comparison to p212 and p2521
+# Now, take the cumulative incidence for later comparison to cohort data
 yearly_data %>%
     mutate(cumulative_incidence = cumsum(y_predict)) ->
     yearly_data
@@ -169,7 +206,8 @@ ggplot(yearly_data, aes(x = median_age_minus35, y = cumulative_incidence)) +
     geom_point() ->
     p
 
-ggsave("reports/figures/norway_cumulative_incidence.png", p, width = 4.5, height = 3.5, dpi = 300)
+ggsave(paste0(results, "norway_cumulative_incidence.png"), p,
+           height = 8 * 0.618, width = 8)
 
 ###################################################################################
 # Plot the time-to-event data from the two cohorts next to the cancer registry data
@@ -193,7 +231,10 @@ ggplot() +
     theme_classic() ->
     p
 
-ggsave("reports/figures/cumulative_comparison.png", p, width = 4.5, height = 3.5, dpi = 300)
+ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
 
 #############################################################################
 # Next, stratify the cancer registry by percentiles
@@ -243,8 +284,10 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     coord_fixed(ratio = 1/50) +
     theme_classic() ->
     p
-ggsave("reports/figures/stratified_incidence_agespecific.png", p, width = 5, height = 3, dpi = 300)
-
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.png", sep = "_")), 
+       p, height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.pdf", sep = "_")), 
+       p, height = 8 * 0.618, width = 8)
 
 #H0 = yearly_data$y_predict
 H0 = yearly_data$cumulative_incidence
@@ -272,29 +315,32 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     coord_fixed(ratio = 1/1000) +
     theme_classic() ->
     p
-ggsave("reports/figures/stratified_incidence_cumulative.png", p, width = 5, height = 3, dpi = 300)
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.png", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.pdf", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
 
 ####################################################################################################
 
-ggplot(mapping = aes(x = x_new)) +
-    geom_line(aes(y = S_20)) +
-    geom_line(aes(y = S_50)) +
-    geom_line(aes(y = S_80)) +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
-    labs(x = "Age", y = "Survival Rate") +
-    theme_classic() ->
-    p
-ggsave("reports/figures/stratified_survival.png", p, width = 4.5, height = 3.5, dpi = 300)
+# ggplot(mapping = aes(x = x_new)) +
+#     geom_line(aes(y = S_20)) +
+#     geom_line(aes(y = S_50)) +
+#     geom_line(aes(y = S_80)) +
+#     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+#     labs(x = "Age", y = "Survival Rate") +
+#     theme_classic() ->
+#     p
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_survival.png", sep = "_")), p, width = 4.5, height = 3.5, dpi = 300)
 
 
 
 
-full_data %>% 
+# full_data %>% 
 
-fit = coxph(Surv(age, status) ~ phs, data = full_data)
-summary(fit)
-new_data = data.frame(phs = quantile(full_data$phs, 0.80))
-percentile_80 = predict(fit, new_data)
+# fit = coxph(Surv(age, status) ~ phs, data = full_data)
+# summary(fit)
+# new_data = data.frame(phs = quantile(full_data$phs, 0.80))
+# percentile_80 = predict(fit, new_data)
 
 
 # prev_norge = read_delim("data/external/Prevalence_20250320_163654.csv", delim = ";")
@@ -303,31 +349,16 @@ percentile_80 = predict(fit, new_data)
 # prev_rogaland$cases = as.numeric(gsub(" ", "", prev_rogaland$cases))
 # prev_norge$cases = as.numeric(gsub(" ", "", prev_norge$cases))
 
-# Try to plot cumulatice incidence with p212 data using coxph 
+# Try to plot cumulatice incidence with cohort data using coxph 
 
-fit = coxph(Surv(age, status) ~ 1, data = p212_data)
-p212_incidence = basehaz(fit)
-p212_incidence %>%
+fit = coxph(Surv(age, status) ~ 1, data = full_data)
+cohort_incidence = basehaz(fit)
+cohort_incidence %>%
     mutate(cum_inc_per_100k = hazard * 100000) ->
-    p212_incidence
-p1 = ggplot(p212_incidence, aes(x = time, y = cum_inc_per_100k)) +
+    cohort_incidence
+p1 = ggplot(cohort_incidence, aes(x = time, y = cum_inc_per_100k)) +
         geom_point()
-ggsave("reports/figures/p212_incidence.png", p1)
-
-# Try to plot the p2521 data
-
-p2521_fit = coxph(Surv(age, status) ~ 1, data = p2521_data)
-summary(p2521_fit)
-p2521_survfit = survfit(p2521_fit)
-summary(p2521_survfit)
-
-p2521_incidence = basehaz(p2521_fit)
-p2521_incidence %>%
-    mutate(cum_inc_per_100k = hazard * 100000) ->
-    p2521_incidence
-p1 = ggplot(p2521_incidence, aes(x = time, y = cum_inc_per_100k)) +
-        geom_point()
-ggsave("reports/figures/p2521_incidence.png", p1)
+ggsave(paste0(results, paste(tsd_proj, model, "incidence.png", sep = "_")), p1)
 
 # Plot cumulative incidence based on kreftregisteret data
 
@@ -352,21 +383,16 @@ p2 = ggplot(spline_int, aes(x, y)) +
            geom_line() +
         geom_point(aes(x = Age_group, y = ASR_cumsum), data = new_incidence, color = "red")
 
-ggsave("reports/figures/kreftregisteret_incidence.png", p2)
+ggsave(paste0(results, "kreftregisteret_incidence.png"), p2)
 
 
 # Incidence combined
 
 p3 = ggplot() +
         geom_line(aes(x, y), data = spline_int) +
-        geom_point(aes(time, cum_inc_per_100k), data = p212_incidence)
-ggsave("reports/figures/combined_incidence_p212.png", p3)
-# Incidence combined
+        geom_point(aes(time, cum_inc_per_100k), data = cohort_incidence)
+ggsave(paste0(results, paste(tsd_proj, model, "combined_incidence.png", sep = "_")), p3)
 
-p4 = ggplot() +
-        geom_line(aes(x, y), data = spline_int) +
-        geom_point(aes(time, cum_inc_per_100k), data = p2521_incidence)
-ggsave("reports/figures/combined_incidence_p2521.png", p4)
 
 #     # mutate(new_cases = cases - lag(cases))
 # prev_norge %>% 
@@ -408,46 +434,171 @@ incidence %>%
 ggplot(incidence, aes(x = Alder, y = csum_Aldersspesifikkrater)) +
     geom_point() ->
     p1
-ggsave("incidence_test.png", p1)
+ggsave(paste0(results, "incidence_test.png"), p1)
 
 
-####################################################################################
-# Reshape p212 data into this format:
-# Age group (tiaar), Pop, Cases
-allData %>%
-    filter(SEX == "M") %>%
-    select(pid = PID, year_birth = YEAR_BIRTH, agelastobs = AGELASTOBS) ->
-    all_data_cleaned
+# ####################################################################################
+# # Reshape p212 data into this format:
+# # Age group (tiaar), Pop, Cases
+# allData %>%
+#     filter(SEX == "M") %>%
+#     select(pid = PID, year_birth = YEAR_BIRTH, agelastobs = AGELASTOBS) ->
+#     all_data_cleaned
 
-caseData %>%
-    filter(icd9 == "185") %>%
-    group_by(pid) %>%
-    filter(age_ca == min(age_ca)) %>%
-    ungroup() %>%
-    select(pid, yr_diagn, icd9, age_ca) ->
-    case_data_cleaned
+# caseData %>%
+#     filter(icd9 == "185") %>%
+#     group_by(pid) %>%
+#     filter(age_ca == min(age_ca)) %>%
+#     ungroup() %>%
+#     select(pid, yr_diagn, icd9, age_ca) ->
+#     case_data_cleaned
     
-all_data_cleaned %>%
-    full_join(case_data_cleaned, by = "pid") ->
-    full_data
+# all_data_cleaned %>%
+#     full_join(case_data_cleaned, by = "pid") ->
+#     full_data
 
-## Check for multiple diagnosis dates for the same individual
-# full_data %>% group_by(pid) %>% summarize(n = n()) %>% arrange(desc(n)) %>%
-# filter(n == 2) %>% pull(pid) -> repeat_pids
+# ## Check for multiple diagnosis dates for the same individual
+# # full_data %>% group_by(pid) %>% summarize(n = n()) %>% arrange(desc(n)) %>%
+# # filter(n == 2) %>% pull(pid) -> repeat_pids
+
+# # full_data %>%
+# #     filter(pid %in% repeat_pids)
 
 # full_data %>%
-#     filter(pid %in% repeat_pids)
+#     select(icd9, age_ca, agelastobs) %>%
+#     mutate(case = if_else(is.na(icd9), 0, 1)) %>%
+#     mutate(age = if_else(case == 1, age_ca, agelastobs)) %>%
+#     select(age, case) %>%
+#     mutate(decade = substr(age, 1, 1)) %>%
+#     select(decade, case) %>%
+#     group_by(decade) %>%
+#     summarize(pop = n(),
+#               cases = sum(case)) %>%
+#     mutate(case_rate = cases / pop)
 
-full_data %>%
-    select(icd9, age_ca, agelastobs) %>%
-    mutate(case = if_else(is.na(icd9), 0, 1)) %>%
-    mutate(age = if_else(case == 1, age_ca, agelastobs)) %>%
-    select(age, case) %>%
-    mutate(decade = substr(age, 1, 1)) %>%
-    select(decade, case) %>%
-    group_by(decade) %>%
-    summarize(pop = n(),
-              cases = sum(case)) %>%
-    mutate(case_rate = cases / pop)
+# # Incidience, i.e., year of diagnosis 
 
-# Incidience, i.e., year of diagnosis 
+# Huyhn-LE 2020 ASIS data
+column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
+
+huynhle_asis = read_excel("data/external/ASIS_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
+
+huynhle_asis %>%
+    rowwise() %>%
+    mutate(total = sum(across(low_risk:metastatic))) %>%
+    mutate(age_nice = age)  ->
+    huynhle_asis
+
+huynhle_asis$age_nice[huynhle_asis$age == "<50"] = "45-49"
+huynhle_asis$age_nice[huynhle_asis$age == "≥85"] = "85-89"
+
+huynhle_asis %>%
+    mutate(age_y = as.numeric(substr(age_nice, 1, 2))) ->
+    huynhle_asis
+
+ggplot(huynhle_asis, aes(x = age_y, y = metastatic)) + 
+    geom_smooth() + 
+    theme_classic()
+
+# 1. Fit curve to metastatic data
+fm_lm <- lm(log(metastatic) ~ age_y, huynhle_asis)
+st <- list(a = exp(coef(fm_lm)[1]), b = coef(fm_lm)[2])
+nls_fit = nls(metastatic ~ f(age_y, a, b), huynhle_asis, start = st)
+coef(nls_fit)
+
+x_new = seq(from = min(huynhle_asis$age_y), to = max(huynhle_asis$age_y), by = 0.01)
+
+new_data = data.frame(age_y = x_new)
+y_predict = predict(nls_fit, new_data)
+y = y_predict
+ggplot()  +
+    geom_point(aes(x = age_y, y = metastatic), huynhle_asis) +
+    geom_smooth(aes(x_new, y)) +
+    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic() ->
+    p1
+
+###################################################################################
+# Plot the time-to-event data from the two cohorts next to the cancer registry data
+
+fit = coxph(Surv(age, status) ~ phs, data = full_data)
+H = data.frame(basehaz(fit)) # This is the cumulative baseline hazard
+H %>%
+    mutate(S = exp(-hazard)) %>% # This is the cumulative surival
+    mutate(I = 1-S) %>%
+    mutate(I_100000 = I * 100000) %>%
+    mutate(age_y = time) -> # This is the cumulative incidence
+    H
+
+
+ggplot() +
+    geom_step(aes(age_y, I_100000), H, color = "red") +
+    geom_line(aes(x = age_y, y = metastatic), huynhle_asis) +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), labels = c(40, 50, 60, 70, 80, 90), limits = c(0, 55)) +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    # lims(y = c(0, 30000)) +
+    theme_classic() ->
+    p
+
+ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
+           height = 8 * 0.618, width = 8)
+
+# 2. Multiply curve by beta from model. (metastatic model??)
+
+#############################################################################
+# Next, stratify the cancer registry by percentiles
+yearly_data = data.frame(age_y = seq(from = min(huynhle_asis$age_y) + 0.5, to = max(huynhle_asis$age_y) + 0.5, by = 1))
+yearly_data$y_predict = predict(nls_fit, yearly_data)
+
+quantiles = quantile(full_data$phs, probs = c(0, 0.2, 0.5, 0.8, 1))
+
+as.numeric(quantiles)
+new_data = data.frame(phs = quantiles)
+phs_prediction = predict(fit, new_data)
+HR_80_50 = phs_prediction["80%"] - phs_prediction["50%"]
+HR_20_50 = phs_prediction["20%"] - phs_prediction["50%"]
+
+##############################################################################
+# 3. Stratify incidence curve by HRs
+#x_new
+H0 = yearly_data$y_predict
+#H0 = yearly_data$cumulative_incidence
+H_80 = H0*exp(HR_80_50)
+#S_80 = exp(-H_80)
+
+H_20 = H0*exp(HR_20_50)
+#S_20 = exp(-H_20)
+adj_curve = data.frame(age = yearly_data$age_y,
+                        H0,
+                        H_20,
+                        H_80) %>%
+                pivot_longer(!age)
+adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
+# ggplot(mapping = aes(x = x_new)) +
+#     geom_line(aes(y = H0)) +
+#     geom_line(aes(y = H_20)) +
+#     geom_line(aes(y = H_80)) +
+#     scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+#     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+#     theme_classic() ->
+#     p
+#ratio = with(adj_curve, ggthemes::bank_slopes(age, value, method = "as"))
+
+# 3. Plot curves and clean up design and save
+
+
+ggplot(adj_curve, aes(age, value, color = name)) +
+    geom_line() +
+    labs(x = "Age", y = expression(atop("Age-specific Incidence Rate", "(per 100,000)"))) +
+    scale_color_brewer(name = "", 
+                         labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
+                         palette = "Set1") +
+    theme_classic() ->
+    p
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.png", sep = "_")), 
+       p, height = 6 * 0.618, width = 6)
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.pdf", sep = "_")), 
+       p, height = 6 * 0.618, width = 6)

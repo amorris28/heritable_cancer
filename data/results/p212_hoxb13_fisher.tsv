@@ -1,7 +1,0 @@
-estimate	p.value	conf.low	conf.high	method	alternative	gene	p.adjust
-0	0.5703976017016971	0	6.817435674066738	Fisher's Exact Test for Count Data	two.sided	brca2_carrier	0.8555964025525455
-10.258055335165096	0.0016687856411843314	1.9215415638390425	102.44839283944349	Fisher's Exact Test for Count Data	two.sided	hoxb13_carrier	0.010012713847105989
-0.936854546763053	1	0.01771581680666168	11.779950564562636	Fisher's Exact Test for Count Data	two.sided	brca1_carrier	1
-0	1	0	14.995481607097174	Fisher's Exact Test for Count Data	two.sided	mlh1_carrier	1
-0	0.3478155638649497	0	2.383991976934936	Fisher's Exact Test for Count Data	two.sided	atm_carrier	0.8555964025525455
-1.4297225659413075	0.4759508173471615	0.5170428905964092	3.6405659915676964	Fisher's Exact Test for Count Data	two.sided	any_carrier	0.8555964025525455
