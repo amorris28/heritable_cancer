@@ -41,7 +41,7 @@ data/**/bim_files/*
 *.xlsx
 *.pptx
 *.html
-*.pdf
+#*.pdf
 reports/
 scratch/
 
