@@ -165,7 +165,7 @@ p212 + ggtitle(NULL)
 
 ```
 
-![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_km_curve){#fig-phs width=70%}
+![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_any_pca_km_curve){#fig-phs width=70%}
 
 ```{r stats}
 
