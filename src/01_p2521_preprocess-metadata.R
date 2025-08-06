@@ -277,15 +277,9 @@ phenotype_data %>%
 	filter(!is.na(subjectid)) ->
 	phenotype_data
 
-write_tsv(phenotype_data, paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
-
-
 tibble(X1 = 0, X2 = phenotype_data$subjectid) ->
 	pfile_ids
 
-# Write list of subject ids to processed folder
-# 
-write_tsv(pfile_ids, paste0(INTERIM_DATA, "p2521_bfile_ids.txt"), col_names = FALSE)
 
 # Export death data
 death_data_proc %>%
@@ -293,6 +287,17 @@ death_data_proc %>%
 	mutate(subjectid = decode_subjectid) %>%
 	select(-decode_subjectid) ->
 	death_data_proc
+
+#####################################################################################
+# Process other variables
+
+
+
+
+# Write data
+write_tsv(pfile_ids, paste0(INTERIM_DATA, "p2521_bfile_ids.txt"), col_names = FALSE)
+
+write_tsv(phenotype_data, paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
 
 write_tsv(death_data_proc, paste0(PROCESSED_DATA, "death_data_proc.tsv"))
 
