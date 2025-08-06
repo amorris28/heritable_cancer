@@ -22,11 +22,15 @@ source("src/00_config.R")
 args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
+model_file = "data/processed/PHS601_phs" # PHS file
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 metadata_file = args[2] # Phenotype data
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
 inverse = args[3]
+inverse = FALSE
 tsd_proj = args[4]
+tsd_proj = "p212"
 
 results = "data/results/"
 
@@ -194,8 +198,8 @@ ggplot()  +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
     theme_classic() ->
     p1
-ggsave(paste0(results, "norway_incidence_yearly.png"), p1,
-           height = 8 * 0.618, width = 8)
+# ggsave(paste0(results, "norway_incidence_yearly.png"), p1,
+#            height = 8 * 0.618, width = 8)
 
 # Now, take the cumulative incidence for later comparison to cohort data
 yearly_data %>%
@@ -206,8 +210,8 @@ ggplot(yearly_data, aes(x = median_age_minus35, y = cumulative_incidence)) +
     geom_point() ->
     p
 
-ggsave(paste0(results, "norway_cumulative_incidence.png"), p,
-           height = 8 * 0.618, width = 8)
+# ggsave(paste0(results, "norway_cumulative_incidence.png"), p,
+#            height = 8 * 0.618, width = 8)
 
 ###################################################################################
 # Plot the time-to-event data from the two cohorts next to the cancer registry data
@@ -228,13 +232,14 @@ ggplot() +
     scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), labels = c(40, 50, 60, 70, 80, 90), limits = c(0, 55)) +
     labs(x = "Age", y = "Cumulative Incidence Rate (per 100,000)") +
     lims(y = c(0, 30000)) +
-    theme_classic() ->
+    theme_classic() +
+    theme(aspect.ratio = 1) ->
     p
 
 ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
+           height = 6 * 0.618, width = 6)
 ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
+           height = 6 * 0.618, width = 6)
 
 #############################################################################
 # Next, stratify the cancer registry by percentiles
@@ -315,10 +320,10 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     coord_fixed(ratio = 1/1000) +
     theme_classic() ->
     p
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.png", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.pdf", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.png", sep = "_")), p,
+#            height = 8 * 0.618, width = 8)
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.pdf", sep = "_")), p,
+#            height = 8 * 0.618, width = 8)
 
 ####################################################################################################
 
@@ -358,7 +363,7 @@ cohort_incidence %>%
     cohort_incidence
 p1 = ggplot(cohort_incidence, aes(x = time, y = cum_inc_per_100k)) +
         geom_point()
-ggsave(paste0(results, paste(tsd_proj, model, "incidence.png", sep = "_")), p1)
+# ggsave(paste0(results, paste(tsd_proj, model, "incidence.png", sep = "_")), p1)
 
 # Plot cumulative incidence based on kreftregisteret data
 
@@ -383,7 +388,7 @@ p2 = ggplot(spline_int, aes(x, y)) +
            geom_line() +
         geom_point(aes(x = Age_group, y = ASR_cumsum), data = new_incidence, color = "red")
 
-ggsave(paste0(results, "kreftregisteret_incidence.png"), p2)
+# ggsave(paste0(results, "kreftregisteret_incidence.png"), p2)
 
 
 # Incidence combined
@@ -391,7 +396,7 @@ ggsave(paste0(results, "kreftregisteret_incidence.png"), p2)
 p3 = ggplot() +
         geom_line(aes(x, y), data = spline_int) +
         geom_point(aes(time, cum_inc_per_100k), data = cohort_incidence)
-ggsave(paste0(results, paste(tsd_proj, model, "combined_incidence.png", sep = "_")), p3)
+# ggsave(paste0(results, paste(tsd_proj, model, "combined_incidence.png", sep = "_")), p3)
 
 
 #     # mutate(new_cases = cases - lag(cases))
@@ -434,7 +439,7 @@ incidence %>%
 ggplot(incidence, aes(x = Alder, y = csum_Aldersspesifikkrater)) +
     geom_point() ->
     p1
-ggsave(paste0(results, "incidence_test.png"), p1)
+# ggsave(paste0(results, "incidence_test.png"), p1)
 
 
 # ####################################################################################
@@ -503,7 +508,9 @@ ggplot(huynhle_asis, aes(x = age_y, y = metastatic)) +
 # 1. Fit curve to metastatic data
 fm_lm <- lm(log(metastatic) ~ age_y, huynhle_asis)
 st <- list(a = exp(coef(fm_lm)[1]), b = coef(fm_lm)[2])
-nls_fit = nls(metastatic ~ f(age_y, a, b), huynhle_asis, start = st)
+
+#  a*exp(b*age_y)
+nls_fit = nls(metastatic ~ a * exp(b * age_y), huynhle_asis, start = st)
 coef(nls_fit)
 
 x_new = seq(from = min(huynhle_asis$age_y), to = max(huynhle_asis$age_y), by = 0.01)
@@ -541,10 +548,10 @@ ggplot() +
     theme_classic() ->
     p
 
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
-           height = 8 * 0.618, width = 8)
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
 
 # 2. Multiply curve by beta from model. (metastatic model??)
 

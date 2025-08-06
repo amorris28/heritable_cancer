@@ -188,7 +188,7 @@ p212_meta + ggtitle(NULL)
 # ggarrange(p212, p2521, common.legend = TRUE)
 
 ```
-![Kaplan-Meier survival curves of metastatic prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at diagnosis of metastatic prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_km_curve_metastatic){#fig-meta width=70%}
+![Kaplan-Meier survival curves of metastatic prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at diagnosis of metastatic prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.80-1.0 to better visualize the stratification between PHS groups given the lower rate of metastatic PCA than any PCa.](../data/results/p212_PHS601_km_curve_metastatic){#fig-meta width=70%}
 
 
 In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of any PCa, we were also interested in the specificity of PHS601 for aggressive disease. In the NFCS cohort, `{r} sample_size[2, 3]` individuals had been diagnosed with metastatic disease leaving `{r} sample_size[2, 4]` controls. The Cox proportional hazards model of metastatic disease showed a `{r} (round(coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease for a 1 standard deviation increase in PHS (HR = `{r} sprintf("%.2f", round(coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(coxph_results[2, "p.value"])`). Individuals with PHS in the top quintile had over `{r} floor(PHS601_meta[1, 3])` times greater risk of metastatic disease than individuals in the bottom quintile (HR~80/20~: `{r} sprintf("%.2f", round(PHS601_meta[1, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(PHS601_meta[1, 4], 2))`, `{r} sprintf("%.2f", round(PHS601_meta[1, 5], 2))`\]) and `{r} (round(PHS601_meta[2, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/60~: `{r} sprintf("%.2f", round(PHS601_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(PHS601_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(PHS601_meta[2, 5], 2))`\]; @fig-meta)
@@ -235,9 +235,9 @@ Using the subsetted WGS sample, the Cox proportional hazards model for PHS showe
 
 Combining these two predictors into a single Cox model, we find that both PHS and HOXB13 carrier status can independently contribute to increased PCa risk. In the combined main effect model, a 1 standard deviation increase in PHS led to a `{r} (round(coxph_results[5, 2], 2) * 100) - 100`\% increase PCa risk (HR = `{r} sprintf("%.2f", round(coxph_results[5, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[5, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[5, "conf.high"], 2))`], p `{r} pvalr(coxph_results[[5, "p.value"]])`) while carrying a HOXB13 mutation increase risk by `{r} round(coxph_results[6, 2], 1)` times (HR = `{r} sprintf("%.2f", round(coxph_results[6, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[6, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[6, "conf.high"], 2))`], p = `{r} pvalr(coxph_results[[6, "p.value"]])`). The interaction term was not significant (HR = `{r} sprintf("%.2f", round(coxph_results[9, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[9, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[9, "conf.high"], 2))`], p = `{r} pvalr(coxph_results[[9, "p.value"]])`), therefore we have presented only the main effect model here. 
 
-![Kaplan-Meier survival curves of prostate cancer-free survival for HOXB13 SNP carriers from imputed genotype data. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_hoxb13_snp_km_curve){#fig-hoxb13-snp width=70%}
+<!-- ![Kaplan-Meier survival curves of prostate cancer-free survival for HOXB13 SNP carriers from imputed genotype data. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_hoxb13_snp_km_curve){#fig-hoxb13-snp width=70%} -->
 
-We repeated this analysis by imputing the dataset using the WGS samples as an interal reference panel and identified individuals with HOXB13 SNPs in the full data set. The Cox proportional hazards model for HOXB13 SNP carriers showed a `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("estimate") %>% round(1)` times greater risk of PCa for carriers of the HOXB13 SNP than non-carriers (HR = `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("estimate") %>% round(2) %>% sprintf("%.2f", .)`, 95% CI [`r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("conf.low") %>% round(2) %>% sprintf("%.2f", .)`, `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("conf.high") %>% round(2) %>% sprintf("%.2f", .)`], p `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("p.value") %>% pvalr()`; @fig-hoxb13-snp).
+<!-- We repeated this analysis by imputing the dataset using the WGS samples as an interal reference panel and identified individuals with HOXB13 SNPs in the full data set. The Cox proportional hazards model for HOXB13 SNP carriers showed a `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("estimate") %>% round(1)` times greater risk of PCa for carriers of the HOXB13 SNP than non-carriers (HR = `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("estimate") %>% round(2) %>% sprintf("%.2f", .)`, 95% CI [`r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("conf.low") %>% round(2) %>% sprintf("%.2f", .)`, `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("conf.high") %>% round(2) %>% sprintf("%.2f", .)`], p `r coxph_results %>% filter(model == "hoxb13_snp") %>% pull("p.value") %>% pvalr()`; @fig-hoxb13-snp). -->
 
 
 ### PHS601 versus PHS290
@@ -248,12 +248,15 @@ Is this an improvement over the previous model?
 
 ![Cumulative incidence rate of metastatic prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit with data from the NFCS cohort.](../data/results/p212_PHS601_stratified_incidence_agespecific){#fig-wgs width=70%}
 
+### Plot of cohort incidence rate compared to cancer registry data
+
+![Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is a curve fit to the prostate cancer incidence rate for all of Norway fit to the most recent released data from 2023. **(A)** Incidence rate for the NFCS cohort. **(B)** Incidence rate for the HUSK cohort.](../data/results/p212_PHS601_cumulative_comparison){#fig-incidence width=70%}
 
 ## Discussion
 
 The strong stratification in the HUSK cohort demonstrates good risk stratification in the general population. In addition, the NFCS cohort was recruited based on self-reported family history of cancer and showed elevated cancer-risk relative to the general Norwegian population. Therefore, the strong risk stratification in both HUSK and the NFCS cohorts demonstrates that this model not only performs good risk stratification in the general population, but also in people with a family history or with concerns about cancer. Even in a group with a family history of cancer, there is a huge stratification between low and high risk. This suggests that genetics isn't just a proxy for family history.
 
-Applications/Public Helpful
+Applications/Public Health
 
 The benefit of this approach is that I can tell you before I have screened you how likely you are to develop disease and how likely you are to develop agressive/metastatic/clinically significant disease. You should know this before you decide whether to do measure PSA.
 
@@ -273,7 +276,7 @@ While information on metastatic or aggressive disease is often lacking in study 
 
 This work was supported by a grant from the Research Council of Norway (award #324499). Acknowledge Sigma2 resources (TSD project p212, p2521, others?)
 
-# References
+## References
 
 ::: {#refs}
 :::

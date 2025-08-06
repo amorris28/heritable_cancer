@@ -34,13 +34,13 @@ model_file = "data/processed/PHS601_phs"
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 metadata_file = args[2] # Phenotype data
-#metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-metadata_file = "data/processed/husk_phenotypes.tsv"
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
+# metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = args[3]
 inverse = FALSE
 tsd_proj = args[4]
-#tsd_proj = "p212"
-tsd_proj = "p2521"
+tsd_proj = "p212"
+# tsd_proj = "p2521"
 
 results = "data/results/"
 
@@ -296,7 +296,7 @@ km_curve = ggplot(km_curves, aes(x = time,
   geom_step() +
   theme_classic() +
   xlim(40, 100) + 
-  ylim(0, 1) +
+  ylim(0.8, 1) +
   labs(x = "Age", y = "Disease-free Survival") +
   scale_color_brewer(palette = "Set1", direction = -1,
                      name = "PHS Centile") +
@@ -467,7 +467,7 @@ if (perform_bool) {
 # KM Curves
 curves = data.frame(curve0_20 = c(0,   0.2),
                     curve20_80 = c(0.2, 0.8),
-                    curve80_100 = c(0.8, 1.0))
+                    curve80_100 = c(0.8, 1))
 
 km_curves = data.frame()
 for (i in seq_len(length(curves))) {
