@@ -34,13 +34,13 @@ model_file = "data/processed/PHS601_phs"
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 metadata_file = args[2] # Phenotype data
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-# metadata_file = "data/processed/husk_phenotypes.tsv"
+# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
+metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = args[3]
 inverse = FALSE
 tsd_proj = args[4]
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+# tsd_proj = "p212"
+tsd_proj = "p2521"
 
 results = "data/results/"
 
@@ -100,33 +100,35 @@ zph_fit %>%
   print() %>%
   as_tibble ->
 phs_zph_tidy
-write_tsv(phs_zph_tidy, "data/results/phs_zph_tidy.tsv")
+write_tsv(phs_zph_tidy, paste0(results, paste(tsd_proj, model, "phs_zph_tidy.tsv", sep = "_")))
 any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
 
-# Time transformation
-phs_fit_tt = coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
-                   tt = function(x, t, ...) x * t)
-phs_tt_tidy = broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
-# zph not defined for tt() fit
-# zph_fit_tt = cox.zph(phs_fit_tt)
-# print(zph_fit_tt)
-# plot(zph_fit_tt)
-summary(phs_fit_tt)
-# not significant
+if (tsd_proj == "p212") {
+    # Time transformation
+    phs_fit_tt = coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
+                      tt = function(x, t, ...) x * t)
+    phs_tt_tidy = broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
+    # zph not defined for tt() fit
+    # zph_fit_tt = cox.zph(phs_fit_tt)
+    # print(zph_fit_tt)
+    # plot(zph_fit_tt)
+    summary(phs_fit_tt)
+    # not significant
 
-zph_tbl = tibble(time = zph_fit$time,
-       beta_t = zph_fit$y[,"phs"])
+    zph_tbl = tibble(time = zph_fit$time,
+          beta_t = zph_fit$y[,"phs"])
 
-tt_comp_f = function(t) {
-    0.894841 - 0.011519 * t
+    tt_comp_f = function(t) {
+        0.894841 - 0.011519 * t
+    }
+    zph_tbl$tt_comp = tt_comp_f(zph_tbl$time-40)
+
+    ggplot(zph_tbl, aes(x = time, y = beta_t)) +
+        geom_point() + 
+        stat_smooth() +
+        geom_line(aes(y = tt_comp), color = "red") +
+        theme_classic()
 }
-zph_tbl$tt_comp = tt_comp_f(zph_tbl$time-40)
-
-ggplot(zph_tbl, aes(x = time, y = beta_t)) +
-    geom_point() + 
-    stat_smooth() +
-    geom_line(aes(y = tt_comp), color = "red") +
-    theme_classic()
 
 # Performance metrics
 HR80_20 = get_hr(combined_data, CI = TRUE, boot = bootstrap_iters)

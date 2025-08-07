@@ -111,11 +111,11 @@ Metastatic disease was defined as disease prevalence at the time of diagnosis th
 
 ### Clean summary statistics and PHS calculation
 
-```{r}
+```{r css-summary, eval=FALSE}
 css_summary = read_tsv("data/results/p212_PHS601_css_summary.tsv")
 ``` 
 
-Summary statistics from previously published PCa PHS models were acquired from the PGS Catalog or by contacting the authors. Each summary statistics file was pre-processed with the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel \[reference?\]. This pipeline removed palindromes, indels, and impossible allele pairs and removed SNPs from the major histocompatibility complex (MHC) (cite this). Both summary statistics for the models and genotype data for the subjects were processed through cleansumstats. After the pipeline, of the initial 601 SNPs in PHS601, `r css_summary$removed_css` SNPs were removed as palindromes, indels, or impossible allele pairs leaving `r css_summary$post_snps` SNPs in the model. In addition, the genotype files from the two cohorts were processed through the cleansumstats pipeline to insure that RSIDs and effect alleles matched between the models and the genotype data. Of the `r css_summary$post_snps` SNPs remaining from PHS601, `r css_summary$missing_geno` SNPs were missing from the NFCS genotype data, which meant the PHSes for these subjects were calculated from the remaining `r css_summary$end_snps` SNPs. Likewise, ## SNPs were missing from the HUSK genotype data so the PHSes for these SNPs were calculated from ## SNPs remaining from PHS601. Polygenic hazard scores were calculated for each model-cohort combination with matrix multiplication. The resulting PHSs were centered and scaled prior to modeling.
+Summary statistics from previously published PCa PHS models were acquired from the PGS Catalog or by contacting the authors. Each summary statistics file was pre-processed with the cleansumstats pipeline to harmonize effect and reference alleles as well as chromosome positions and RSIDs with revision 37 of the 1KG reference panel \[reference?\]. This pipeline removed palindromes, indels, and impossible allele pairs and removed SNPs from the major histocompatibility complex (MHC) (cite this). Both summary statistics for the models and genotype data for the subjects were processed through cleansumstats. After the pipeline, of the initial 601 SNPs in PHS601, `{r eval_FALSE} css_summary$removed_css` SNPs were removed as palindromes, indels, or impossible allele pairs leaving `{r eval_FALSE} css_summary$post_snps` SNPs in the model. In addition, the genotype files from the two cohorts were processed through the cleansumstats pipeline to insure that RSIDs and effect alleles matched between the models and the genotype data. Of the `{r eval_FALSE} css_summary$post_snps` SNPs remaining from PHS601, `{r eval_FALSE} css_summary$missing_geno` SNPs were missing from the NFCS genotype data, which meant the PHSes for these subjects were calculated from the remaining `{r eval_FALSE} css_summary$end_snps` SNPs. Likewise, ## SNPs were missing from the HUSK genotype data so the PHSes for these SNPs were calculated from ## SNPs remaining from PHS601. Polygenic hazard scores were calculated for each model-cohort combination with matrix multiplication. The resulting PHSs were centered and scaled prior to modeling.
 
 ### Sequencing
 
@@ -136,22 +136,22 @@ To test whether RPVs were at higher frequency in cases than in controls, we used
 ### PHS601 accurately stratifies Norwegian cohort based on PCa risk
 ```{r phs-plot}
 #| eval: false
-#| label: phs-plot
-#| fig-cap: "Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of \"failure\" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval."
-#| out-width: "70%"
-#| fig-width: 6
-#| fig-asp: 0.618
-#| fig-align: center
+p212 <- readRDS(paste0(results, paste("p212", "PHS601", "km_curve.pdf", sep = "_")))
+p2521 <- readRDS(paste0(results, paste("p2521", "PHS601", "km_curve.pdf", sep = "_")))
 
-p212 <- readRDS("data/results/p212_PHS601_any_pca_km_curve.rds")
-p212 + ggtitle(NULL)
-# p2521 <- readRDS("data/processed/p2521_PHS601_km_curve.rds")
-# p2521 + ggtitle(NULL)
-# ggarrange(p212, p2521, common.legend = TRUE)
+any_pca = p212 +
+    p2521 + 
+    plot_annotation(tag_levels = 'A')
+
+ggsave(paste0(results, paste(model, "km_curve.pdf", sep = "_")), any_pca,
+           height = 8 * 0.618, width = 8)
+ggsave(paste0(results, paste(model, "km_curve.png", sep = "_")), any_pca,
+           height = 8 * 0.618, width = 8)
+saveRDS(any_pca, paste0(results, paste(model, "km_curve.rds", sep = "_")))
 
 ```
 
-![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/p212_PHS601_km_curve){#fig-phs width=70%}
+![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.](../data/results/PHS601_km_curve){#fig-phs width=90%}
 
 ```{r stats}
 

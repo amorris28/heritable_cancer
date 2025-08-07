@@ -16,25 +16,28 @@ rare_variants = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_fin
 
 ## Output
 ###############################################################################
-# Subject ID - pid, regnr
-# bfile id
-# Age of diagnosis
-# Metastasis code (per date)
-# BRCA2 carrier - 0/1
-# HOXB13 carrier - 0/1
-# WGS - 0/1
+# pid = Subject ID - pid, regnr
+# bfile_id = bfile id
+# age_lastobs = age last observed
+# age_diagnosis = Age of diagnosis
+# age = age of diagnosis for cases and age last obs for controls
+# age_of_metastasis
+# metastasis_code = raw Metastasis code (per date)
+# metastasis = metastasis case/control 1/0
+# conversion_to_metastasis_years = metastasis cases only, metastasis age - diagnosis age
+# brca2_carrier = BRCA2 carrier - 0/1
+# hoxb13_carrier = HOXB13 carrier - 0/1
+# xxxx_carrier = carrier of other genes
+# hoxb13_snp = HOXB13 carrier from imputed genotype data
+# wgs = WGS - 0/1
 # PHS - calculated later
-# Death date
-# Cause of death
-# Dead - 0/1
+# age_at_death = Death date
+# diagnosis_to_death_years = death age minus diagnosis age
+# doed_av_pca = Cause of death 0/1
+# death = Dead - 0/1
+# status = diagnosis 0/1
 #################################################################################
 # Filter by ICD10/ICD9 code, male
-
-# Create a second dataset with females BRCA2
-# BRCA2 0/1
-# age of diagnosis
-# BRCA2 0/1
-# WGS 0/1
 
 ################################################
 # Outline

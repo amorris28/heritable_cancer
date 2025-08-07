@@ -268,8 +268,8 @@ diagnosedato %>%
 
 phenotype_data %>%
 	left_join(id_key, by = join_by(subjectid)) %>%
-	mutate(subjectid = decode_subjectid) %>%
-	select(-decode_subjectid) ->
+	mutate(bfile_id = decode_subjectid) %>%
+	select(-subjectid, -decode_subjectid) ->
 	phenotype_data
 
 # Subjects missing decode ID and thus missing genotype data (I guess)
