@@ -84,3 +84,8 @@ cleansumstats-bim:
 phs:
 	sbatch src/p212_06_test-phs.batch
 
+## zip results for transfer to other tsd projects
+.PHONY: results
+results:
+	zip -r results.zip data/results/*.png data/results/*.pdf data/results/*.tsv data/results/*.rds
+
