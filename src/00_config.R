@@ -4,6 +4,7 @@ INTERIM_DATA = "data/interim/"
 PROCESSED_DATA = "data/processed/"
 SENSITIVE_DATA = "data/sensitive/"
 FIGS = "reports/figures/"
+results = "data/results/"
 
 
 pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
@@ -25,3 +26,8 @@ pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
         return(roundr(x, digits = digits))
   }, sig.limit = sig.limit)
 }
+
+# Constants
+icd10pca = "C61"
+metastase_loose = c(1,2,4,5,6,7)
+
