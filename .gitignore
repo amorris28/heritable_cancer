@@ -30,6 +30,7 @@ data/interim/bim_files/*
 !.gitkeep
 
 # data
+*.rds
 data/**/bim_files/*
 
 # system files

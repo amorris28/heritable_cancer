@@ -252,17 +252,19 @@ Combining these two predictors into a single Cox model, we find that both PHS an
 Is this an improvement over the previous model?
 
 ### Plots of incidence rate in the cohorts versus the general Norwegian population from the cancer registry?
-```{r incidence-comparison}
+```{r stratified}
 model = "PHS601"
 p212 <- readRDS(paste0(results, paste("p212", model, "stratified_incidence_agespecific.rds", sep = "_")))
 p2521 <- readRDS(paste0(results, paste("p2521", model, "stratified_incidence_agespecific.rds", sep = "_")))
 # p212 = p212 + theme(legend.position = "bottom")
 # p2521 = p2521 + theme(legend.position = "bottom")
-stratified = p212 +
+stratified = 
+    p212 +
     p2521 + 
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom") &
+    theme(aspect.ratio=1)
 
 ggsave(paste0(results, paste(model, "stratified_incidence_agespecific.pdf", sep = "_")), stratified,
            height = 8 * 0.618, width = 8)
@@ -283,9 +285,8 @@ p2521 <- readRDS(paste0(results, paste("p2521", model, "cumulative_comparison.rd
 # p2521 = p2521 + theme(legend.position = "bottom")
 comparison = p212 +
     p2521 + 
-    plot_annotation(tag_levels = 'A') +
-    plot_layout(guides='collect') &
-    theme(legend.position = "bottom")
+    plot_annotation(tag_levels = 'A') &
+    theme(aspect.ratio=1)
 
 ggsave(paste0(results, paste(model, "cumulative_comparison.pdf", sep = "_")), comparison,
            height = 8 * 0.618, width = 8)

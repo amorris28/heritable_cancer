@@ -200,7 +200,8 @@ km_curve = ggplot(km_curves, aes(x = time,
   scale_color_brewer(palette = "Set1", direction = -1,
                      name = "PHS Centile") +
   scale_fill_brewer(palette = "Set1", direction = -1,
-                    name = "PHS Centile")  + theme(aspect.ratio=1)
+                    name = "PHS Centile")  + 
+                    theme(aspect.ratio=1)
 
 ggsave(paste0(results, paste(tsd_proj, model, "km_curve.pdf", sep = "_")), km_curve,
        height = 6 * 0.618, width = 6)
