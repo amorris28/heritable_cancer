@@ -34,13 +34,13 @@ model_file = "data/processed/PHS601_phs"
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 metadata_file = args[2] # Phenotype data
-# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-metadata_file = "data/processed/husk_phenotypes.tsv"
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
+# metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = args[3]
 inverse = FALSE
 tsd_proj = args[4]
-# tsd_proj = "p212"
-tsd_proj = "p2521"
+tsd_proj = "p212"
+# tsd_proj = "p2521"
 
 
 
@@ -343,7 +343,7 @@ write_tsv(sample_size, paste0(results, paste(tsd_proj, model, "sample_size.tsv",
 # RPVs
 #####################################################################################
 # BRCA2, HOXB13
-if (tsd_prog == "p212") {
+if (tsd_proj == "p212") {
 
   combined_data %>%
     select(status, age, phs, age_of_metastasis, metastasis, wgs, brca2_carrier:hoxb13_snp) %>%
@@ -475,6 +475,7 @@ if (tsd_prog == "p212") {
                       curve20_80 = c(0.2, 0.8),
                       curve80_100 = c(0.8, 1))
 
+
   km_curves = data.frame()
   for (i in seq_len(length(curves))) {
     curven <- km_curve(data = wgs,
@@ -513,46 +514,88 @@ if (tsd_prog == "p212") {
   saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.rds", sep = "_")))
 
   ## Plot of HOXB13 km curve on WGS data
-
-  fit = coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)
-  #fit = coxph(Surv(age, status) ~ hoxb13_snp, data = carriers)
-  summary(fit)
-  new_data0 = data.frame(hoxb13_carrier = c(0))
-  new_data1 = data.frame(hoxb13_carrier = c(1))
-  fit_surv0 = survfit(fit, newdata = new_data0)
-  df0 = data.frame(hoxb13_carrier = 0, 
-                  surv = fit_surv0$surv, 
-                  time = fit_surv0$time,
-                  lower = fit_surv0$lower, 
-                  upper = fit_surv0$upper)
-  fit_surv1 = survfit(fit, newdata = new_data1)
-  df1 = data.frame(hoxb13_carrier = 1, 
-                  surv = fit_surv1$surv, 
-                  time = fit_surv1$time,
-                  lower = fit_surv1$lower, 
-                  upper = fit_surv1$upper)
-  prediction = rbind(df0, df1) %>%
-      mutate(hoxb13_carrier = as.factor(hoxb13_carrier))
-
-  hoxb13_p = ggplot(prediction, aes(x = time, 
-                        y = surv, 
-                        ymin = lower,
-                        ymax = upper,
-                        color = hoxb13_carrier,
-                        fill = hoxb13_carrier)) +
-      geom_ribbon(alpha = 0.1,
-                  color = 0) +
-      geom_step() +
-      theme_classic() +
-      xlim(40, 100) + 
-      ylim(0, 1) +
-      labs(x = "Age", y = "Disease-free Survival") +
-      scale_color_brewer(palette = "Set1",
-                        name = "HOXB13 Carrier") +
-      scale_fill_brewer(palette = "Set1",
-                        name = "HOXB13 Carrier") + 
+  # KM Curves
+    km_curves = data.frame()
+    noncarrier_data <- wgs[wgs$hoxb13_carrier == 0, ]
+    carrier_data <- wgs[wgs$hoxb13_carrier == 1, ]
+    mod <- survfit(Surv(age, status) ~ 1, data = noncarrier_data)
+    mod_data <- data.frame(time = mod$time, n.risk = mod$n.risk, 
+        n.event = mod$n.event, n.censor = mod$n.censor, estimate = mod$surv, 
+        std.error = mod$std.err, conf.high = mod$upper, conf.low = mod$lower, 
+        cumhaz = mod$cumhaz)
+    curven = select(mod_data, time, estimate, conf.low, 
+        conf.high, cumhaz)
+    curven$label = "noncarrier"
+    km_curves = rbind(km_curves, curven)
+    mod <- survfit(Surv(age, status) ~ 1, data = carrier_data)
+    mod_data <- data.frame(time = mod$time, n.risk = mod$n.risk, 
+        n.event = mod$n.event, n.censor = mod$n.censor, estimate = mod$surv, 
+        std.error = mod$std.err, conf.high = mod$upper, conf.low = mod$lower, 
+        cumhaz = mod$cumhaz)
+    curven = select(mod_data, time, estimate, conf.low, 
+        conf.high, cumhaz)
+    curven$label = "carrier"
+    km_curves = rbind(km_curves, curven)
+    
+  hoxb13_p = ggplot(km_curves, aes(x = time,
+                        y = estimate,
+                        ymin = conf.low,
+                        ymax = conf.high,
+                        col = label,
+                        fill = label)) +
+    geom_ribbon(alpha = 0.1,
+                color = 0) +
+    geom_step() +
+    theme_classic() +
+    xlim(40, 100) + 
+    ylim(0, 1) +
+    labs(x = "Age", y = "Disease-free Survival") +
+    scale_color_brewer(palette = "Set1", direction = -1,
+                      name = "PHS Centile") +
+    scale_fill_brewer(palette = "Set1", direction = -1,
+                      name = "PHS Centile") + 
     theme(aspect.ratio = 1) +
         theme(legend.position = "bottom") 
+    
+  # fit = coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)
+  # #fit = coxph(Surv(age, status) ~ hoxb13_snp, data = carriers)
+  # summary(fit)
+  # new_data0 = data.frame(hoxb13_carrier = c(0))
+  # new_data1 = data.frame(hoxb13_carrier = c(1))
+  # fit_surv0 = survfit(fit, newdata = new_data0)
+  # df0 = data.frame(hoxb13_carrier = 0, 
+  #                 surv = fit_surv0$surv, 
+  #                 time = fit_surv0$time,
+  #                 lower = fit_surv0$lower, 
+  #                 upper = fit_surv0$upper)
+  # fit_surv1 = survfit(fit, newdata = new_data1)
+  # df1 = data.frame(hoxb13_carrier = 1, 
+  #                 surv = fit_surv1$surv, 
+  #                 time = fit_surv1$time,
+  #                 lower = fit_surv1$lower, 
+  #                 upper = fit_surv1$upper)
+  # prediction = rbind(df0, df1) %>%
+  #     mutate(hoxb13_carrier = as.factor(hoxb13_carrier))
+
+  # hoxb13_p = ggplot(prediction, aes(x = time, 
+  #                       y = surv, 
+  #                       ymin = lower,
+  #                       ymax = upper,
+  #                       color = hoxb13_carrier,
+  #                       fill = hoxb13_carrier)) +
+  #     geom_ribbon(alpha = 0.1,
+  #                 color = 0) +
+  #     geom_step() +
+  #     theme_classic() +
+  #     xlim(40, 100) + 
+  #     ylim(0, 1) +
+  #     labs(x = "Age", y = "Disease-free Survival") +
+  #     scale_color_brewer(palette = "Set1",
+  #                       name = "HOXB13 Carrier") +
+  #     scale_fill_brewer(palette = "Set1",
+  #                       name = "HOXB13 Carrier") + 
+  #   theme(aspect.ratio = 1) +
+  #       theme(legend.position = "bottom") 
 
   wgs_p = wgs_km +
       hoxb13_p + 

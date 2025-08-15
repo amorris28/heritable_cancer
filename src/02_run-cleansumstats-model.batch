@@ -7,7 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M
 #SBATCH --cpus-per-task=1
-#SBATCH --array=1-6 # user input depending on the number of meta files in the trait list
+#SBATCH --array=6 # user input depending on the number of meta files in the trait list
 module purge
 test $SCRATCH # && module load singularity/3.7.3 
 source /cluster/bin/jobsetup
@@ -19,9 +19,9 @@ export INTERIM_DIR=${SLURM_SUBMIT_DIR}/data/interim
 export WORK_DIR=${SLURM_SUBMIT_DIR}/scratch
 export TSD_PROJ=p212 # p697 or p33 or p212
 export PROCESSED_DIR=${SLURM_SUBMIT_DIR}/data/processed
-export COMORMENT=/ess/p212/cluster/github/comorment
-export CLEANSUMSTATS=/ess/p212/cluster/projects/cleansumstats_v1.7.0
-export SCRIPT_DIR=/ess/p212/home/p212-andrewmo/JF
+export COMORMENT=/tsd/p212/cluster/github/comorment
+export CLEANSUMSTATS=/tsd/p212/cluster/projects/cleansumstats_v1.7.0
+export SCRIPT_DIR=/tsd/p212/home/p212-andrewmo/JF_fork
 
 # Path and variable definition
 NUM=$SLURM_ARRAY_TASK_ID && echo ${NUM}
