@@ -1,7 +1,7 @@
 estimate	p.value	conf.low	conf.high	method	alternative	gene	p.adjust
 0	1	0	Inf	Fisher's Exact Test for Count Data	greater	brca2_carrier	1
-9.647300768004893	0.002226787587207017	2.2258383164318936	Inf	Fisher's Exact Test for Count Data	greater	hoxb13_carrier	0.013360725523242103
-0.8809967690315028	0.7239866988872405	0.03385961482958462	Inf	Fisher's Exact Test for Count Data	greater	brca1_carrier	1
+10.258055335165123	0.0016687856411843306	2.367290439881427	Inf	Fisher's Exact Test for Count Data	greater	hoxb13_carrier	0.010012713847105984
+0.9368545467630566	0.7051421453195943	0.03601100661615739	Inf	Fisher's Exact Test for Count Data	greater	brca1_carrier	1
 0	1	0	Inf	Fisher's Exact Test for Count Data	greater	mlh1_carrier	1
 0	1	0	Inf	Fisher's Exact Test for Count Data	greater	atm_carrier	1
-1.5414161030611568	0.2322900804513195	0.6416835247154177	Inf	Fisher's Exact Test for Count Data	greater	any_carrier	0.6968702413539585
+1.4297225659412895	0.2763089524911609	0.6057347891623014	Inf	Fisher's Exact Test for Count Data	greater	any_carrier	0.8289268574734827

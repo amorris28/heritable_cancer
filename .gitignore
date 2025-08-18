@@ -31,6 +31,7 @@ data/interim/bim_files/*
 
 # data
 *.rds
+*.tsv
 data/**/bim_files/*
 
 # system files

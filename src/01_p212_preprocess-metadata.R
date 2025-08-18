@@ -88,7 +88,7 @@ combined_data %>%
 combined_data %>%
   mutate(bfile_id2 = bfile_id) %>%
   select(bfile_id, bfile_id2) %>%
-  distinct()->
+  distinct() ->
   bfile_id_samples
 
 write_tsv(bfile_id_samples, paste0(PROCESSED_DATA, "bfile_id_samples.txt"), col_names = FALSE)
@@ -97,14 +97,10 @@ write_tsv(bfile_id_samples, paste0(PROCESSED_DATA, "bfile_id_samples.txt"), col_
 # Metastasis code
 #####################################################################
 
-# metastasis, 50 cases with strict and 100 with loose so I am gonna go with loose
-#metastase_strict = c(1,2,4,6,7)
-metastase_loose = c(1,2,4,5,6,7)
-
 # There is only one PCA diagnosis per subject in cancer registry data
 cancer_reg %>% 
     filter(ICD10_gr == "C61") %>%
-    group_by(regnr) %>% 
+    group_by(regnr) %>%
     summarize(n = n()) %>%
     arrange(desc(n))
 
@@ -113,20 +109,15 @@ cancer_reg %>%
   filter(ICD10_gr == "C61") %>%
     select(pid = regnr, ALDER, METASTASE) %>%
     mutate(pid = as.character(pid)) %>%
-    # mutate(metastase_strict = if_else(METASTASE %in% metastase_strict, 1, 0)) %>%
-    # mutate(metastase_loose = if_else(METASTASE %in% metastase_loose, 1, 0)) %>%
     mutate(metastasis = if_else(METASTASE %in% metastase_loose, 1, 0)) %>%
     rename(age_of_metastasis = ALDER,
            metastasis_code = METASTASE) ->
     metastasis
 
-# sum(metastasis$metastase_loose)
-# sum(metastasis$metastase_strict)
-
-# nrow(metastasis)
-
 combined_data %>%
   left_join(metastasis, by = join_by(pid)) %>%
+  mutate(metastasis = if_else(is.na(metastasis), 0, metastasis)) %>%
+  mutate(age_of_metastasis = if_else(is.na(age_of_metastasis), age_lastobs, age_of_metastasis)) %>%
   mutate(conversion_to_metastasis_years = age_of_metastasis - age_diagnosis) ->
   combined_data
 
@@ -252,176 +243,3 @@ combined_data %>%
 write_tsv(combined_data, paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
 write_tsv(bca_combined_data, paste0(PROCESSED_DATA, "brca2_breast_cancer_metadata.tsv"))
 
-#####################################################################
-#####################################################################
-#####################################################################
-#####################################################################
-
-# # Grab IDs of prostate cancer cases
-# ## poly_final
-# caseData %>% 
-#   filter(icd9 == 185) %>% 
-#   pull(pid) %>% 
-#   unique ->
-#   caseIDs
-
-# ## all cancer cases
-# caseData %>%
-#   pull(pid) %>%
-#   unique() ->
-#   allCases
-
-# ## cancer registry
-# cancer_reg %>%
-#   filter(ICD10_gr == "C61") %>%
-#   pull(regnr) %>%
-#   unique ->
-#   crIDs
-
-# paste0(round(sum(caseIDs %in% crIDs) / length(caseIDs) * 100), "% of pca cases are in the cancer registry data")
-# paste0(round(sum(crIDs %in% caseIDs) / length(crIDs) * 100), "% of cr pca cases are in the heritable cancer data")
-
-# ## allIDs
-# allData %>%
-#   pull(PID) %>%
-#   unique ->
-#   allIDs
-
-# ## all IDs cancer registry
-# cancer_reg %>%
-#   pull(regnr) %>%
-#   unique ->
-#   allcrIDs
-
-# paste0(round(sum(allCases %in% allcrIDs) / length(allCases) * 100), "% of all cases are in the cancer registry data")
-
-
-
-# # Grab IDs for all cancer-free males
-# allData %>% 
-#   filter(SEX == "M") %>% 
-#   filter(!(PID %in% caseIDs)) %>% 
-#   pull(PID) %>% 
-#   unique() ->
-#   controlIDs
-
-# case = tibble(PTN_REGNR = as.character(caseIDs))
-# control = tibble(PTN_REGNR = as.character(controlIDs))
-
-# allData %>%
-# 	select(PTN_REGNR = PID) %>%
-# 	mutate(PTN_REGNR = as.character(PTN_REGNR)) %>%
-# 	left_join(id_key, by = "PTN_REGNR") %>%
-#   mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
-#   all_samples
-
-# n_missing_in_geno = sum(!(all_samples$bfile_id %in% fam_file$X1)) # 564
-# n_missing_in_pheno = sum(!(fam_file$X1 %in% all_samples$bfile_id)) # 0
-
-# missing_subjects = all_samples$bfile_id[!(all_samples$bfile_id %in% fam_file$X1)]
-
-# case %>%
-#   left_join(id_key, by = "PTN_REGNR") %>% 
-#   mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
-#   case_samples
-
-# control %>%
-#   left_join(id_key, by = "PTN_REGNR") %>% 
-#   mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
-#   control_samples
-
-# sum(case_samples$bfile_id %in% missing_subjects) # 21
-# sum(control_samples$bfile_id %in% missing_subjects) # 108
-
-# bind_rows(case_samples, control_samples) %>%
-# 	mutate(bfile_id2 = bfile_id) %>% 
-# 	select(bfile_id, bfile_id2) ->
-# 	bfile_id_samples
-
-# bind_rows(case, control) %>% 
-#   left_join(id_key, by = "PTN_REGNR") %>% 
-#   mutate(bfile_id = paste("Eivind", EDTANR, sep = "_")) ->
-#   samples
-
-# samples %>% 
-#   mutate(bfile_id2 = bfile_id) %>% 
-#   select(bfile_id, bfile_id2) ->
-#   bfile_id_samples
-
-# # This is necessary if using the antegenes imputation because the family IDs are zero
-# # whereas with the MOBA/HRC imputation, family IDs = individual IDs
-# #bfile_id_samples$bfile_id = 0
-
-# # Save bfile ids for later filtering of genotype data
-# write_tsv(bfile_id_samples, paste0(PROCESSED_DATA, "bfile_id_samples.txt"), col_names = FALSE)
-
-# ########################################################
-# # bfile_id, age, status
-# # Eivind_00001, 56, 0/1
-# caseData %>%
-#   filter(icd9 == 185) %>%
-#   rename(PTN_REGNR = pid) %>%
-#   rename(age = age_ca) %>%
-#   mutate(status = 1) %>%
-#   select(PTN_REGNR, age, status) %>%
-#   group_by(PTN_REGNR) %>%
-#   filter(age == min(age)) %>%
-#   ungroup() -> cases
-
-# allData %>%
-#   filter(PID %in% controlIDs) %>%
-#   rename(PTN_REGNR = PID, age = AGELASTOBS) %>%
-#   select(PTN_REGNR, age) %>%
-#   mutate(status = 0)
-#   group_by(PTN_REGNR) -> controls
-
-# bind_rows(cases, controls) %>%
-#   mutate(PTN_REGNR = as.character(PTN_REGNR)) ->
-#   combined_data
-
-
-# ################################################################
-# # breast cancer cases and controls for BRCA2 analysis
-# caseData %>%
-#   filter(icd9 == 174) %>%
-#   rename(PTN_REGNR = pid) %>%
-#   rename(age = age_ca) %>%
-#   mutate(status = 1) %>%
-#   select(PTN_REGNR, age, status) %>%
-#   group_by(PTN_REGNR) %>%
-#   filter(age == min(age)) %>%
-#   ungroup() -> brcaCases
-
-# allData %>% 
-#   filter(SEX == "F") %>% 
-#   filter(!(PID %in% brcaCases$PTN_REGNR)) %>% 
-#   pull(PID) %>% 
-#   unique() ->
-#   brcaControlIDs
-
-# allData %>%
-#   filter(PID %in% brcaControlIDs) %>%
-#   rename(PTN_REGNR = PID, age = AGELASTOBS) %>%
-#   select(PTN_REGNR, age) %>%
-#   mutate(status = 0) %>%
-#   group_by(PTN_REGNR) -> brcaControls
-
-# bind_rows(brcaCases, brcaControls) %>%
-#   mutate(PTN_REGNR = as.character(PTN_REGNR)) ->
-#   brca_combined_data
-
-# all_samples %>%
-#   select(bfile_id, PTN_REGNR) %>%
-#   right_join(brca_combined_data, by = "PTN_REGNR") %>%
-#   select(-PTN_REGNR) -> brca_phenotypes
-
-# allData %>%
-#   filter(PID %in% controlIDs) %>%
-#   rename(PTN_REGNR = PID, age = AGELASTOBS) %>%
-#   select(PTN_REGNR, age) %>%
-#   mutate(status = 0) %>%
-#   group_by(PTN_REGNR) -> controls
-
-# bind_rows(cases, controls) %>%
-#   mutate(PTN_REGNR = as.character(PTN_REGNR)) ->
-#   combined_data

@@ -22,69 +22,42 @@ source("src/00_config.R")
 args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
-model_file = "data/processed/PHS601_phs" # PHS file
-model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-
 metadata_file = args[2] # Phenotype data
+inverse = args[3]
+tsd_proj = args[4]
+
+model_file = "data/processed/PHS601_phs" # PHS file
 metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
 # metadata_file = "data/processed/husk_phenotypes.tsv"
-inverse = args[3]
 inverse = FALSE
-tsd_proj = args[4]
 tsd_proj = "p212"
 # tsd_proj = "p2521"
 
-results = "data/results/"
+model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 #########################################
 # Import data
 
 # Huyhn-LE 2020 ASIS data
 column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
-
 huynhle_asis = read_excel("data/external/ASIS_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
 
 huynhle_asis %>%
     rowwise() %>%
     mutate(total = sum(across(low_risk:metastatic))) %>%
-    mutate(age_nice = age)  ->
-    huynhle_asis
-
-huynhle_asis$age_nice[huynhle_asis$age == "<50"] = "45-49"
-huynhle_asis$age_nice[huynhle_asis$age == "≥85"] = "85-89"
-
-huynhle_asis %>%
-    mutate(age_y = as.numeric(substr(age_nice, 1, 2))) ->
-    huynhle_asis
-
-huynhle_asis %>% 
-    rowwise() %>%
+    mutate(age_nice = if_else(age == "<50", "45-49", if_else(age == "≥85", "85-89", age))) %>%
+    mutate(age_y = as.numeric(substr(age_nice, 1, 2))) %>%
     mutate(median_age = median(seq(as.numeric(substr(age_nice, 1, 2)), as.numeric(substr(age_nice, 4, 5))))  ) ->
     incidence
 
-ggplot(huynhle_asis, aes(x = age_y, y = total)) + 
-    geom_smooth() + 
-    theme_classic()
+# import phs data
+phs_data = import_phs_data(model_file, inverse)
 
-# cancer registry incidence data
-# incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
-
-# phenotype data
-phs_data = read_tsv(model_file, col_names = c("bfile_id", "phs"))
-
-phs_data %>%
-  mutate(phs = as.vector(scale(phs, center = TRUE, scale = TRUE))) ->
-  phs_data
-
-if (inverse) {mutate(phs_data, phs = phs * -1) -> phs_data}
-
+# import phenotype data
 metadata = read_tsv(metadata_file)
 
-metadata %>%
-    full_join(phs_data, by = "bfile_id") %>%
-    filter(!is.na(phs)) %>%
-    filter(!is.na(age)) ->
-    full_data
+# combine phs and metadata
+full_data = process_combined_data(metadata, phs_data)
 
 ####################################################################################
 # Any PCA
@@ -97,11 +70,7 @@ metadata %>%
 incidence %>%
     mutate(log_incidencerate = log(total)) ->
     incidence
-# # First cases are in age group 35-40
-# incidence %>%
-#     filter(median_age >= 35) %>%
-#     mutate(median_age_minus35 = median_age - 35) ->
-#     incidence_over35
+
 
 # Visualize age-specific incidence rate on log scale
 # with polynomial fit
