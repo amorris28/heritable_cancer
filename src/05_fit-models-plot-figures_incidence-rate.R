@@ -39,8 +39,35 @@ results = "data/results/"
 #########################################
 # Import data
 
+# Huyhn-LE 2020 ASIS data
+column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
+
+huynhle_asis = read_excel("data/external/ASIS_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
+
+huynhle_asis %>%
+    rowwise() %>%
+    mutate(total = sum(across(low_risk:metastatic))) %>%
+    mutate(age_nice = age)  ->
+    huynhle_asis
+
+huynhle_asis$age_nice[huynhle_asis$age == "<50"] = "45-49"
+huynhle_asis$age_nice[huynhle_asis$age == "≥85"] = "85-89"
+
+huynhle_asis %>%
+    mutate(age_y = as.numeric(substr(age_nice, 1, 2))) ->
+    huynhle_asis
+
+huynhle_asis %>% 
+    rowwise() %>%
+    mutate(median_age = median(seq(as.numeric(substr(age_nice, 1, 2)), as.numeric(substr(age_nice, 4, 5))))  ) ->
+    incidence
+
+ggplot(huynhle_asis, aes(x = age_y, y = total)) + 
+    geom_smooth() + 
+    theme_classic()
+
 # cancer registry incidence data
-incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
+# incidence = read_delim("data/external/incidence_norway_agegroups.csv", delim = ";", col_select = 1:11, n_max = 16)
 
 # phenotype data
 phs_data = read_tsv(model_file, col_names = c("bfile_id", "phs"))
@@ -59,63 +86,45 @@ metadata %>%
     filter(!is.na(age)) ->
     full_data
 
-# p2521 data
-# p2521_data = read_tsv(paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
-# p2521_phs = read_tsv(paste0(PROCESSED_DATA, "p2521_PHS601_phs"), col_names = c("subjectid", "phs"))
-
-# p2521_data %>%
-#     full_join(p2521_phs, by = "subjectid") %>%
-#     filter(!is.na(phs)) %>%
-#     filter(!is.na(age)) ->
-#     full_data
+####################################################################################
+# Any PCA
+####################################################################################
 
 ################################################################################
 # 1. Plot incidence curve for Norway
-# According to SSB, the average life expectancy for males in Norway at age 85 is 6 years
-# So I will use 85-91 as the top interval.
-# Then, I calculate the median age for each interval
-incidence$Alder[incidence$Alder == "85+"] = "85-91"
-incidence %>% 
-    rowwise() %>%
-    mutate(median_age = median(seq(as.numeric(substr(Alder, 1, 2)), as.numeric(substr(Alder, 4, 5))))  ) ->
-    incidence
+
 # calculate natural log of incidence rate
 incidence %>%
-    mutate(log_incidencerate = log(Aldersspesifikkrate)) ->
+    mutate(log_incidencerate = log(total)) ->
     incidence
-# First cases are in age group 35-40
-incidence %>%
-    filter(median_age >= 35) %>%
-    mutate(median_age_minus35 = median_age - 35) ->
-    incidence_over35
+# # First cases are in age group 35-40
+# incidence %>%
+#     filter(median_age >= 35) %>%
+#     mutate(median_age_minus35 = median_age - 35) ->
+#     incidence_over35
 
 # Visualize age-specific incidence rate on log scale
 # with polynomial fit
-ggplot(incidence_over35, aes(x = median_age_minus35, y = log_incidencerate)) +
+ggplot(incidence, aes(x = median_age, y = log_incidencerate)) +
     geom_point() +
     stat_smooth(method='lm', formula = y ~ poly(x,2)) +
     theme_classic() +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
-    labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
-    p
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
 #ggsave(paste0(results, "log_incidence_rate.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 # Compare polynomial fit between fitting a linear model to the log-transformed
 # data or fit a non-linear model to the original data
-lm_fit = lm(log_incidencerate ~ poly(median_age_minus35, 2, raw = TRUE), data = incidence_over35)
-# plot(incidence_over35$agegroup_minus35, resid(lm_fit))
-# abline(h = 0, lty = 2)
+lm_fit = lm(log_incidencerate ~ poly(median_age, 2, raw = TRUE), data = incidence)
+plot(incidence$median_age, resid(lm_fit))
+abline(h = 0, lty = 2)
 
-nls_fit <- nls(Aldersspesifikkrate ~ b0 * exp(b1 * median_age_minus35 + b2 * median_age_minus35 ^ 2), 
-               data = incidence_over35,
-               start = list(b0 = 0.5, b1 = 0.4, b2 = -0.005))
+nls_fit <- nls(total ~ b0 * exp(b1 * median_age + b2 * median_age ^ 2), 
+               data = incidence,
+               start = list(b0 = -17, b1 = 0.6, b2 = -0.004))
 coef(nls_fit)
-# plot(incidence_over35$agegroup_minus35, resid(nls_fit))
-# abline(h = 0, lty = 2)
-
-# The linear model is more uniformly distributed residuals than the 
-# non-linear model, likely because variance increases with the 
-
+plot(incidence$median_age, resid(nls_fit))
+abline(h = 0, lty = 2)
 
 B0 = lm_fit$coefficients[1]
 B1 = lm_fit$coefficients[2]
@@ -124,9 +133,9 @@ pca_incidence_poly = function(x) {
     B0 + B1 * x + B2 * x ^ 2
 }
 
-x = incidence_over35$median_age_minus35
+x = incidence$median_age
 
-new_data = incidence_over35 %>% select(median_age_minus35)
+new_data = incidence %>% select(median_age)
 
 y_equation = pca_incidence_poly(x)
 y_predict = predict(lm_fit, new_data) # should return the same
@@ -135,71 +144,74 @@ y = y_equation
 
 ggplot(mapping = aes(x, y)) + 
     geom_smooth() + #loess
-    geom_point(aes(x = median_age_minus35, y = log_incidencerate), data = incidence_over35) +
+    geom_point(aes(x = median_age, y = log_incidencerate), data = incidence) +
     theme_classic() +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
-    labs(x = "Age", y = "log(Age-specific Incidence Rate)") ->
-    p
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    labs(x = "Age", y = "log(Age-specific Incidence Rate)")
 #ggsave(paste0(results, "log_incidence_rate_lmfit.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 ###########################
 # if I take the log of y and fit a second-order polynomial model I get this:
-# log(y) = log(b0) + b1 * x + b2 * x ^ 2 
+# log(y) = b0 + b1 * x + b2 * x ^ 2 
 # To exponentiate it this back to linear space, we take the exp of both sizes
-# the exp(log()) cancels out for y and b0 and we are left with:
-# y = b0 + e ^ {b1 * x + b2 * x ^ 2}
+# the exp(log()) cancels out for y and we are left with:
+# y = e ^ {b0 + b1 * x + b2 * x ^ 2}
 
-b0 = exp(B0)
+b0 = B0
 b1 = B1
 b2 = B2
 
 pca_incidence_poly_linearized = function(x) {
-    b0 + exp(b1 * x + b2 * x ^ 2)
+    exp(b0 + b1 * x + b2 * x ^ 2)
 }
 
-x_new = seq(from = min(incidence_over35$median_age_minus35), to = max(incidence_over35$median_age_minus35), by = 0.01)
-y_new = pca_incidence_poly_linearized(x_new)
+x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
+y_lm = pca_incidence_poly_linearized(x_new)
+
+lp <- predict(lm_fit, newdata = new_data)      # linear predictor on log scale
+sigma2 <- summary(lm_fit)$sigma^2
+y_mean <- exp(lp + 0.5 * sigma2)             # mean on original scale
 
 # Exponentiate the model prediction to return it to the original units
 ggplot() +
-    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
-    geom_smooth(aes(x_new, y_new)) +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    geom_point(aes(x = median_age, y = total), incidence) +
+    geom_smooth(aes(x_new, y_lm)) +
+    # geom_point(aes(x = new_data$median_age, y = y_mean), color = "red") +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic() ->
-    p
+    theme_classic()
 #ggsave(paste0(results, "log_incidence_rate_lmfit_exp.png"), p, width = 4.5, height = 3.5, dpi = 300)
 
 # The model doesn't match up very well with the original in this case
 
 # Try the nls model:
-x_new = seq(from = min(incidence_over35$median_age_minus35), to = max(incidence_over35$median_age_minus35), by = 0.01)
+x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
 
-new_data = data.frame(median_age_minus35 = x_new)
+new_data = data.frame(median_age = x_new)
 y_predict = predict(nls_fit, new_data)
-y = y_predict
+y_nls = y_predict
 ggplot()  +
-    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
-    geom_smooth(aes(x_new, y)) +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    geom_point(aes(x = median_age, y = total), incidence) +
+    geom_smooth(aes(x = median_age, y = total), incidence, method = "loess", color = "green", se = F, span = 0.75) +
+    geom_smooth(aes(x_new, y_nls)) +
+    geom_smooth(aes(x_new, y_lm), color = "red") +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic() ->
-    p1
+    theme_classic()
 #ggsave(paste0(results, "norway_incidence.png"), p1, width = 4.5, height = 3.5, dpi = 300)
 
 # The non-linear model seems to fit better
 
 # Predict the incidence rate at the midpoint of each 1-year age group
-yearly_data = data.frame(median_age_minus35 = seq(from = min(incidence_over35$median_age_minus35) + 0.5, to = max(incidence_over35$median_age_minus35) + 0.5, by = 1))
+yearly_data = data.frame(median_age = seq(from = min(incidence$median_age) + 0.5, to = max(incidence$median_age) - 0.5, by = 1))
 yearly_data$y_predict = predict(nls_fit, yearly_data)
 ggplot()  +
-    geom_point(aes(x = median_age_minus35, y = Aldersspesifikkrate), incidence_over35) +
+    geom_point(aes(x = median_age, y = total), incidence) +
     geom_smooth(aes(x_new, y_predict)) +
-    geom_point(aes(median_age_minus35, y_predict), yearly_data, color = "red") +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
+    geom_point(aes(median_age, y_predict), yearly_data, color = "red") +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-    theme_classic() ->
-    p1
+    theme_classic()
 # ggsave(paste0(results, "norway_incidence_yearly.png"), p1,
 #            height = 8 * 0.618, width = 8)
 
@@ -208,9 +220,8 @@ yearly_data %>%
     mutate(cumulative_incidence = cumsum(y_predict)) ->
     yearly_data
 
-ggplot(yearly_data, aes(x = median_age_minus35, y = cumulative_incidence)) +
-    geom_point() ->
-    p
+ggplot(yearly_data, aes(x = median_age, y = cumulative_incidence)) +
+    geom_point()
 
 # ggsave(paste0(results, "norway_cumulative_incidence.png"), p,
 #            height = 8 * 0.618, width = 8)
@@ -224,19 +235,19 @@ H %>%
     mutate(S = exp(-hazard)) %>% # This is the cumulative surival
     mutate(I = 1-S) %>%
     mutate(I_100000 = I * 100000) %>%
-    mutate(time_minus_35 = time - 35) -> # This is the cumulative incidence
+    mutate(time = time) -> # This is the cumulative incidence
     H
 
 
-ggplot() +
-    geom_step(aes(time_minus_35, I_100000), H, color = "red") +
-    geom_line(aes(x = median_age_minus35, y = cumulative_incidence), yearly_data) +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), labels = c(40, 50, 60, 70, 80, 90), limits = c(0, 55)) +
+(ggplot() +
+    geom_step(aes(time, I_100000), H, color = "red") +
+    geom_line(aes(x = median_age, y = cumulative_incidence), yearly_data) +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), labels = c(40, 50, 60, 70, 80, 90), limits = c(0, 55)) +
     labs(x = "Age", y = "Cumulative Incidence Rate (per 100,000)") +
-    lims(y = c(0, 30000)) +
+    lims(y = c(0, 30000), x = c(40, 90)) +
     theme_classic() +
     theme(aspect.ratio = 1) ->
-    p
+    p)
 
 ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
            height = 6 * 0.618, width = 6)
@@ -265,7 +276,7 @@ H_80 = H0*exp(HR_80_50)
 
 H_20 = H0*exp(HR_20_50)
 #S_20 = exp(-H_20)
-adj_curve = data.frame(age = yearly_data$median_age_minus35,
+adj_curve = data.frame(age = yearly_data$median_age,
                         H0,
                         H_20,
                         H_80) %>%
@@ -304,7 +315,7 @@ H_80 = H0*exp(HR_80_50)
 
 H_20 = H0*exp(HR_20_50)
 #S_20 = exp(-H_20)
-adj_curve = data.frame(age = yearly_data$median_age_minus35,
+adj_curve = data.frame(age = yearly_data$median_age,
                         H0,
                         H_20,
                         H_80) %>%
@@ -313,8 +324,8 @@ adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
 
 ggplot(adj_curve, aes(age, value, color = name)) +
     geom_line() +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
-                       labels = c(40, 50, 60, 70, 80, 90)) +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
+    #                    labels = c(40, 50, 60, 70, 80, 90)) +
     labs(x = "Age", y = expression(atop("Cumulative Incidence Rate", "(per 100,000)"))) +
     scale_color_brewer(name = "", 
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
@@ -371,14 +382,16 @@ p1 = ggplot(cohort_incidence, aes(x = time, y = cum_inc_per_100k)) +
 # Plot cumulative incidence based on kreftregisteret data
 
 incidence %>%
-    mutate(ASR_cumsum = cumsum(Aldersspesifikkrate)) %>%
-    mutate(Age_group = as.numeric(substr(Alder, 0, 2))) ->
+    mutate(ASR_cumsum = cumsum(total)) %>%
+    mutate(Age_group = age_y) ->
     new_incidence
 t = new_incidence$Age_group
 y = new_incidence$ASR_cumsum
-    
+
+lm_fit = lm(log(ASR_cumsum) ~ poly(Age_group, 1, raw = TRUE), data = new_incidence)
+
 add_nls <- nls(y ~ a*exp(r*t), 
-               start = list(a = 0.5, r = 0.2))
+               start = list(a = 1.3, r = 0.07))
 nls_coef = coef(add_nls)
 y = nls_coef[1]*exp(nls_coef[2]*t)
 spline_int <- as.data.frame(spline(t, y))
@@ -504,7 +517,9 @@ huynhle_asis %>%
     mutate(age_y = as.numeric(substr(age_nice, 1, 2))) ->
     huynhle_asis
 
-ggplot(huynhle_asis, aes(x = age_y, y = metastatic)) + 
+huynhle_asis$cum_inc = cumsum(huynhle_asis$total)
+
+ggplot(huynhle_asis, aes(x = age_y, y = total)) + 
     geom_smooth() + 
     theme_classic()
 
