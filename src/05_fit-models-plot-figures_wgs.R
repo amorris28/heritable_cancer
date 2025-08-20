@@ -175,6 +175,7 @@ curven = select(mod_data, time, estimate, conf.low,
 curven$label = "carrier"
 km_curves = rbind(km_curves, curven)
 
+color_set = RColorBrewer::brewer.pal(9, "Set1")
 hoxb13_p = ggplot(km_curves, aes(x = time,
                         y = estimate,
                         ymin = conf.low,
@@ -188,10 +189,14 @@ hoxb13_p = ggplot(km_curves, aes(x = time,
     xlim(40, 100) + 
     ylim(0, 1) +
     labs(x = "Age", y = "Disease-free Survival") +
-    scale_color_brewer(palette = "Set1", direction = -1,
-                        name = "PHS Centile") +
-    scale_fill_brewer(palette = "Set1", direction = -1,
-                        name = "PHS Centile") + 
+    scale_color_manual(values = c(color_set[5], color_set[2]),
+                        name = "HOXB13 Carrier") +
+    scale_fill_manual(values = c(color_set[5], color_set[2]),
+                        name = "HOXB13 Carrier") + 
+    # scale_color_brewer(palette = "Set1", direction = -1,
+    #                     name = "HOXB13 Carrier") +
+    # scale_fill_brewer(palette = "Set1", direction = -1,
+    #                     name = "HOXB13 Carrier") + 
     theme(aspect.ratio = 1) +
     theme(legend.position = "bottom") 
 
@@ -238,7 +243,9 @@ hoxb13_p = ggplot(km_curves, aes(x = time,
 wgs_p = 
     wgs_km +
     hoxb13_p + 
-    plot_annotation(tag_levels = 'A')
+    plot_annotation(tag_levels = 'A') &
+    theme(legend.position = "bottom") 
+wgs_p
 ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.pdf", sep = "_")), wgs_p,
         height = 8 * 0.618, width = 8)
 ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.png", sep = "_")), wgs_p,

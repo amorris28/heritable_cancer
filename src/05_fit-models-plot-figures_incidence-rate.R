@@ -161,7 +161,6 @@ y_predict = predict(nls_fit, new_data)
 y_nls = y_predict
 ggplot()  +
     geom_point(aes(x = median_age, y = total), incidence) +
-    geom_smooth(aes(x = median_age, y = total), incidence, method = "loess", color = "green", se = F, span = 0.75) +
     geom_smooth(aes(x_new, y_nls)) +
     geom_smooth(aes(x_new, y_lm), color = "red") +
     # scale_x_continuous(breaks = c(5, 15, 25, 35, 45), labels = c(40, 50, 60, 70, 80)) +
@@ -260,10 +259,10 @@ adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
 #     theme_classic() ->
 #     p
 #ratio = with(adj_curve, ggthemes::bank_slopes(age, value, method = "as"))
-ggplot(adj_curve, aes(age, value, color = name)) +
+(ggplot(adj_curve, aes(age, value, color = name)) +
     geom_line() +
-    scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
-                       labels = c(40, 50, 60, 70, 80, 90)) +
+    # scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
+    #                    labels = c(40, 50, 60, 70, 80, 90)) +
     labs(x = "Age", y = expression(atop("Age-specific Incidence Rate", "(per 100,000)"))) +
     scale_color_brewer(name = "", 
                          labels = c("PHS 80%", "Population Baseline", "PHS 20%"),
@@ -271,7 +270,7 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     lims(y = c(0, 2000)) +
     coord_fixed(ratio = 1/50) +
     theme_classic() ->
-    p
+    p)
 ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.png", sep = "_")), 
        p, height = 8 * 0.618, width = 8)
 ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.pdf", sep = "_")), 
@@ -291,7 +290,7 @@ adj_curve = data.frame(age = yearly_data$median_age,
                 pivot_longer(!age)
 adj_curve$name <- factor(adj_curve$name, levels = c("H_80", "H0", "H_20"))
 
-ggplot(adj_curve, aes(age, value, color = name)) +
+(ggplot(adj_curve, aes(age, value, color = name)) +
     geom_line() +
     # scale_x_continuous(breaks = c(5, 15, 25, 35, 45, 55), 
     #                    labels = c(40, 50, 60, 70, 80, 90)) +
@@ -302,7 +301,7 @@ ggplot(adj_curve, aes(age, value, color = name)) +
     lims(y = c(0, 40000)) +
     coord_fixed(ratio = 1/1000) +
     theme_classic() ->
-    p
+    p)
 # ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.png", sep = "_")), p,
 #            height = 8 * 0.618, width = 8)
 # ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_cumulative.pdf", sep = "_")), p,
@@ -410,7 +409,7 @@ p3 = ggplot() +
 # Incidence, the Aldersspesifikkrate is the rate of new diagnoses per
 # 100 000 person-years. (i.e., Aldersspesifikkrate / 100000 * Personår = Tilfeller
 incidence %>% 
-    select(Alder, Personår:Tilfeller) ->
+    select(median_age, Personår:Tilfeller) ->
     incidence
 incidence %>%
     mutate(csum_tilfeller = cumsum(Tilfeller)) %>% 
@@ -421,7 +420,7 @@ incidence %>%
     mutate(Tilfeller2 = Aldersspesifikkrate / 10 / 10000 * Personår) %>%
     print(width = 10000)
 
-ggplot(incidence, aes(x = Alder, y = csum_Aldersspesifikkrater)) +
+ggplot(incidence, aes(x = median_age, y = csum_Aldersspesifikkrater)) +
     geom_point() ->
     p1
 # ggsave(paste0(results, "incidence_test.png"), p1)
