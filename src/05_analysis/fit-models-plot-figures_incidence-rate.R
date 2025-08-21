@@ -28,11 +28,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs" # PHS file
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-# metadata_file = "data/processed/husk_phenotypes.tsv"
+# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+# tsd_proj = "p212"
+tsd_proj = "p2521"
 
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
@@ -98,36 +98,43 @@ fit_incidence_model = function(incidence, incidence_variable = "total") {
 }
 
 yearly_data = fit_incidence_model(incidence, "total")
+yearly_data = fit_incidence_model(incidence, "metastatic")
 
-# lm_fit = lm(log(total) ~ poly(median_age, 2, raw = TRUE), data = incidence)
-# plot(incidence$median_age, resid(lm_fit))   # Check the residuals of this model
-# abline(h = 0, lty = 2)                      # Looks fine
+lm_fit = lm(log(metastatic) ~ poly(median_age, 2, raw = TRUE), data = incidence)
+plot(incidence$median_age, resid(lm_fit))   # Check the residuals of this model
+abline(h = 0, lty = 2)                      # Looks fine
 
-# ## Fit the nls model from the starting parameters of the log model
-# nls_fit <- nls(total ~ b0 * exp(b1 * median_age + b2 * median_age ^ 2),
-#                data = incidence,
-#                start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2], b2 = coef(lm_fit)[3]))
-# plot(incidence$median_age, resid(nls_fit))  # Check assumptions
-# abline(h = 0, lty = 2)                      # Looks fine
+x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
+new_data = data.frame(median_age = x_new)   # new data frame for prediction
+y_lm = exp(predict(lm_fit, new_data))         # prediction from the nls model
 
-# # Create a smooth curve by predicting very fine time steps (here: 1% of a year)
-# x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
-# new_data = data.frame(median_age = x_new)   # new data frame for prediction
-# y_nls = predict(nls_fit, new_data)          # prediction from the nls model
 
-# ## Comparing the raw data to the model prediction
-# ggplot()  +
-#     geom_point(aes(x = median_age, y = total), incidence) +
-#     geom_smooth(aes(x_new, y_nls)) +
-#     labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
-#     theme_classic()
+## Fit the nls model from the starting parameters of the log model
+nls_fit <- nls(metastatic ~ b0 * exp(b1 * median_age + b2 * median_age ^ 2),
+               data = incidence,
+               start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2], b2 = coef(lm_fit)[3]))
+plot(incidence$median_age, resid(nls_fit))  # Check assumptions
+abline(h = 0, lty = 2)                      # Looks fine
 
-# # to calculate the annualized incidence rate, predict at a 1 year time step centered on the mid-point of the year
-# yearly_data = data.frame(median_age = seq(from = min(incidence$median_age) + 0.5, to = max(incidence$median_age) - 0.5, by = 1))
-# yearly_data %>%
-#     mutate(y_predict = predict(nls_fit, yearly_data)) %>%
-#     mutate(cumulative_incidence = cumsum(y_predict)) ->
-#     yearly_data
+# Create a smooth curve by predicting very fine time steps (here: 1% of a year)
+x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
+new_data = data.frame(median_age = x_new)   # new data frame for prediction
+y_nls = predict(nls_fit, new_data)          # prediction from the nls model
+
+## Comparing the raw data to the model prediction
+ggplot()  +
+    geom_point(aes(x = median_age, y = metastatic), incidence) +
+    geom_smooth(aes(x_new, y_nls)) +
+    geom_smooth(aes(x_new, y_lm), color = "red") +
+    labs(x = "Age", y = "Age-specific Incidence Rate (per 100,000)") +
+    theme_classic()
+
+# to calculate the annualized incidence rate, predict at a 1 year time step centered on the mid-point of the year
+yearly_data = data.frame(median_age = seq(from = min(incidence$median_age) + 0.5, to = max(incidence$median_age) - 0.5, by = 1))
+yearly_data %>%
+    mutate(y_predict = predict(nls_fit, yearly_data)) %>%
+    mutate(cumulative_incidence = cumsum(y_predict)) ->
+    yearly_data
  
 #####################################################
 
@@ -251,9 +258,9 @@ saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespeci
 # I should probably turn the above into functions...What are the reproducible steps?
 yearly_data = fit_incidence_model(incidence, "metastatic")
 
-plot_comparison_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis")
+p1 = plot_comparison_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis")
 
-plot_stratified_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis")
+p = plot_stratified_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis")
 
 
 ################################################################################
