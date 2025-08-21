@@ -3,7 +3,7 @@ library(stringr)
 library(hazrd)
 library(survival)
 library(patchwork)
-source("src/00_config.R")
+source("src/00_config/config.R")
 
 ###########################################
 # Output flags

@@ -21,6 +21,18 @@ export COMORMENT=/cluster/projects/p212/github/comorment
 export RSCRIPT="singularity exec --bind /ess/p212:/ess/p212 --home $PWD:/home $COMORMENT/containers/singularity/r.sif Rscript"
 export TSD_PROJ=p212
 
-Rscript src/05_fit-models-plot-figures.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE $TSD_PROJ
-Rscript src/05_fit-models-plot-figures_wgs.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE $TSD_PROJ
-Rscript src/05_fit-models-plot-figures_incidence-rate.R ${PROCESSED_DIR}/${MODEL}_phs ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv FALSE $TSD_PROJ
+Rscript src/05_analysis/fit-models-plot-figures.R \
+    ${PROCESSED_DIR}/${MODEL}_phs \
+    ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv \
+    FALSE \
+    $TSD_PROJ
+Rscript src/05_analysis/fit-models-plot-figures_wgs.R \
+    ${PROCESSED_DIR}/${MODEL}_phs \
+    ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv \
+    FALSE \
+    $TSD_PROJ
+Rscript src/05_analysis/fit-models-plot-figures_incidence-rate.R \
+    ${PROCESSED_DIR}/${MODEL}_phs \
+    ${PROCESSED_DIR}/heritable_cancer_phenotypes.tsv \
+    FALSE \
+    $TSD_PROJ

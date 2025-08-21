@@ -74,8 +74,11 @@ knitr::opts_knit$set(root.dir = '..')
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
+library(kableExtra)
 
-source("src/00_config.R")
+source("src/00_config/config.R")
+source("src/00_config/functions.R")
+model = "PHS601"
 ```
 ## Introduction
 
@@ -134,9 +137,24 @@ To test whether RPVs were at higher frequency in cases than in controls, we used
 
 ## Results
 
+```{r stats}
+
+PHS601 = readr::read_tsv("data/results/p212_PHS601_any_pca_performance.tsv")
+phs_zph_tidy = readr::read_tsv("data/results/phs_zph_tidy.tsv")
+PHS601_meta = readr::read_tsv("data/results/p212_PHS601_metastatic_performance.tsv")
+sample_size = readr::read_tsv("data/results/p212_PHS601_sample_size.tsv")
+coxph_results = readr::read_tsv("data/results/p212_PHS601_coxph.tsv")
+wgs_summary = readr::read_tsv("data/results/p212_wgs_summary.tsv")
+fisher = readr::read_tsv("data/results/p212_fisher.tsv")
+wgs_phs = readr::read_tsv("data/results/p212_PHS601_wgs_phs_performance.tsv")
+binomial_phs_hoxb13 = readr::read_tsv("data/results/p212_PHS601_binomial_phs_hoxb13.tsv")
+wgs_results = readr::read_tsv(paste0(results, paste("p212", model, "wgs.tsv", sep = "_")))
+
+```
+
 ### PHS601 accurately stratifies Norwegian cohort based on PCa risk
 ```{r phs-plot}
-model = "PHS601"
+
 p212 <- readRDS(paste0(results, paste("p212", model, "any_pca_km_curve.rds", sep = "_")))
 p2521 <- readRDS(paste0(results, paste("p2521", model, "any_pca_km_curve.rds", sep = "_")))
 # p212 = p212 + theme(legend.position = "bottom")
@@ -157,28 +175,6 @@ saveRDS(any_pca, paste0(results, paste(model, "km_curve.rds", sep = "_")))
 ```
 
 ![Kaplan-Meier survival curves of prostate cancer-free survival by centile ranges of polygenic hazard score. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.25-1.0](../data/results/PHS601_km_curve){#fig-phs width=90%}
-
-```{r stats}
-
-PHS601 = readr::read_tsv("data/results/p212_PHS601_any_pca_performance.tsv")
-phs_zph_tidy = readr::read_tsv("data/results/phs_zph_tidy.tsv")
-PHS601_meta = readr::read_tsv("data/results/p212_PHS601_metastatic_performance.tsv")
-sample_size = readr::read_tsv("data/results/p212_PHS601_sample_size.tsv")
-coxph_results = readr::read_tsv("data/results/p212_PHS601_coxph.tsv")
-wgs_summary = readr::read_tsv("data/results/p212_wgs_summary.tsv")
-fisher = readr::read_tsv("data/results/p212_fisher.tsv")
-wgs_phs = readr::read_tsv("data/results/p212_PHS601_wgs_phs_performance.tsv")
-binomial_phs_hoxb13 = readr::read_tsv("data/results/p212_PHS601_binomial_phs_hoxb13.tsv")
-wgs_results = readr::read_tsv(paste0(results, paste("p212", model, "wgs.tsv", sep = "_")))
-
-```
-
-```{r table-1}
-
-knitr::kable(PHS601)
-
-```
-
 
 In the NFCS cohort, there were `{r} sample_size[1, 3]` individuals with a PCa diagnosis and `{r} sample_size[1, 4]` controls. The Cox proportional hazards model showed an `r (coxph_results %>% filter(model == "any_pca") %>% pull("estimate") %>% round(2) * 100) - 100`\% greater risk of PCa for a 1 standard deviation increase in PHS (HR = `{r} sprintf("%.2f", round(coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(coxph_results[1, "p.value"])`). Individuals with PHS in the top quintile had over `{r} floor(PHS601[1, 3])` times greater risk of any PCa than individuals in the bottom quintile (HR~80/20~: `{r} sprintf("%.2f", round(PHS601[1, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(PHS601[1, 4], 2))`, `{r} sprintf("%.2f", round(PHS601[1, 5], 2))`\]) and `{r} (round(PHS601[2, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/60~: `{r} sprintf("%.2f", round(PHS601[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(PHS601[2, 4], 2))`, `{r} sprintf("%.2f", round(PHS601[2, 5], 2))`\]; @fig-phs)
 

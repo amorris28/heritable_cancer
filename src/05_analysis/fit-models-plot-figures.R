@@ -3,12 +3,12 @@ library(stringr)
 library(hazrd)
 library(survival)
 library(patchwork)
-source("src/00_config.R")
+source("src/00_config/config.R")
 
 ###########################################
 # Output flags
 bootstrap_iters = 1
-perform_bool = FALSE
+perform_bool = TRUE
 
 #########################################
 # First argument: PHS file
@@ -74,9 +74,6 @@ zph_fit %>%
 phs_zph_tidy
 
 write_tsv(phs_zph_tidy, paste0(results, paste(tsd_proj, model, "phs_zph_tidy.tsv", sep = "_")))
-results
-tsd_proj = NULL
-model
 paste0(results, paste0(tsd_proj, model, "phs_zph_tidy.tsv", collapse = "_"))
 
 any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
