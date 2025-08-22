@@ -7,7 +7,7 @@ source("src/00_config/config.R")
 
 ###########################################
 # Output flags
-bootstrap_iters = 1
+bootstrap_iters = 99
 perform_bool = TRUE
 
 #########################################
@@ -131,12 +131,15 @@ if (perform_bool) {
 
 # KM Curves for metastatic disease
 km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
+km_curve = km_curve + lims(y = c(0.80, 1.0))
+ggsave("kmcurve_metastasis_loose.png", km_curve, height = 6 * 0.618, width = 6)
 
 ggsave(paste0(results, paste(tsd_proj, model, "km_curve_metastatic.pdf", sep = "_")), km_curve,
        height = 6 * 0.618, width = 6)
 ggsave(paste0(results, paste(tsd_proj, model, "km_curve_metastatic.png", sep = "_")), km_curve,
        height = 6 * 0.618, width = 6)
 saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "metastatic_km_curve.rds", sep = "_")))
+
 
 # Gather sample sizes
 combined_data %>%

@@ -40,42 +40,61 @@ pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
 
 ## Performance & Plotting
 
+return_hrsd = function(combined_data, age = "age", status = "status") {
+  response =  paste0("Surv(", age, ", ", status, ")")
+  summary(coxph(as.formula(sprintf('%s~%s', response, "phs")), data = combined_data))$coefficients[2]
+}
+
+get_hrsd = function(combined_data, age = "age", status = "status", bootstrap_iterations = 1000) {
+    HR = return_hrsd(combined_data, age, status)
+    boot_out = boot_conf(combined_data, bootstrap_iterations, return_hrsd, age, status)
+    return(list(index = "HRSD", 
+          value = HR, 
+          conf.low = boot_out$quantiles[[1]], 
+          conf.high = boot_out$quantiles[[2]], 
+          iters = boot_out$iters))
+}
 get_performance_metrics = function(combined_data, bootstrap_iters, model, age = "age", status = "status") {
 
-  response =  paste0("Surv(", age, ", ", status, ")")
-  fit = coxph(as.formula(sprintf('%s~%s', response, "phs")), data = combined_data)
+  HRSD = get_hrsd(combined_data,
+                  age = age,
+                  status = status,
+                  bootstrap_iterations = bootstrap_iters)
 
-  fit_tidy = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
-  HRSD = list(index = "HRSD",
-              value = fit_tidy$estimate[1],
-              conf.low = fit_tidy$conf.low[1],
-              conf.high = fit_tidy$conf.high[1],
-              iters = NULL)
-
-  HR80_20 = get_hr(combined_data,  #default
+  HR80_20 = get_hr(combined_data,
+                  age = age,
+                  status = status,
                   CI = TRUE, 
-                  boot = bootstrap_iters)
+                  bootstrap_iterations = bootstrap_iters)
 
   HR20_50 = get_hr(combined_data, 
+                  age = age,
+                  status = status,
                   lower_interval = c(0.2, 0.80), # 50
                   upper_interval = c(0.0, 0.2),  # 20
                   CI = TRUE, 
-                  boot = bootstrap_iters)
+                  bootstrap_iterations = bootstrap_iters)
 
   HR80_50 = get_hr(combined_data, 
+                  age = age,
+                  status = status,
                   lower_interval = c(0.2, 0.80), # 50
                   upper_interval = c(0.8, 1.0),  # 80
                   CI = TRUE, 
-                  boot = bootstrap_iters)
+                  bootstrap_iterations = bootstrap_iters)
 
   HR95_50 = get_hr(combined_data, 
+                  age = age,
+                  status = status,
                   lower_interval = c(0.2, 0.80), # 50
                   upper_interval = c(0.95, 1.0), # 95
                   CI = TRUE, 
-                  boot = bootstrap_iters)
+                  bootstrap_iterations = bootstrap_iters)
   c_index = get_cindex(combined_data, 
+                  age = age,
+                  status = status,
                   CI = TRUE, 
-                  boot = bootstrap_iters)
+                  bootstrap_iterations = bootstrap_iters)
   HR80_20$index = "HR80_20"
   HR20_50$index = "HR20_50"
   HR80_50$index = "HR80_50"

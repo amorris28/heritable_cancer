@@ -192,7 +192,8 @@ metastatic = p2521 +
     p212 +
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom") &
+    lims(y = c(0.80, 1.0))
 
 ggsave(paste0(results, paste(model, "metastatic_km_curve.pdf", sep = "_")), metastatic,
            height = 8 * 0.618, width = 8)
@@ -260,13 +261,14 @@ Is this an improvement over the previous model?
 ### Plots of incidence rate in the cohorts versus the general Norwegian population from the cancer registry?
 ```{r stratified}
 model = "PHS601"
-p212 <- readRDS(paste0(results, paste("p212", model, "stratified_incidence_agespecific.rds", sep = "_")))
-p2521 <- readRDS(paste0(results, paste("p2521", model, "stratified_incidence_agespecific.rds", sep = "_")))
+# change these to p2521:
+anypca <- readRDS(paste0(results, paste("p212", model, "stratified_incidence_agespecific.rds", sep = "_")))
+metastatic <- readRDS(paste0(results, paste("p212", model, "stratified_incidence_agespecific_metastatic.rds", sep = "_")))
 # p212 = p212 + theme(legend.position = "bottom")
 # p2521 = p2521 + theme(legend.position = "bottom")
 stratified = 
-    p2521 + 
-    p212 +
+    anypca + 
+    metastatic +
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
     theme(legend.position = "bottom") &
@@ -279,18 +281,19 @@ ggsave(paste0(results, paste(model, "stratified_incidence_agespecific.png", sep 
 saveRDS(stratified, paste0(results, paste(model, "stratified_incidence_agespecific.rds", sep = "_")))
 
 ```
-![Cumulative incidence rate of metastatic prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit with data from **(A)** the HUSK cohort and **(B)** the NFCS cohort.](../data/results/PHS601_stratified_incidence_agespecific){#fig-wgs width=90%}
+![Cumulative incidence rate of prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit with data from **(A)** any PCa and **(B)** metastatic PCa.](../data/results/PHS601_stratified_incidence_agespecific){#fig-wgs width=90%}
 
 ### Plot of cohort incidence rate compared to cancer registry data
 
 ```{r incidence-comparison}
 model = "PHS601"
-p212 <- readRDS(paste0(results, paste("p212", model, "cumulative_comparison.rds", sep = "_")))
-p2521 <- readRDS(paste0(results, paste("p2521", model, "cumulative_comparison.rds", sep = "_")))
+# change these to p2521:
+anypca <- readRDS(paste0(results, paste("p212", model, "cumulative_comparison.rds", sep = "_")))
+metastatic <- readRDS(paste0(results, paste("p212", model, "cumulative_comparison_metastatic.rds", sep = "_")))
 # p212 = p212 + theme(legend.position = "bottom")
 # p2521 = p2521 + theme(legend.position = "bottom")
-comparison = p2521 + 
-    p212 +
+comparison = anypca + 
+    metastatic +
     plot_annotation(tag_levels = 'A') &
     theme(aspect.ratio=1)
 
@@ -302,7 +305,7 @@ saveRDS(comparison, paste0(results, paste(model, "cumulative_comparison.rds", se
 
 ```
 
-![Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is a curve fit to the prostate cancer incidence rate for all of Norway fit to the most recent released data from 2023. **(A)** Incidence rate for the NFCS cohort. **(B)** Incidence rate for the HUSK cohort.](../data/results/PHS601_cumulative_comparison){#fig-incidence width=90%}
+![Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is a curve fit to the prostate cancer incidence rate for all of Norway fit to the most recent released data from 2023. **(A)** Incidence rate for any PCa. **(B)** Incidence rate for metastatic PCa.](../data/results/PHS601_cumulative_comparison){#fig-incidence width=90%}
 
 ## Discussion
 

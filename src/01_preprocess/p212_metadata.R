@@ -1,7 +1,7 @@
 library(tidyverse)
 library(readxl)
 
-source("src/00_config.R")
+source("src/00_config/config.R")
 
 all_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
 case_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
@@ -109,9 +109,12 @@ cancer_reg %>%
   filter(ICD10_gr == "C61") %>%
     select(pid = regnr, ALDER, METASTASE) %>%
     mutate(pid = as.character(pid)) %>%
-    mutate(metastasis = if_else(METASTASE %in% metastase_loose, 1, 0)) %>%
-    rename(age_of_metastasis = ALDER,
-           metastasis_code = METASTASE) ->
+    # mutate(metastasis = if_else(METASTASE %in% metastase_loose, 1, 0)) %>%
+    # mutate(metastasis = if_else(METASTASE %in% metastase_strict, 1, 0)) %>%
+    mutate(metastasis = if_else(METASTASE %in% metastase_nolymph, 1, 0)) %>%
+    mutate(age_of_metastasis = if_else(metastasis == 1, ALDER, NA)) %>%
+    rename(metastasis_code = METASTASE) %>%
+    select(-ALDER) ->
     metastasis
 
 combined_data %>%
