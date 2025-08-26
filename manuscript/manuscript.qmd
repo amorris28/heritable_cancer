@@ -74,7 +74,7 @@ knitr::opts_knit$set(root.dir = '..')
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
-library(kableExtra)
+# library(kableExtra)
 
 source("src/00_config/config.R")
 source("src/00_config/functions.R")

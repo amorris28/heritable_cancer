@@ -4,11 +4,12 @@ library(hazrd)
 library(survival)
 library(patchwork)
 source("src/00_config/config.R")
+source("src/00_config/functions.R")
 
 ###########################################
 # Output flags
 bootstrap_iters = 99
-perform_bool = TRUE
+perform_bool = FALSE
 
 #########################################
 # First argument: PHS file
@@ -64,7 +65,6 @@ combined_data %>%
 fit = coxph(Surv(age, status) ~ phs, data = combined_data)
 zph_fit = cox.zph(fit)
 
-print(zph_fit)
 plot(zph_fit)
 summary(fit)
 
@@ -74,10 +74,8 @@ zph_fit %>%
 phs_zph_tidy
 
 write_tsv(phs_zph_tidy, paste0(results, paste(tsd_proj, model, "phs_zph_tidy.tsv", sep = "_")))
-paste0(results, paste0(tsd_proj, model, "phs_zph_tidy.tsv", collapse = "_"))
 
 any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
-
 
 # Time transformation
 phs_fit_tt = coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
@@ -176,6 +174,7 @@ rbind(any_pca_coxph,
       metastatic_coxph, 
       phs_tt_tidy) %>%
 write_tsv(paste0(results, paste(tsd_proj, model, "coxph.tsv", sep = "_")))
+
 
 
 
