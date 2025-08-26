@@ -137,7 +137,6 @@ ICD10 = C61
 
 ## Sample Text
 
-
 Why survival analysis instead of case-control logistic regression? For diseases like cancer or dementia, the question is not "will" you develop the disease but "when"? Many people will develop indolent prostate cancer or will develop the disease so late in life that it does not contribute to increased mortality. This is the difference between dying of prostate cancer and dying with prostate cancer. Survival analysis allows us to identify not all if someone will develop prostate cancer, but when. Early onset is associated with increased risk of aggressive/metastatic disease (even if it is not metastatic at the first diagnosis). Identifying individuals with high risk of early-onset prostate cancer identifies them for earlier monitoring of PSA, counseling on lifestyle changes to mitigate risk, and early treatment with pharmaceuticals for mitigating the risk of aggressive disease. In addition, stratifying individuals into high risk of early-onset can reduce the cost of pharmaceutical studies to investigate treatments for prostate cancer by allowing the investigator to enroll individuals at high risk of early onset allowing for small sample sizes and shorter study durations to see an effect.
 
 Huynh-LE 2020 and Seibert 2018 say that stratifying individuals by PHS improves the PPV of PSA testing for aggressive/clinically-significant PCa... but aggressive/clinically-significant PCa is partially defined by PSA values \>10. And PHS strata are defined by their increased/earlier risk of PCa. So.. of course peope in the highest quartile of PHS have a higher correlation with PSA? It is not clear to my that that is evidence that stratifying by PHS makes PSA more useful... we already know the individuals in the highest quartile are at increased risk of PCa. But maybe they are arguing that it helps identify *when* we should start screening? Or maybe they argue that people with high PHS *and* high PSA are at increased risk relative to individuals with low PSA or low PHS or both?
@@ -147,3 +146,5 @@ In addition, Mohamed et al. 2019 commented on the original Seibert paper critici
 As discussed in Lewontin 1974, though there is probably a more recent reference, disease etiology and thus clinical interventions may differ between subjects with rare deleterious gene alleles than those whose phenotypes arise from the interaction between the environment and the normal array of segregating genes with m
 
 Cite Ehsan's paper
+
+Stratifying individuals by PHS score could also improve future pharmaceutical studies by identifying individuals with the highest risk of developing prostate cancer.
