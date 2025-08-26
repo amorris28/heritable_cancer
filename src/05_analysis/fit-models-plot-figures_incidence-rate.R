@@ -27,11 +27,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs" # PHS file
-# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-metadata_file = "data/processed/husk_phenotypes.tsv"
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+# metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-# tsd_proj = "p212"
-tsd_proj = "p2521"
+tsd_proj = "p212"
+# tsd_proj = "p2521"
 
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 

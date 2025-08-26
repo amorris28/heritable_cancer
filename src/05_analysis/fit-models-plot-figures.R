@@ -8,8 +8,8 @@ source("src/00_config/functions.R")
 
 ###########################################
 # Output flags
-bootstrap_iters = 99
-perform_bool = FALSE
+bootstrap_iters = 999
+perform_bool = TRUE
 
 #########################################
 # First argument: PHS file
@@ -33,11 +33,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs"
-# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-metadata_file = "data/processed/husk_phenotypes.tsv"
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
+# metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-# tsd_proj = "p212"
-tsd_proj = "p2521"
+tsd_proj = "p212"
+# tsd_proj = "p2521"
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 
