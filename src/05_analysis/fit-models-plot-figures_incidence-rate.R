@@ -27,11 +27,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs" # PHS file
-# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-metadata_file = "data/processed/husk_phenotypes.tsv"
+metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+# metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-# tsd_proj = "p212"
-tsd_proj = "p2521"
+tsd_proj = "p212"
+# tsd_proj = "p2521"
 
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
@@ -97,15 +97,15 @@ full_data = full_data %>% filter(fdato >= "1950-01-01")
 fit_incidence_model = function(incidence, incidence_variable = "total") {
     response =  paste0("log(", incidence_variable, ")")
     predictor = "poly(median_age, 2, raw = TRUE)"
-    predictor = "median_age"
+    # predictor = "median_age"
     lm_fit = lm(as.formula(sprintf('%s~%s', response, predictor)), data = incidence)
     ## Fit the nls model from the starting parameters of the log model
     predictor = "b0 * exp(b1 * median_age + b2 * median_age ^ 2)"
-    predictor = "b0 * exp(b1 * median_age)"
+    # predictor = "b0 * exp(b1 * median_age)"
     nls_fit <- nls(as.formula(sprintf('%s~%s', incidence_variable, predictor)),
                data = incidence,
-            #    start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2], b2 = coef(lm_fit)[3]))
-               start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2]))
+               start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2], b2 = coef(lm_fit)[3]))
+            #    start = list(b0 = coef(lm_fit)[1], b1 = coef(lm_fit)[2]))
     # Create a smooth curve by predicting very fine time steps (here: 1% of a year)
     x_new = seq(from = min(incidence$median_age), to = max(incidence$median_age), by = 0.01)
     new_data = data.frame(median_age = x_new)   # new data frame for prediction
@@ -170,7 +170,7 @@ plot_stratified_figure = function(yearly_data, cohort_data, age = "age", status 
 # Any PCa
 yearly_data = fit_incidence_model(incidence, "total")
 
-p = plot_comparison_figure(yearly_data, full_data)
+(p = plot_comparison_figure(yearly_data, full_data))
 
 ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
            height = 6 * 0.618, width = 6)
