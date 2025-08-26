@@ -28,11 +28,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs" # PHS file
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-# metadata_file = "data/processed/husk_phenotypes.tsv"
+# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+# tsd_proj = "p212"
+tsd_proj = "p2521"
 
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
@@ -262,11 +262,11 @@ saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespeci
 
 # Okay now do it again but metastatic
 # I should probably turn the above into functions...What are the reproducible steps?
-yearly_data = fit_incidence_model(incidence, "metastatic")
+yearly_data = fit_incidence_model(incidence, "reg_met")
 
 p = plot_comparison_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis")
 
-ggsave("metastatic_comparison_nolymph.png", p, height = 6 * 0.618, width = 6)
+ggsave("reg_met_comparison_loose.png", p, height = 6 * 0.618, width = 6)
 
 ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.png", sep = "_")), p,
            height = 6 * 0.618, width = 6)

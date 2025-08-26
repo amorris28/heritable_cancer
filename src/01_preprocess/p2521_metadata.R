@@ -3,7 +3,8 @@ library(tidyverse)
 library(lubridate)
 
 # constants
-source("src/00_config.R")
+source("src/00_config/config.R")
+source("src/00_config/functions.R")
 
 # import data
 avt_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/NPRdata/Tilleggsbestilling_Aug_2024/AVT.csv", delim = ";")
@@ -207,7 +208,9 @@ kreft_data %>%
 	select(huskmentid, icd10 = ICD10, diagnose_dato = DIAGNOSEDATO, metastasis_code = METASTASE) %>%
 	mutate(case = grepl(icd10pca, icd10, fixed=TRUE)) %>%
 	mutate(metastasis_date = dmy(diagnose_dato)) %>%
-	mutate(metastasis = metastasis_code %in% metastase_loose) %>%
+	# mutate(metastasis = metastasis_code %in% metastase_loose) %>%
+	# mutate(metastasis = metastasis_code %in% metastase_nolymph) %>%
+	mutate(metastasis = metastasis_code %in% metastase_strict) %>%
 	filter(case & metastasis) %>%
 	select(huskmentid, metastasis_code, metastasis_date, metastasis) ->
 	metastasis_data

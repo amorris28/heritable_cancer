@@ -32,11 +32,11 @@ inverse = args[3]
 tsd_proj = args[4]
 
 model_file = "data/processed/PHS601_phs"
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-# metadata_file = "data/processed/husk_phenotypes.tsv"
+# metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
+metadata_file = "data/processed/husk_phenotypes.tsv"
 inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+# tsd_proj = "p212"
+tsd_proj = "p2521"
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 
 
@@ -132,7 +132,7 @@ if (perform_bool) {
 # KM Curves for metastatic disease
 km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
 km_curve = km_curve + lims(y = c(0.80, 1.0))
-ggsave("kmcurve_metastasis_loose.png", km_curve, height = 6 * 0.618, width = 6)
+ggsave("kmcurve_metastasis_strict.png", km_curve, height = 6 * 0.618, width = 6)
 
 ggsave(paste0(results, paste(tsd_proj, model, "km_curve_metastatic.pdf", sep = "_")), km_curve,
        height = 6 * 0.618, width = 6)
