@@ -4,11 +4,12 @@ library(hazrd)
 library(survival)
 library(patchwork)
 source("src/00_config/config.R")
+source("src/00_config/functions.R")
 
 ###########################################
 # Output flags
-bootstrap_iters = 1
-perform_bool = FALSE
+bootstrap_iters = 999
+perform_bool = TRUE
 
 #########################################
 # First argument: PHS file
@@ -31,15 +32,18 @@ metadata_file = args[2] # Phenotype data
 inverse = args[3]
 tsd_proj = args[4]
 
-model_file = "data/processed/PHS601_phs"
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-# metadata_file = "data/processed/husk_phenotypes.tsv"
-inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+
+if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/husk_phenotypes.tsv"
+    tsd_proj = "p2521"
+} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+    tsd_proj = "p212"
+}
+
+model_file = "data/processed/PHS601_phs" # PHS file
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-
-
+inverse = FALSE
 #########################################
 # Import PHS data and metadata
 phs_data = import_phs_data(model_file, inverse)
@@ -119,13 +123,13 @@ phs_hoxb13_wgs_fit = coxph(Surv(age, status) ~ phs + hoxb13_carrier, wgs)
 summary(phs_hoxb13_wgs_fit)
 phs_hoxb13_wgs_coxph = broom::tidy(phs_hoxb13_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
 
-cox.zph_test <- cox.zph(phs_hoxb13_wgs_fit)
-plot(cox.zph_test)
+cox.zph(phs_hoxb13_wgs_fit)
 
 phs_hoxb13_wgs_inter = coxph(Surv(age, status) ~ phs * hoxb13_carrier, wgs)
 summary(phs_hoxb13_wgs_inter)
 phs_hoxb13_inter_coxph = broom::tidy(phs_hoxb13_wgs_inter, exponentiate = TRUE, conf.int = TRUE)
 
+cox.zph(phs_hoxb13_wgs_inter)
 
 # phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, carriers)
 # summary(phs_hoxb13_snp_fit)
@@ -135,9 +139,9 @@ phs_hoxb13_inter_coxph = broom::tidy(phs_hoxb13_wgs_inter, exponentiate = TRUE, 
 ## New performance indices for PHS 
 
 # Performance metrics
-perform = get_performance_metrics(wgs, bootstrap_iters, model)
 
 if (perform_bool) {
+    perform = get_performance_metrics(wgs, bootstrap_iters, model)
     write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance.tsv", sep = "_")))
 }
 
@@ -349,8 +353,9 @@ saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curv
 # fit = coxph(Surv(conversion_to_metastasis_years, metastasis) ~ phs, data = conversion)
 # summary(fit)
 
-
+#####################################################################################
 # Does having a high PHS icnrease your risk of carrying a rare variant?
+#####################################################################################
 binomial_phs_hoxb13 <- glm(hoxb13_carrier ~ phs, family="binomial", data=wgs)
 summary(binomial_phs_hoxb13)
 broom::tidy(binomial_phs_hoxb13, conf.int = TRUE, exponentiate = TRUE) %>%

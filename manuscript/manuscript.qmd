@@ -143,7 +143,6 @@ p212_PHS601 = readr::read_tsv("data/results/p212_PHS601_any_pca_performance.tsv"
 p2521_PHS601_meta = readr::read_tsv("data/results/p2521_PHS601_metastatic_performance.tsv")
 p212_PHS601_meta = readr::read_tsv("data/results/p212_PHS601_metastatic_performance.tsv")
 
-
 p212_zph = readr::read_tsv("data/results/p212_PHS601_phs_zph_tidy.tsv")
 p2521_zph = readr::read_tsv("data/results/p2521_PHS601_phs_zph_tidy.tsv")
 p2521_sample_size = readr::read_tsv("data/results/p2521_PHS601_sample_size.tsv")
@@ -296,25 +295,23 @@ Combining these two predictors into a single Cox model, we find that both PHS an
 #| tbl-cap: Performance of PHS and HOXB13 in the whole genome sequenced subjects. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations.
 
 # rbind(p2521_PHS601, p212_PHS601, p2521_PHS601_meta, p212_PHS601_meta) %>%
-# wgs_phs %>%
-#   select(-model, -age) %>%
-#   filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
-#   mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
-#   select(-conf.low, -conf.high) %>%
-#   pivot_wider(names_from = "index", values_from = "value") %>%
+wgs_phs %>%
+  filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
+  mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
+  select(-conf.low, -conf.high) %>%
+  pivot_wider(names_from = "index", values_from = "value") %>%
+  cbind(wgs_summary) %>%
+  select(n = wgs_1, cases = status_1, HRSD, HR80_20, C_Index) %>%
+  knitr::kable()
+# wgs_results %>%
+#   filter(model %in% c("phs_wgs", "hoxb13_wgs")) %>%
+#   mutate(HR = sprintf("%.2f (%.2f, %.2f)", estimate, conf.low, conf.high)) %>%
+#   mutate(p.value = pvalr(p.value)) %>%
+#   mutate(model = if_else(term == "phs", "PHS", if_else(term == "hoxb13_carrier", "HOXB13", NA))) %>%
 #   cbind(wgs_summary) %>%
-#   select(n = wgs_1, cases = status_1, HR80_20, C_Index) %>%
+#   select(model, n = wgs_1, cases = status_1, HR, p.value) %>%
 #   # select(n = wgs_1, cases = status_1, HRSD, HR80_20, C_Index) %>%
 #   knitr::kable()
-wgs_results %>%
-  filter(model %in% c("phs_wgs", "hoxb13_wgs")) %>%
-  mutate(HR = sprintf("%.2f (%.2f, %.2f)", estimate, conf.low, conf.high)) %>%
-  mutate(p.value = pvalr(p.value)) %>%
-  mutate(model = if_else(term == "phs", "PHS", if_else(term == "hoxb13_carrier", "HOXB13", NA))) %>%
-  cbind(wgs_summary) %>%
-  select(model, n = wgs_1, cases = status_1, HR, p.value) %>%
-  # select(n = wgs_1, cases = status_1, HRSD, HR80_20, C_Index) %>%
-  knitr::kable()
 
 ```
 
