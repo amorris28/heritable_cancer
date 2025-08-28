@@ -217,7 +217,7 @@ phenotype_data %>%
 	full_join(metastasis_data, by = "huskmentid") %>%
 	mutate(age_of_metastasis = interval(fdato, diagnose_dato) / years(1)) %>%
 	mutate(metastasis = if_else(is.na(metastasis), 0, metastasis)) %>%
-	mutate(age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, age_lastobs)) ->
+	mutate(age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, if_else(is.na(age_lastobs), age, age_lastobs))) ->
 	phenotype_data
 
 

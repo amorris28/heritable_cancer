@@ -9,7 +9,7 @@ source("src/00_config/functions.R")
 ###########################################
 # Output flags
 bootstrap_iters = 999
-perform_bool = TRUE
+perform_bool = FALSE
 
 #########################################
 # First argument: PHS file
@@ -32,15 +32,17 @@ metadata_file = args[2] # Phenotype data
 inverse = args[3]
 tsd_proj = args[4]
 
-model_file = "data/processed/PHS601_phs"
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv"
-# metadata_file = "data/processed/husk_phenotypes.tsv"
-inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
+if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/husk_phenotypes.tsv"
+    tsd_proj = "p2521"
+} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+    tsd_proj = "p212"
+}
+
+model_file = "data/processed/PHS601_phs" # PHS file
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-
-
+inverse = FALSE
 #########################################
 # Import PHS data and metadata
 phs_data = import_phs_data(model_file, inverse)
@@ -101,9 +103,9 @@ ggplot(zph_tbl, aes(x = time, y = beta_t)) +
     theme_classic()
 
 # Performance metrics
-perform = get_performance_metrics(combined_data, bootstrap_iters, model)
 
 if (perform_bool) {
+  perform = get_performance_metrics(combined_data, bootstrap_iters, model)
   write_tsv(perform, paste0(results, paste(tsd_proj, model, "any_pca_performance.tsv", sep = "_")))
 }
 
@@ -121,9 +123,9 @@ metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
 metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = TRUE)
 
 # Performance metrics
-perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
 
 if (perform_bool) {
+  perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
   write_tsv(perform, paste0(results, paste(tsd_proj, model, "metastatic_performance.tsv", sep = "_")))
 }
 
@@ -149,8 +151,8 @@ any_pca_sample_size_controls = any_pca_sample_size_total - any_pca_sample_size_c
 
 
 combined_data %>%
-  select(phs, age_of_metastasis, metastasis) %>%
-  drop_na() ->
+  select(phs, age_of_metastasis, metastasis) -> #%>%
+  # drop_na() ->
   metastatic_sample_size
 metastatic_sample_size_cases = sum(metastatic_sample_size$metastasis)
 metastatic_sample_size_total = nrow(metastatic_sample_size)

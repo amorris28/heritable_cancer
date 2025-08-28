@@ -26,15 +26,17 @@ metadata_file = args[2] # Phenotype data
 inverse = args[3]
 tsd_proj = args[4]
 
+if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/husk_phenotypes.tsv"
+    tsd_proj = "p2521"
+} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+    tsd_proj = "p212"
+}
+
 model_file = "data/processed/PHS601_phs" # PHS file
-metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-# metadata_file = "data/processed/husk_phenotypes.tsv"
-inverse = FALSE
-tsd_proj = "p212"
-# tsd_proj = "p2521"
-
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-
+inverse = FALSE
 #########################################
 # Import data
 
@@ -59,7 +61,6 @@ metadata = read_tsv(metadata_file)
 
 # combine phs and metadata
 full_data = process_combined_data(metadata, phs_data)
-
 
 ####################################################################################
 # Function definitions
@@ -146,6 +147,11 @@ plot_stratified_figure = function(yearly_data, cohort_data, age = "age", status 
                          palette = "Set1") +
     theme_classic()
 }
+
+plot_snp_hr = function(yearly_data, cohort_data, snp = "hoxb13") {
+  
+}
+
 
 ######################################################################################
 # Any PCa

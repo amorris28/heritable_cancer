@@ -157,3 +157,4 @@ plot_km_curves = function(combined_data, age = "age", status = "status") {
     theme(aspect.ratio=1)
 }
 
+
