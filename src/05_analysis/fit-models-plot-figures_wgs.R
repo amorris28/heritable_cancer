@@ -136,15 +136,57 @@ cox.zph(phs_hoxb13_wgs_inter)
 # hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, carriers)
 # summary(hoxb13_snp_fit)
 
-## New performance indices for PHS 
 
-# Performance metrics
+# Performance metrics, PHS
 
 if (perform_bool) {
     perform = get_performance_metrics(wgs, bootstrap_iters, model)
     write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance.tsv", sep = "_")))
 }
 
+# Performance metrics, HOXB13
+# HR, C Index
+if (perform_bool) {
+    get_hr = function(wgs, bootstrap_iterations = 999) {
+        return_hr = function(wgs) {summary(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs))$coefficients[2]}
+        HR = return_hr(wgs)
+        boot_out = boot_conf(wgs, bootstrap_iters, return_hr)
+        return(list(index = "HR", 
+            value = HR, 
+            conf.low = boot_out$quantiles[[1]], 
+            conf.high = boot_out$quantiles[[2]], 
+            iters = boot_out$iters))
+    }
+    return_cindex = function(wgs) {as.numeric(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)$concordance['concordance'])}
+    get_cindex_custom = function(wgs, bootstrap_iterations = 999) {
+        c_index = return_cindex(wgs)
+        boot_out = boot_conf(wgs, bootstrap_iters, return_cindex)
+        return(list(index = "C_Index", 
+            value = c_index, 
+            conf.low = boot_out$quantiles[[1]], 
+            conf.high = boot_out$quantiles[[2]], 
+            iters = boot_out$iters))
+    }
+    get_performance_metrics_hoxb13 = function(wgs, bootstrap_iters, model) {
+
+    HR = get_hr(wgs, bootstrap_iters)
+
+    c_index = get_cindex_custom(wgs,
+                                bootstrap_iterations = bootstrap_iters)
+
+    indices = list(HR, c_index)
+
+    perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                    value = x$value, 
+                                                                    conf.low = x$conf.low, 
+                                                                    conf.high = x$conf.high)}))
+    perform = cbind(model, perform)
+
+    return(perform)
+    }
+    perform = get_performance_metrics_hoxb13(wgs, boostrap_iters, model)
+    write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_hoxb13_performance.tsv", sep = "_")))
+}
 ## New plot of PHS km curves but on the subsetted WGS dataset
 
 # KM Curves

@@ -40,13 +40,13 @@ pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
 
 ## Performance & Plotting
 
-return_hrsd = function(combined_data, age = "age", status = "status") {
+return_hrsd = function(combined_data, phs = "phs", age = "age", status = "status") {
   response =  paste0("Surv(", age, ", ", status, ")")
-  summary(coxph(as.formula(sprintf('%s~%s', response, "phs")), data = combined_data))$coefficients[2]
+  summary(coxph(as.formula(sprintf('%s~%s', response, phs)), data = combined_data))$coefficients[2]
 }
 
-get_hrsd = function(combined_data, age = "age", status = "status", bootstrap_iterations = 1000) {
-    HR = return_hrsd(combined_data, age, status)
+get_hrsd = function(combined_data, phs = "phs", age = "age", status = "status", bootstrap_iterations = 1000) {
+    HR = return_hrsd(combined_data, phs, age, status)
     boot_out = boot_conf(combined_data, bootstrap_iterations, return_hrsd, age, status)
     return(list(index = "HRSD", 
           value = HR, 
