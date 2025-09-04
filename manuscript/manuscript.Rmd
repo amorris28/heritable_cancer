@@ -105,6 +105,7 @@ p2521_coxph_results = readr::read_tsv(here("data/results/p2521_PHS601_coxph.tsv"
 wgs_summary = readr::read_tsv(here("data/results/p212_wgs_summary.tsv"))
 fisher = readr::read_tsv(here("data/results/p212_fisher.tsv"))
 wgs_phs = readr::read_tsv(here("data/results/p212_PHS601_wgs_phs_performance.tsv"))
+wgs_phs_95 = readr::read_tsv(here("data/results/p212_PHS601_wgs_phs_performance_95.tsv"))
 wgs_hoxb13 = readr::read_tsv(here("data/results/p212_PHS601_wgs_hoxb13_performance.tsv"))
 binomial_phs_hoxb13 = readr::read_tsv(here("data/results/p212_PHS601_binomial_phs_hoxb13.tsv"))
 wgs_results = readr::read_tsv(here("data/results/p212_PHS601_wgs.tsv"))
@@ -160,8 +161,9 @@ rbind(p2521_PHS601, p212_PHS601, p2521_PHS601_meta, p212_PHS601_meta) %>%
   pivot_wider(names_from = "index", values_from = "value") %>%
   left_join(sample_size, by = join_by(cohort, PCa)) %>%
   select(PCa, cohort, n = total, cases, HRSD, HR80_20, C_Index) %>%
-  gt::gt() |>
-  gt::tab_header(title = "Hazard ratios and concordance index for the any-PCa and metastatic PCa models. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations. 'Any' = any PCa, 'Meta' = metastatic PCa.")
+  kable()
+  # gt::gt() |>
+  # gt::tab_header(title = "Hazard ratios and concordance index for the any-PCa and metastatic PCa models. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations. 'Any' = any PCa, 'Meta' = metastatic PCa.")
 #    -> tmp
 
 # cat(format(tmp)[-3L], sep = "\n")
@@ -249,17 +251,18 @@ Combining these two predictors into a single Cox model, we find that both PHS an
 
 # rbind(p2521_PHS601, p212_PHS601, p2521_PHS601_meta, p212_PHS601_meta) %>%
 wgs_hoxb13$model = "hoxb13"
-wgs_phs$model = "phs"
-options(knitr.kable.NA = '-')
-rbind(wgs_hoxb13, wgs_phs) %>%
-  filter(index %in% c("HR", "HRSD", "HR80_20", "C_Index")) %>%
+wgs_phs_95$model = "phs"
+# options(knitr.kable.NA = '-')
+rbind(wgs_hoxb13, wgs_phs_95) %>%
+  filter(index %in% c("HR", "C_Index")) %>%
   mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
   select(-conf.low, -conf.high) %>%
   pivot_wider(names_from = "index", values_from = "value") %>%
-  select(model, HR, HRSD, HR80_20, C_Index) %>%
+  select(model, HR, C_Index) %>%
   arrange(desc(model)) %>%
-  gt::gt() |>
-  gt::tab_header(title = "Performance of PHS and HOXB13 in the whole genome sequenced subjects. HR is the increase in risk for a HOXB13 carrier relative to a non-carrier. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations.")
+  kable()
+  # gt::gt() |>
+  # gt::tab_header(title = "Performance of PHS and HOXB13 in the whole genome sequenced subjects. HR is the increase in risk for a HOXB13 carrier relative to a non-carrier. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations.")
 
 
 ```

@@ -136,7 +136,7 @@ cox.zph(phs_hoxb13_wgs_inter)
 # hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, carriers)
 # summary(hoxb13_snp_fit)
 
-
+#################################################################################
 # Performance metrics, PHS
 
 if (perform_bool) {
@@ -144,6 +144,28 @@ if (perform_bool) {
     write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance.tsv", sep = "_")))
 }
 
+
+sum(wgs$hoxb13_carrier) / nrow(wgs) # 1.7%
+HR95_50 = get_hr(wgs, 
+                lower_interval = c(0.2, 0.80), # median
+                upper_interval = c(1.00-.017, 1),  # top 1.7%
+                CI = TRUE, 
+                bootstrap_iterations = bootstrap_iters)
+c_index = get_cindex(wgs,
+                  CI = TRUE, 
+                  bootstrap_iterations = bootstrap_iters)
+HR95_50$index = "HR"
+
+  indices = list(HR95_50, c_index)
+
+  perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                  value = x$value, 
+                                                                  conf.low = x$conf.low, 
+                                                                  conf.high = x$conf.high)}))
+  perform = cbind(model, perform)
+    write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance_95.tsv", sep = "_")))
+
+#################################################################################
 # Performance metrics, HOXB13
 # HR, C Index
 if (perform_bool) {
