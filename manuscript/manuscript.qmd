@@ -214,7 +214,7 @@ rbind(p2521_PHS601, p212_PHS601, p2521_PHS601_meta, p212_PHS601_meta) %>%
   pivot_wider(names_from = "index", values_from = "value") %>%
   left_join(sample_size, by = join_by(cohort, PCa)) %>%
   select(PCa, cohort, n = total, cases, HRSD, HR80_20, C_Index) %>%
-  knitr::kable(format = "pipe")
+  pander::pander()
 #    -> tmp
 
 # cat(format(tmp)[-3L], sep = "\n")
@@ -308,10 +308,8 @@ rbind(wgs_hoxb13, wgs_phs) %>%
   select(-conf.low, -conf.high) %>%
   pivot_wider(names_from = "index", values_from = "value") %>%
   select(model, HR, HRSD, HR80_20, C_Index) %>%
-  arrange(desc(model)) -> tmp
-
-cat(format(tmp)[-3L], sep = "\n")# %>%
-#  knitr::kable() %>%
+  arrange(desc(model)) %>%
+  pander::pander()
 
 
 ```
