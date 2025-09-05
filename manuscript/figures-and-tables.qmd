@@ -45,7 +45,7 @@ knitr::include_graphics(here("data/results/PHS601_metastatic_km_curve.pdf"))
 #| fig-width: 8
 #| fig-asp: 0.618
 #| fig-align: center
-#| fig-cap: Kaplan-Meier survival curves of prostate cancer-free survival for **(A)** HOXB13 carriers and **(B)** centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
+#| fig-cap: Kaplan-Meier survival curves of prostate cancer-free survival for the whole-genome sequenced subsample of the NFCS cohort. **(A)** HOXB13 carriers and **(B)** centile ranges of polygenic hazard score. Time of "failure" is age at any diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
 knitr::include_graphics(here("data/results/p212_PHS601_wgs_km_curve.pdf"))
 ```
