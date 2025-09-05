@@ -1,6 +1,14 @@
 ---
 title: Figures and Tables
 format: pdf
+crossref:
+  custom:
+    - kind: float
+      key: suppfig
+      latex-env: suppfig
+      reference-prefix: Figure S
+      space-before-numbering: false
+      latex-list-of-description: Supplementary Figure
 ---
 
 # Figures 
@@ -56,7 +64,7 @@ knitr::include_graphics(here("data/results/p212_PHS601_wgs_km_curve.pdf"))
 #| fig-width: 8
 #| fig-asp: 0.618
 #| fig-align: center
-#| fig-cap: Cumulative incidence rate of prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit with data from **(A)** any PCa and **(B)** metastatic PCa.
+#| fig-cap: Cumulative incidence rate of prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit to the HUSK data. **(A)** Any PCa and **(B)** metastatic PCa.
 
 knitr::include_graphics(here("data/results/PHS601_stratified_incidence_agespecific.pdf"))
 ```
@@ -91,13 +99,11 @@ kable(table_2)
 
 # Supplementary Figures
 
+::: {#suppfig-comp}
 
-```{r fig-comparison}
-#| label: fig-comparison
-#| out-width: "80%"
-#| fig-align: center
-#| fig-cap: Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is the predicted annualized incidence rate for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020) **(A,B)** HUSK cohort, **(C,D)** NFCS cohort, **(A,C)** incidence rate for any PCa, and **(B,D)** incidence rate for metastatic PCa.
-#| fig-title: "Figure S"
-knitr::include_graphics(here("data/results/PHS601_cumulative_comparison.pdf"))
-```
+![](../data/results/PHS601_cumulative_comparison.pdf){width=85%}
+
+Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is the predicted annualized incidence rate for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020) **(A,B)** HUSK cohort, **(C,D)** NFCS cohort, **(A,C)** incidence rate for any PCa, and **(B,D)** incidence rate for metastatic PCa.
+
+:::
 
