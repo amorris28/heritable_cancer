@@ -173,6 +173,31 @@ ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.
        p, height = 6 * 0.618, width = 6)
 saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.rds", sep = "_")))
 
+
+incidence %>%
+    filter(median_age < 80) %>%
+    fit_incidence_model("total", 2) ->
+    yearly_data
+p +
+    stat_smooth(aes(x = median_age, y = y_predict, color = NULL), data = yearly_data, linetype = "dashed") ->
+    p
+incidence %>%
+    filter(median_age < 70) %>%
+    fit_incidence_model("total", 1) ->
+    yearly_data
+p +
+    stat_smooth(aes(x = median_age, y = y_predict, color = NULL), data = yearly_data, linetype = "dashed") ->
+    p
+p +
+    geom_point(aes(x = median_age, y = total, color = NULL), data = incidence) ->
+    p
+p
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.png", sep = "_")), 
+       p, height = 6 * 0.618, width = 6)
+ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.pdf", sep = "_")), 
+       p, height = 6 * 0.618, width = 6)
+saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_test.rds", sep = "_")))
+
 ######################################################################################
 # Metastatic PCa
 yearly_data = fit_incidence_model(incidence, "reg_met", order = 1)
@@ -192,3 +217,5 @@ ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_
 ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.pdf", sep = "_")), 
        p, height = 6 * 0.618, width = 6)
 saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.rds", sep = "_")))
+
+ggplot(incidence, aes(x = median_age, y = total)) + geom_point()
