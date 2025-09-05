@@ -45,9 +45,9 @@ return_hrsd = function(combined_data, phs = "phs", age = "age", status = "status
   summary(coxph(as.formula(sprintf('%s~%s', response, phs)), data = combined_data))$coefficients[2]
 }
 
-get_hrsd = function(combined_data, phs = "phs", age = "age", status = "status", bootstrap_iterations = 1000) {
+get_hrsd = function(combined_data, phs = "phs", age = "age", status = "status", bootstrap_iterations = 999) {
     HR = return_hrsd(combined_data, phs, age, status)
-    boot_out = boot_conf(combined_data, bootstrap_iterations, return_hrsd, age, status)
+    boot_out = boot_conf(combined_data, bootstrap_iterations, return_hrsd, phs, age, status)
     return(list(index = "HRSD", 
           value = HR, 
           conf.low = boot_out$quantiles[[1]], 

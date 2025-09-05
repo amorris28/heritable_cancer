@@ -169,7 +169,7 @@ HR95_50$index = "HR"
 # Performance metrics, HOXB13
 # HR, C Index
 if (perform_bool) {
-    get_hr = function(wgs, bootstrap_iterations = 999) {
+    get_hr_hoxb13 = function(wgs, bootstrap_iterations = 999) {
         return_hr = function(wgs) {summary(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs))$coefficients[2]}
         HR = return_hr(wgs)
         boot_out = boot_conf(wgs, bootstrap_iters, return_hr)
@@ -180,7 +180,7 @@ if (perform_bool) {
             iters = boot_out$iters))
     }
     return_cindex = function(wgs) {as.numeric(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)$concordance['concordance'])}
-    get_cindex_custom = function(wgs, bootstrap_iterations = 999) {
+    get_cindex_hoxb13 = function(wgs, bootstrap_iterations = 999) {
         c_index = return_cindex(wgs)
         boot_out = boot_conf(wgs, bootstrap_iters, return_cindex)
         return(list(index = "C_Index", 
@@ -191,9 +191,9 @@ if (perform_bool) {
     }
     get_performance_metrics_hoxb13 = function(wgs, bootstrap_iters, model) {
 
-    HR = get_hr(wgs, bootstrap_iters)
+    HR = get_hr_hoxb13(wgs, bootstrap_iters)
 
-    c_index = get_cindex_custom(wgs,
+    c_index = get_cindex_hoxb13(wgs,
                                 bootstrap_iterations = bootstrap_iters)
 
     indices = list(HR, c_index)
