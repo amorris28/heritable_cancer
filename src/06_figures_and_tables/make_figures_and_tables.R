@@ -71,7 +71,7 @@ p2521_sample_size %>%
 
 rbind(p2521_PHS601, p212_PHS601, p2521_PHS601_meta, p212_PHS601_meta) %>%
     filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
-    mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
+    mutate(value = sprintf("%.2f (%.2f,%.2f)", value, conf.low, conf.high)) %>%
     select(-conf.low, -conf.high) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     left_join(sample_size, by = join_by(cohort, PCa)) %>%
@@ -106,24 +106,24 @@ saveRDS(metastatic, here(paste0(results, paste(model, "metastatic_km_curve.rds",
 # WGS HOXB13 K-M Curve figure 
 ###############################################################
 
-library(patchwork)
-margin = theme(plot.margin = unit(c(2,2,2,2), "cm"))
-wgs_hoxb13 <- readRDS("data/results/p212_PHS601_hoxb13_km_curve.rds")
-wgs_phs_km <- readRDS("data/results/p212_PHS601_phs_wgs_km_curve.rds")
-wgs_hoxb13 = wgs_hoxb13 + 
-    ggtitle(NULL) +
-    theme(legend.position = "bottom") 
-wgs_phs_km = wgs_phs_km + 
-    ggtitle(NULL) +
-    theme(legend.position = "bottom") 
-#wgs_hoxb13
-#wgs_phs_km
-wgs_hoxb13 + wgs_phs_km  +
-    plot_annotation(tag_levels = 'A')
-# gridExtra::grid.arrange(wgs_hoxb13, wgs_phs_km,
-#   widths = c(5, 1, 5),
-#   layout_matrix = rbind(c(1, NA, 2))
-# )
+# library(patchwork)
+# margin = theme(plot.margin = unit(c(2,2,2,2), "cm"))
+# wgs_hoxb13 <- readRDS("data/results/p212_PHS601_wgs_km_curve.rds")
+# wgs_phs_km <- readRDS("data/results/p212_PHS601_phs_wgs_km_curve.rds")
+# wgs_hoxb13 = wgs_hoxb13 + 
+#     ggtitle(NULL) +
+#     theme(legend.position = "bottom") 
+# wgs_phs_km = wgs_phs_km + 
+#     ggtitle(NULL) +
+#     theme(legend.position = "bottom") 
+# #wgs_hoxb13
+# #wgs_phs_km
+# wgs_hoxb13 + wgs_phs_km  +
+#     plot_annotation(tag_levels = 'A')
+# # gridExtra::grid.arrange(wgs_hoxb13, wgs_phs_km,
+# #   widths = c(5, 1, 5),
+# #   layout_matrix = rbind(c(1, NA, 2))
+# # )
 
 
 ###############################################################
