@@ -16,7 +16,6 @@ name_output = function(directory, filename) {
   paste0(directory, paste(tsd_proj, model, process, filename, sep = "_"))
 }
 
-
 #########################################
 # First argument: PHS file
 # tab delimited file, no header, first column ID, second column PHS score
@@ -71,7 +70,6 @@ phs_data2 = read_table("data/processed/PHSes/data_prs_p212_chrALL.profile")
 phs_data2 %>%
   select(bfile_id = IID, phs = SCORESUM) ->
   phs_data2
-
 
 metadata = read_tsv(metadata_file) # Phenotype data
 
