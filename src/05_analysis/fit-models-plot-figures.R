@@ -46,6 +46,10 @@ inverse = FALSE
 #########################################
 # Import PHS data and metadata
 phs_data = import_phs_data(model_file, inverse)
+phs_data2 = read_table("src/xx_merge_snps/data_prs_husk.profile")
+phs_data2 %>%
+  select(bfile_id = IID, phs = SCORESUM) ->
+  phs_data2
 
 if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
 phs_data2 = read_table("src/xx_merge_snps/data_prs_husk.profile")
