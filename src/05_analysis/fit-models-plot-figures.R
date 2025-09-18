@@ -9,7 +9,7 @@ source("src/00_config/functions.R")
 ###########################################
 # Output flags
 bootstrap_iters = 999
-perform_bool = FALSE
+perform_bool = TRUE
 
 #########################################
 # First argument: PHS file
@@ -46,10 +46,14 @@ inverse = FALSE
 #########################################
 # Import PHS data and metadata
 phs_data = import_phs_data(model_file, inverse)
+phs_data2 = read_table("src/xx_merge_snps/data_prs_husk.profile")
+phs_data2 %>%
+  select(bfile_id = IID, phs = SCORESUM) ->
+  phs_data2
 
 metadata = read_tsv(metadata_file) # Phenotype data
 
-combined_data = process_combined_data(metadata, phs_data)
+combined_data = process_combined_data(metadata, phs_data2)
 
 #########################################
 # Analyze PHS data
