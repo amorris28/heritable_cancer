@@ -178,12 +178,16 @@ p2521_anypca <- readRDS(here(paste0(results, paste("p2521", model, "cumulative_c
 p2521_metastatic <- readRDS(here(paste0(results, paste("p2521", model, "cumulative_comparison_metastatic.rds", sep = "_"))))
 p212_anypca <- readRDS(here(paste0(results, paste("p212", model, "cumulative_comparison.rds", sep = "_"))))
 p212_metastatic <- readRDS(here(paste0(results, paste("p212", model, "cumulative_comparison_metastatic.rds", sep = "_"))))
-# p212 = p212 + theme(legend.position = "bottom")
-# p2521 = p2521 + theme(legend.position = "bottom")
+
+p2521_anypca = p2521_anypca + lims(y = c(0, 30000))
+p212_anypca = p212_anypca + lims(y = c(0, 30000))
+p2521_metastatic = p2521_metastatic + lims(y = c(0, 6500))
+p212_metastatic = p212_metastatic + lims(y = c(0, 6500))
+
 comparison = 
     p2521_anypca + 
-    p2521_metastatic +
     p212_anypca +
+    p2521_metastatic +
     p212_metastatic +
     plot_annotation(tag_levels = 'A') &
     theme(aspect.ratio=1)
