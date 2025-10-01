@@ -66,3 +66,7 @@ scratch/
 # git files
 *.bundle
 *.zip
+
+# python
+.ipynb_checkpoints/
+
