@@ -1,0 +1,18 @@
+module load Python/3.12.3-GCCcore-13.3.0
+pip install pandas openpyxl   # one-time install dependencies
+python PHS_PC.py   # this finds 556 out of 580 autosomal SNPs in PHS601.
+
+# grab column $6 (SNPs), except for the first line (header)
+cat data/processed/phs601_heritable_cancer.csv | awk '{print $6}' | tail -n +1 >data/processed/phs601_heritable_cancer.snps
+
+sbatch extract_snps.job
+mv slurm-* data/interim/bfile/
+
+module load PLINK/1.90b_6.2-x86_64
+for i in `seq 1 22`; do echo "data/interim/bfile/chr$i.imputed.phs601"; done > data/interim/bfile/merge_list.txt
+plink --merge-list data/interim/bfile/merge_list.txt --make-bed --out data/processed/chrALL.imputed.phs601
+
+# irrelevant to analysis
+cd /tsd/p212/home/p212-ofrei/github
+find . -type d -exec chmod 755 {} \;
+find . -type f -exec chmod 644 {} \;

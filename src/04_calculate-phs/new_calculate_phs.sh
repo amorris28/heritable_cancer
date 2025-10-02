@@ -13,6 +13,6 @@ export PLINK="singularity exec --bind /ess/p212:/ess/p212 --home $PWD $COMORMENT
 #  --score src/xx_merge_snps/phs601_husk.csv 6 7 5 header sum \
 #  --out src/xx_merge_snps/data_prs_husk
 $PLINK \
-  --bfile data/interim/NORGENE/norgene_merged \
-  --score src/xx_merge_snps/phs601_norgene.csv 6 7 5 header sum \
-  --out data/processed/PHSes/data_prs_norgene
+  --bfile data/processed/chrALL.imputed.phs601 \
+  --score data/processed/phs601_heritable_cancer.csv 6 7 5 header sum \
+  --out data/processed/PHSes/data_prs_p212_chrALL
