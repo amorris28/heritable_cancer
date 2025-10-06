@@ -16,3 +16,12 @@ plink --merge-list data/interim/bfile/merge_list.txt --make-bed --out data/proce
 cd /tsd/p212/home/p212-ofrei/github
 find . -type d -exec chmod 755 {} \;
 find . -type f -exec chmod 644 {} \;
+
+# p2521
+module load PLINK/2.00a2.3_x86_64
+plink2 --vcf ${vcf} dosage=DS \
+    --exclude-if-info 'DR2<0.5' --maf 0.005 \
+    --set-all-var-ids '@:#:$r:$a' --new-id-max-allele-len 1024 error \
+    --make-pgen --out ${pfile} \
+    --memory ${memory} --threads ${threads}
+
