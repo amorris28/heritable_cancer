@@ -18,6 +18,10 @@ find . -type d -exec chmod 755 {} \;
 find . -type f -exec chmod 644 {} \;
 
 # p2521
+module load PLINK/1.90b_6.2-x86_64
+plink --vcf --make-just-bim
+
+
 module load PLINK/2.00a2.3_x86_64
 plink2 --vcf ${vcf} dosage=DS \
     --exclude-if-info 'DR2<0.5' --maf 0.005 \
