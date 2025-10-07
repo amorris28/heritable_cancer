@@ -71,3 +71,6 @@ scratch/
 # python
 .ipynb_checkpoints/
 
+# snakemake
+.snakemake/
+results/

@@ -1,5 +1,7 @@
-import pysam
+#!/usr/bin/env python3
+import argparse
 import pandas as pd
+from pathlib import Path
 
 def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
     # NB - do not consider strand flips, and retain ambiguous SNPs
@@ -29,40 +31,45 @@ def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
     assert not phs['SNP'].duplicated().any()  # check no duplicated SNPs
     return phs
 
-phs601=pd.read_excel('data/external/01_geneticScore.finalModel.snplist.xlsx')
-# bpcol = 'Position (GRCh37)'   # for p212 familiar cancer
-bpcol = 'Position (GRCh38)'  # for HUSK
-
-# phs601_chr = []
-# for chri in range(1, 23):
-#     bim_fname=f'/ess/p212/cluster/moba_qc_imputation/BA/release6/chr{chri}.imputed.bim'
-#     bim=pd.read_csv(bim_fname, sep='\t', header=None, names=['CHR','SNP','GP','BP','A1','A2'])
-#     print(f'{len(bim)} SNPs loaded from {bim_fname} file')
-
-#     phs601_chr.append(merge_by_chr_bp_and_flip_alleles(bim, phs601, 'Chromosome', bpcol))
-#     del bim
+def main():
+    parser = argparse.ArgumentParser(description="Harmonize model sumstats with genotype .bim files.")
+    parser.add_argument("--phs_file", required=True, help="Path to model sumstats Excel file.")
+    parser.add_argument("--bim_template", required=True, 
+                        help="BIM file template with {chri}, e.g. data/external/plink_example/chr{chri}.bim")
+    parser.add_argument("--build", choices=["37","38"], default="37", help="Genome build for position column.")
+    parser.add_argument("--out", required=True, help="Output file path (.csv).")
+    args = parser.parse_args()
+    if "{chri}" not in args.bim_template:
+        parser.error("--bim_template must include '{chri}' placeholder")
 
 
+    bpcol = "Position (GRCh37)" if args.build == "37" else "Position (GRCh38)"
+    chrcol = "Chromosome"
 
-phs601_chr = []
-for chri in range(1, 23):
-    vcf_fname=f'/ess/p2521/data/durable/HuskMent/genotypes/imputed/v240619/vcf/husk_all.imputed.chr{chri}.vcf.gz'
-    records = []
-    with pysam.VariantFile(vcf_fname) as vcf:
-        for i, rec in enumerate(vcf):
-            records.append([rec.chrom, rec.pos, rec.id, rec.ref, ','.join(rec.alts)])
-            if i % 1_000_000 == 0 and i > 0:
-                print(f"{i:,} records processed...")  # optional progress
-            # optionally: stop early for testing
-            # if i > 9: break
+    print(f"Loading model file: {args.phs_file}")
+    phs = pd.read_excel(args.phs_file)
 
-    vcf = pd.DataFrame(records, columns=["CHR","BP","SNP","A1","A2"])
-    vcf["CHR"] = vcf["CHR"].astype(int)
-    print(f'{len(vcf)} SNPs loaded from {vcf_fname} file')
+    phs_chr = []
+    for chri in range(1, 23):
+        bim_path = Path(args.bim_template.format(chri=chri))
+        if not bim_path.exists():
+            print(f"⚠️ Skipping missing BIM file: {bim_path}")
+            continue
 
-    phs601_chr.append(merge_by_chr_bp_and_flip_alleles(vcf, phs601, 'Chromosome', bpcol))
-    del vcf
+        bim = pd.read_csv(bim_path, sep='\t', header=None, 
+                          names=['CHR','SNP','GP','BP','A1','A2'])
+        print(f"{len(bim)} SNPs loaded from chr{chri}: {bim_path}")
 
-phs601 = pd.concat(phs601_chr)
-# phs601.to_csv('phs601_heritable_cancer.csv', sep='\t', index=False)
-phs601.to_csv('data/interim/phs601_husk.csv', sep='\t', index=False)
+        phs_chr.append(merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol))
+
+    if not phs_chr:
+        raise RuntimeError("No valid BIM files found!")
+
+
+    phs_harmonized = pd.concat(phs_chr)
+    phs_harmonized.to_csv(args.out, sep='\t', index=False)
+    print(f"✅ Wrote harmonized file to {args.out}")
+
+if __name__ == "__main__":
+    main()
+

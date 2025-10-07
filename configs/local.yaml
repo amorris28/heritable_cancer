@@ -1,0 +1,12 @@
+# config.yaml
+
+# General PHS settings
+phs_file: data/external/01_geneticScore.finalModel.snplist.xlsx
+bim_template: data/external/plink_example/chr{chri}.bim
+build: 38
+output: data/interim/phs601_example.csv
+
+# Docker settings
+docker_image: ghcr.io/comorment/python3
+docker_platform: linux/amd64
+
