@@ -2,11 +2,9 @@
 
 # General PHS settings
 phs_file: data/external/01_geneticScore.finalModel.snplist.xlsx
-bim_template: /ess/p212/cluster/moba_qc_imputation/BA/release6/chr{chri}.imputed.bim'
+bim_template: /ess/p212/cluster/moba_qc_imputation/BA/release6/chr{chri}.imputed.bim
 build: 37
 output: data/interim/phs601_heritable_cancer.csv
 
 # Docker settings
-docker_image: ghcr.io/comorment/python3
-docker_platform: linux/amd64
-
+image: /cluster/projects/p212/github/comorment/containers/singularity/python3.sif

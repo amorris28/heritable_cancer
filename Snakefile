@@ -20,15 +20,23 @@ rule all:
 rule harmonize_phs:
     output:
         config["output"]
+    singularity:
+    	config["image"]
     shell:
-        """
-        docker run --platform {config[docker_platform]} --rm -it \
-          -v "{workflow.basedir}:{workflow.basedir}" -w "{workflow.basedir}" \
-          {config[docker_image]} python3 \
-          src/01_preprocess/PHS_PC.py \
-	  --phs_file {config[phs_file]} \
-          --bim_template {config[bim_template]} \
-          --build {config[build]} \
-          --out {output}
-        """
+    # Command to execute within the Singularity container
+        "python3 src/01_preprocess/PHS_PC.py "
+        "--phs_file {config[phs_file]} "
+        "--bim_template {config[bim_template]} "
+        "--build {config[build]} "
+        "--out {output}"
+#        """
+#        docker run --platform {config[docker_platform]} --rm -it \
+#          -v "{workflow.basedir}:{workflow.basedir}" -w "{workflow.basedir}" \
+#          {config[docker_image]} python3 \
+#          src/01_preprocess/PHS_PC.py \
+#	  --phs_file {config[phs_file]} \
+#          --bim_template {config[bim_template]} \
+#          --build {config[build]} \
+#          --out {output}
+#        """
 
