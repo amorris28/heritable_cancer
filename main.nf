@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 process harmonize_phs {
-    maxForks 4
     tag "$cluster_name"
     // debug true
 
@@ -32,11 +31,11 @@ process merge_phs_outputs {
     path csv_files
 
     output:
-    path "phs601_${cluster_name}.txt"
+    path "phs601_${cluster_name}.csv"
 
     script:
     """
-    awk 'FNR==1 && NR!=1{next} {print}' ${csv_files.join(' ')} > phs601_${cluster_name}.txt
+    awk 'FNR==1 && NR!=1{next} {print}' ${csv_files.join(' ')} > phs601_${cluster_name}.csv
     rm -f ${csv_files.join(' ')}
     """
 }
