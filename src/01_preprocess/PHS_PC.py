@@ -34,14 +34,10 @@ def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
 def main():
     parser = argparse.ArgumentParser(description="Harmonize model sumstats with genotype .bim files.")
     parser.add_argument("--phs_file", required=True, help="Path to model sumstats Excel file.")
-    parser.add_argument("--bim_template", required=True, 
-                        help="BIM file template with {chri}, e.g. data/external/plink_example/chr{chri}.bim")
+    parser.add_argument("--bim_file", required=True, help="BIM file")
     parser.add_argument("--build", choices=["37","38"], default="37", help="Genome build for position column.")
     parser.add_argument("--out", required=True, help="Output file path (.csv).")
     args = parser.parse_args()
-    if "{chri}" not in args.bim_template:
-        parser.error("--bim_template must include '{chri}' placeholder")
-
 
     bpcol = "Position (GRCh37)" if args.build == "37" else "Position (GRCh38)"
     chrcol = "Chromosome"
@@ -49,24 +45,15 @@ def main():
     print(f"Loading model file: {args.phs_file}")
     phs = pd.read_excel(args.phs_file)
 
-    phs_chr = []
-    for chri in range(1, 23):
-        bim_path = Path(args.bim_template.format(chri=chri))
-        if not bim_path.exists():
-            print(f"⚠️ Skipping missing BIM file: {bim_path}")
-            continue
+    bim_path = Path(args.bim_file)
+    if not bim_path.exists():
+        raise FileNotFoundError(f"⚠️ BIM file not found: {bim_path}")
 
-        bim = pd.read_csv(bim_path, sep='\t', header=None, 
-                          names=['CHR','SNP','GP','BP','A1','A2'])
-        print(f"{len(bim)} SNPs loaded from chr{chri}: {bim_path}")
+    bim = pd.read_csv(bim_path, sep='\t', header=None, 
+                      names=['CHR','SNP','GP','BP','A1','A2'])
+    print(f"{len(bim)} SNPs loaded from {bim_path}")
 
-        phs_chr.append(merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol))
-
-    if not phs_chr:
-        raise RuntimeError("No valid BIM files found!")
-
-
-    phs_harmonized = pd.concat(phs_chr)
+    phs_harmonized = merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol)
     phs_harmonized.to_csv(args.out, sep='\t', index=False)
     print(f"✅ Wrote harmonized file to {args.out}")
 
