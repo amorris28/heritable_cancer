@@ -1,16 +1,17 @@
 #!/usr/bin/env nextflow
-process harmonize_phs {
+process clean_phs {
     tag "$cluster_name"
     // debug true
 
     input:
-    tuple val(cluster_name), val(out_file), path(bim_file)
+    val cluster_name
     path script_file
     path phs_file
+    path bim_file
     val build
 
     output:
-    path out_file
+    path "phs601_${cluster_name}_${bim_file.baseName}.csv"
 
     script:
     """
@@ -18,7 +19,7 @@ process harmonize_phs {
         --phs_file ${phs_file} \
         --bim_file ${bim_file} \
         --build ${build} \
-        --out ${out_file}
+        --out phs601_${cluster_name}_${bim_file.baseName}.csv
     """
 }
 
@@ -40,29 +41,22 @@ process merge_phs_outputs {
     """
 }
 
-
-workflow {
-    output_file = "phs601_${params.cluster_name}.csv"
+workflow harmonize_phs {
+    cluster_name = params.cluster_name
     script_file = file('src/01_preprocess/PHS_PC.py')
+    phs_file = file(params.phs_file)
+    bim_files = Channel.fromPath(params.bim_template)
+    build = params.build
 
-    // Expand the bim template pattern into actual files
-    def bim_files = Channel.fromPath(params.bim_template)
+    harmonized_chr = clean_phs(cluster_name, script_file, phs_file, bim_files, build)
 
-    // Create tuples: (cluster_name, output_file, bim_file)
-    cluster_info_ch = bim_files.map { bim_file ->
-        // extract chromosome if present
-        def chr_id = bim_file.baseName.replaceAll(/[^0-9]+/, '')
-        def suffix = chr_id ? "_chr${chr_id}" : ""
-        def out_file = "phs601_${params.cluster_name}${suffix}.csv"
-        tuple(params.cluster_name, out_file, bim_file)
-    }
-    harmonized_ch = harmonize_phs(cluster_info_ch, script_file, file(params.phs_file), params.build)
-
-    // Wait until all harmonized outputs are done, then merge
-    harmonized_ch
-        .collect()  // gather all files into a list
+    harmonized_chr
+        .collect()
         .set { all_csvs }
 
-    merge_phs_outputs(params.cluster_name, all_csvs)
+    merge_phs_outputs(cluster_name, all_csvs)
 }
 
+workflow {
+    harmonize_phs()
+}
