@@ -1,4 +1,17 @@
 #!/usr/bin/env nextflow
+process vcf_to_bim {
+    input:
+    path vcf_file
+
+    output:
+    path bim_file
+
+    script:
+    """
+    plink --vcf ${vcf_file} --make-just-bim --out ${bim_file}
+    """
+}
+
 process clean_phs {
     tag "$cluster_name"
     // debug true
@@ -41,9 +54,14 @@ process merge_phs_outputs {
     """
 }
 
+workflow preprocess_vcf {
+    vcf_files = Channel.fromPath(params.vcf_file)
+    vcf_to_bim(vcf_files)
+}
+
 workflow harmonize_phs {
     cluster_name = params.cluster_name
-    script_file = file('src/01_preprocess/PHS_PC.py')
+    script_file = file('src/PHS_PC.py')
     phs_file = file(params.phs_file)
     bim_files = Channel.fromPath(params.bim_template)
     build = params.build
@@ -58,5 +76,8 @@ workflow harmonize_phs {
 }
 
 workflow {
+    if ( params.cluster_name == 'p2521' ) {
+        preprocess_vcf()
+    }
     harmonize_phs()
 }
