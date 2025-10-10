@@ -3,8 +3,8 @@ library(tidyverse)
 library(lubridate)
 
 # constants
-source("src/00_config/config.R")
-source("src/00_config/functions.R")
+source("src/config.R")
+source("src/functions.R")
 
 # import data
 avt_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/NPRdata/Tilleggsbestilling_Aug_2024/AVT.csv", delim = ";")

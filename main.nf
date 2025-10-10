@@ -63,8 +63,8 @@ process preprocess_metadata {
     input:
     val cluster_name
     path preprocess_script
-    path r_config
-    path r_functions
+    path 'src/config.R'
+    path 'src/functions.R'
 
     output:
     path "${cluster_name}_phenotypes.tsv"
@@ -98,7 +98,10 @@ workflow {
     cluster_name = params.cluster_name
 
     if ( cluster_name == 'p2521' ) {
-
+        if ( file('data/interim/bim_files/husk_all.imputed.chr1.bim').exists() ) {
+            println "Skipping VCF conversion, BIM files already present"
+            bim_files = Channel.fromPath('data/interim/bim_files/*.bim')
+        } else {
         // Create channel of VCF files
         vcf_files = Channel.fromPath(params.vcf_file)
 
@@ -110,6 +113,7 @@ workflow {
 
         // Call the vcf_to_bim process
         bim_files = vcf_to_bim(bim_info)
+        }
     } else {
         bim_files = Channel.fromPath(params.bim_template)
     }

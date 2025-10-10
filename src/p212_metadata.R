@@ -1,7 +1,7 @@
 library(tidyverse)
 library(readxl)
 
-source("src/00_config/config.R")
+source("src/config.R")
 
 all_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
 case_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
