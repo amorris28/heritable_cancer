@@ -59,6 +59,7 @@ process merge_phs_outputs {
 
 process preprocess_metadata {
     publishDir "data/processed", mode = 'copy'
+
     input:
     val cluster_name
     path preprocess_script
@@ -66,7 +67,7 @@ process preprocess_metadata {
     path r_functions
 
     output:
-    path "data/processed/${cluster_name}_phenotypes.tsv"
+    path "${cluster_name}_phenotypes.tsv"
 
     script:
     """
@@ -76,8 +77,8 @@ process preprocess_metadata {
 
 workflow harmonize_phs {
     take:
-    bim_files
     cluster_name
+    bim_files
     
     main:
     script_file = file('src/PHS_PC.py')
@@ -96,7 +97,7 @@ workflow harmonize_phs {
 workflow {
     cluster_name = params.cluster_name
 
-    if ( params.cluster_name == 'p2521' ) {
+    if ( cluster_name == 'p2521' ) {
 
         // Create channel of VCF files
         vcf_files = Channel.fromPath(params.vcf_file)
@@ -113,5 +114,12 @@ workflow {
         bim_files = Channel.fromPath(params.bim_template)
     }
 
-    harmonize_phs(bim_files, cluster_name)
+    harmonize_phs(cluster_name, bim_files)
+
+    if ( cluster_name != 'local' ) {
+        preprocess_metadata(cluster_name,
+  			    file(params.preprocess_script),
+  			    file(params.r_config),
+    			    file(params.r_functions))
+    }
 }
