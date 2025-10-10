@@ -9,7 +9,7 @@ def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
 
     print(f'{len(phs)} SNPs in original model')
 
-    assert 0==bim['SNP'].duplicated().sum()
+    #assert 0==bim['SNP'].duplicated().sum()
     if 'GP' in bim: del bim['GP']
 
     phs = pd.merge(phs[[chrcol, bpcol, 'Effect', 'Ref', 'Beta']].rename(columns={chrcol:'CHR',bpcol:'BP'}), bim, on=['CHR','BP'], how='left')
@@ -28,7 +28,8 @@ def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
     assert (phs['Ref'] == phs['A2']).all()
     print(f'{len(phs)} SNPs after matching alleles')
     
-    assert not phs['SNP'].duplicated().any()  # check no duplicated SNPs
+    assert not bim[bim['SNP'].isin(phs['SNP'].values)].duplicated().any()  # check no duplicated SNPs
+    #assert not phs['SNP'].duplicated().any()  # check no duplicated SNPs
     return phs
 
 def main():

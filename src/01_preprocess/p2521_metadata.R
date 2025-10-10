@@ -227,4 +227,4 @@ phenotype_data %>%
 	filter(huskmentid %in% all_male_huskmentids) ->
 	phenotype_data
 
-write_tsv(phenotype_data, paste0(PROCESSED_DATA, "husk_phenotypes.tsv"))
+write_tsv(phenotype_data, paste0(PROCESSED_DATA, "p2521_phenotypes.tsv"))

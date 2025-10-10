@@ -241,6 +241,6 @@ combined_data %>%
   combined_data
 
 # Save output
-write_tsv(combined_data, paste0(PROCESSED_DATA, "heritable_cancer_phenotypes.tsv"))
-write_tsv(bca_combined_data, paste0(PROCESSED_DATA, "brca2_breast_cancer_metadata.tsv"))
+write_tsv(combined_data, paste0(PROCESSED_DATA, "p212_phenotypes.tsv"))
+#write_tsv(bca_combined_data, paste0(PROCESSED_DATA, "brca2_breast_cancer_metadata.tsv"))
 

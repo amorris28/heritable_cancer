@@ -1,10 +1,13 @@
 #!/usr/bin/env nextflow
 process vcf_to_bim {
+    tag "${vcf_file.baseName}"
+    publishDir "data/interim/bim_files", mode: 'copy'
+
     input:
-    path vcf_file
+    tuple path(vcf_file), val(bim_file)
 
     output:
-    path bim_file
+    path "${bim_file}.bim"
 
     script:
     """
@@ -13,7 +16,7 @@ process vcf_to_bim {
 }
 
 process clean_phs {
-    tag "$cluster_name"
+    tag "${bim_file.baseName}"
     // debug true
 
     input:
@@ -37,7 +40,7 @@ process clean_phs {
 }
 
 process merge_phs_outputs {
-    tag "$cluster_name"
+    tag "merge_$cluster_name"
     publishDir "data/interim", mode: 'copy'
 
     input:
@@ -54,16 +57,31 @@ process merge_phs_outputs {
     """
 }
 
-workflow preprocess_vcf {
-    vcf_files = Channel.fromPath(params.vcf_file)
-    vcf_to_bim(vcf_files)
+process preprocess_metadata {
+    publishDir "data/processed", mode = 'copy'
+    input:
+    val cluster_name
+    path preprocess_script
+    path r_config
+    path r_functions
+
+    output:
+    path "data/processed/${cluster_name}_phenotypes.tsv"
+
+    script:
+    """
+    Rscript ${preprocess_script}
+    """
 }
 
 workflow harmonize_phs {
-    cluster_name = params.cluster_name
+    take:
+    bim_files
+    cluster_name
+    
+    main:
     script_file = file('src/PHS_PC.py')
     phs_file = file(params.phs_file)
-    bim_files = Channel.fromPath(params.bim_template)
     build = params.build
 
     harmonized_chr = clean_phs(cluster_name, script_file, phs_file, bim_files, build)
@@ -76,8 +94,24 @@ workflow harmonize_phs {
 }
 
 workflow {
+    cluster_name = params.cluster_name
+
     if ( params.cluster_name == 'p2521' ) {
-        preprocess_vcf()
+
+        // Create channel of VCF files
+        vcf_files = Channel.fromPath(params.vcf_file)
+
+        // Map each VCF to its corresponding BIM filename
+        bim_info = vcf_files.map { vcf_file ->
+            def bim_file = vcf_file.name.replaceFirst(/\.vcf(\.gz)?$/, '')  // handles .vcf or .vcf.gz
+            tuple(vcf_file, bim_file)
+        }
+
+        // Call the vcf_to_bim process
+        bim_files = vcf_to_bim(bim_info)
+    } else {
+        bim_files = Channel.fromPath(params.bim_template)
     }
-    harmonize_phs()
+
+    harmonize_phs(bim_files, cluster_name)
 }
