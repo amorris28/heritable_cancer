@@ -58,7 +58,7 @@ process merge_phs_outputs {
 }
 
 process preprocess_metadata {
-    publishDir "data/processed", mode = 'copy'
+    publishDir "data/processed", mode: 'copy'
 
     input:
     val cluster_name
@@ -67,10 +67,11 @@ process preprocess_metadata {
     path 'src/functions.R'
 
     output:
-    path "${cluster_name}_phenotypes.tsv"
+    path "data/processed/${cluster_name}_phenotypes.tsv"
 
     script:
     """
+    mkdir -p data/processed
     Rscript ${preprocess_script}
     """
 }

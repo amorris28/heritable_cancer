@@ -1,6 +1,7 @@
 # initialize packages
 library(tidyverse)
 library(lubridate)
+library(readxl)
 
 # constants
 source("src/config.R")
@@ -10,7 +11,7 @@ source("src/functions.R")
 avt_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/NPRdata/Tilleggsbestilling_Aug_2024/AVT.csv", delim = ";")
 som_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/NPRdata/Tilleggsbestilling_Aug_2024/SOM.csv", delim = ";")
 phv_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/NPRdata/Tilleggsbestilling_Aug_2024/PHV.csv", delim = ";")
-death_data = read_delim("/ess/p2521/cluster/users/p2521-andrewmo/data/DAAR_P210891_KOBLET.csv", delim = ",")
+death_data = read_excel("/ess/p2521/data/durable/HuskMent/phenotypes/DAAR_P210891_KOBLET.xlsx")
 kreft_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/Kreftregisteret/Utlevert_Haavik/Utlevert_Haavik.csv", delim = ";")
 age_dob_data = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/data_2023-09-28/HUSKMENT_data_withkeys_2023-09-28.csv", delim = ",")
 birth_month_husk2 = read_delim("/ess/p2521/data/durable/HuskMent/phenotypes/HUSK_questionairre_data/WORK_QUERY_FOR_HUSK2_FMND_AAR.csv", delim = ",")
