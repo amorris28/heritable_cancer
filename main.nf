@@ -30,7 +30,7 @@ process harmonize_phs_by_chr {
     val build
 
     output:
-    path "phs601_${workflow.profile}_${bim_file.baseName}.csv", emit: harmonized_phs
+    path "phs601_${params.cluster}_${bim_file.baseName}.csv", emit: harmonized_phs
 
     script:
     """
@@ -38,25 +38,25 @@ process harmonize_phs_by_chr {
         --phs_file ${phs_file} \
         --bim_file ${bim_file} \
         --build ${build} \
-        --out phs601_${workflow.profile}_${bim_file.baseName}.csv
+        --out phs601_${params.cluster}_${bim_file.baseName}.csv
     """
 }
 
 process merge_phs_outputs {
-    tag "merge_$workflow.profile"
+    tag "merge_$params.cluster"
     publishDir params.processed_dir, mode: 'copy'
 
     input:
     path csv_files
 
     output:
-    path "phs601_${workflow.profile}.csv", emit: csv
-    path "phs601_${workflow.profile}.snps", emit: snp
+    path "phs601_${params.cluster}.csv", emit: csv
+    path "phs601_${params.cluster}.snps", emit: snp
 
     script:
     """
-    awk 'FNR==1 && NR!=1{next} {print}' ${csv_files.join(' ')} > phs601_${workflow.profile}.csv
-    cat phs601_${workflow.profile}.csv | awk '{print \$6}' | tail -n +1 > phs601_${workflow.profile}.snps
+    awk 'FNR==1 && NR!=1{next} {print}' ${csv_files.join(' ')} > phs601_${params.cluster}.csv
+    cat phs601_${params.cluster}.csv | awk '{print \$6}' | tail -n +1 > phs601_${params.cluster}.snps
     """
 }
 
@@ -109,14 +109,14 @@ process merge_bfiles {
     path bfiles
      
     output:
-    path "${workflow.profile}_phs601.{bed,bim,fam}", emit: bfiles
+    path "${params.cluster}_phs601.{bed,bim,fam}", emit: bfiles
 
     script:
     """
     plink \
         --merge-list ${merge_list} \
         --make-bed \
-        --out ${workflow.profile}_phs601
+        --out ${params.cluster}_phs601
     """
 }
 process plink_score {
@@ -128,14 +128,14 @@ process plink_score {
     path phs_csv
      
     output:
-    path "${workflow.profile}_phs601.profile"
+    path "${params.cluster}_phs601.profile"
     
     script:
     """
     plink \
         --bfile ${base} \
         --score ${phs_csv} 6 7 5 header sum \
-        --out ${workflow.profile}_phs601
+        --out ${params.cluster}_phs601
     """
 }
 process preprocess_metadata {
@@ -148,14 +148,14 @@ process preprocess_metadata {
     path 'src/functions.R'
 
     output:
-    path "${workflow.profile}_phenotypes.tsv"
+    path "${params.cluster}_phenotypes.tsv"
 
     script:
     """
     mkdir -p data/processed
     Rscript \
         ${preprocess_script} \
-        ${workflow.profile}_phenotypes.tsv
+        ${params.cluster}_phenotypes.tsv
     """
 }
 workflow get_bim_files {
@@ -229,10 +229,10 @@ workflow calculate_phs {
 }
 
 workflow {
-    if (workflow.profile == 'local') {
+    if (params.cluster == 'local') {
         //download_models()
     }
-    if ( workflow.profile != 'local' ) {
+    if ( params.cluster != 'local' ) {
        vcf_files = params.vcf_template
             ? Channel.fromPath(params.vcf_template, checkIfExists:true)
             : Channel.empty()
@@ -250,7 +250,7 @@ workflow {
     			            file(params.r_functions))
         // run_analysis(phs_scores, phenotypes)
     }
-    if (workflow.profile == 'local') {
+    if (params.cluster == 'local') {
         // postprocess()
         // knit_manuscript()
     }
