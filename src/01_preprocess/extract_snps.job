@@ -1,16 +1,21 @@
 #!/bin/bash
 #SBATCH --job-name=getsnps
-#SBATCH --account=p212_hovig
+#SBATCH --account=p2521_tsd
 #SBATCH --time=0:10:00
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=8000M  # 502 GB available => 502*1024/64 = 8032 MB max per core
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=8
 #SBATCH --array=1-22
+#SBATCH --output=logs/%x.%j.out
+#SBATCH --error=logs/%x.%j.err
 
-# module load PLINK/1.90b_6.2-x86_64
-module load PLINK/2.00a2.3_x86_64
 
 export CHR=${SLURM_ARRAY_TASK_ID}
+export vcf_file="/ess/p2521/data/durable/HuskMent/genotypes/imputed/v240619/vcf/husk_all.imputed.chr${CHR}.vcf.gz"
+export snp_file='data/interim/phs601_p2521.snps'
+export SIF=/ess/p2521/cluster/users/espehage/github/comorment/containers/containers/1.9.0/
+export PLINK2="singularity exec --bind $PWD,/ess/p2521/data/durable/HuskMent/genotypes/imputed/v240619/vcf $SIF/gwas.sif plink2" 
+
 
 mkdir -p data/interim/bfile
 
@@ -21,10 +26,16 @@ mkdir -p data/interim/bfile
 #     --make-bed \
 #     --out data/interim/bfile/chr$CHR.imputed.phs601
 
-plink2 \
-    --bfile /ess/p212/cluster/moba_qc_imputation/BA/release6/chr$CHR.imputed \
-    --psam /ess/p212/cluster/moba_qc_imputation/BA/release6/chr@.ichunk_merged.fam \
-    --extract data/processed/phs601_heritable_cancer.snps \
+#plink2 \
+#    --bfile /ess/p212/cluster/moba_qc_imputation/BA/release6/chr$CHR.imputed \
+#    --psam /ess/p212/cluster/moba_qc_imputation/BA/release6/chr@.ichunk_merged.fam \
+#    --extract data/processed/phs601_heritable_cancer.snps \
+#    --make-bed \
+#    --out data/interim/bfile/chr$CHR.imputed.phs601
+
+$PLINK2 \
+    --vcf ${vcf_file} \
+    --extract ${snp_file} \
     --make-bed \
-    --out data/interim/bfile/chr$CHR.imputed.phs601
+    --out data/interim/bfiles/chr$CHR.imputed.phs601
 
