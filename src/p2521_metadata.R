@@ -1,3 +1,7 @@
+args = commandArgs(trailingOnly=TRUE)
+
+output_file = args[1] # output file name
+
 # initialize packages
 library(tidyverse)
 library(lubridate)
@@ -228,4 +232,4 @@ phenotype_data %>%
 	filter(huskmentid %in% all_male_huskmentids) ->
 	phenotype_data
 
-write_tsv(phenotype_data, paste0(PROCESSED_DATA, "p2521_phenotypes.tsv"))
+write_tsv(phenotype_data, output_file)

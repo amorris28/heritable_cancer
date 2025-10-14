@@ -1,3 +1,7 @@
+args = commandArgs(trailingOnly=TRUE)
+
+output_file = args[1] # output file name
+
 library(tidyverse)
 library(readxl)
 
@@ -241,6 +245,5 @@ combined_data %>%
   combined_data
 
 # Save output
-write_tsv(combined_data, paste0(PROCESSED_DATA, "p212_phenotypes.tsv"))
-#write_tsv(bca_combined_data, paste0(PROCESSED_DATA, "brca2_breast_cancer_metadata.tsv"))
+write_tsv(combined_data, output_file)
 

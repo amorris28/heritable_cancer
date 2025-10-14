@@ -1,23 +1,30 @@
-# Prostate Cancer Polygenic Hazard Score
+# Prostate Cancer Polygenic Hazard Score in Norwegian Cohorts
 
-## To-do
 
-- Currently, all scripts require modification based on specific filenames to
-  run. Make this a command line argument instead so they are generalizable.
-- Add output filename option as well
-
-## Overview
+## Data Availability
 
 Polygenic hazard score (PHS) model parameters downloaded from the
-[PGS Catalog](https://www.pgscatalog.org/).
+[PGS Catalog](https://www.pgscatalog.org/) or through personal communication with the authors.
 
-Uses a modified version of the 
-[cleansumstats wrapper](https://github.com/precimed/GWAS_SUMSTAT/tree/master/JF)
-from Julian (and dependent on the original 
-[cleansumstats pipeline](https://github.com/BioPsyk/cleansumstats))
-available on TSD.
+## Required software
 
-## Steps to reproduce analysis
+Recreating the analysis requires a recent version of [Nextflow](https://github.com/nextflow-io/nextflow).
+Analyses were developed using Nextflow [version 24.04.2](https://github.com/nextflow-io/nextflow/releases/tag/v24.04.2).
+
+All R, python3, and plink calls were performed using
+[the COMORMENT containers](https://github.com/comorment/containers) with either 
+singularity or docker. Analyses were developed using the COMORMENT containers 
+[version 1.9.0](https://github.com/comorment/containers/releases/tag/v1.9.0).
+
+## Commands to reproduce analysis
+
+To run the analysis, run the 
+```
+main
+```
+
+
+
 
 Scripts within `src/` are named with fields separated by underscores `_` and
 words within a field separated by dashes `-`. The leading number is the TSD 
