@@ -89,3 +89,8 @@ phs:
 results:
 	zip -r results.zip data/results/*.png data/results/*.pdf data/results/*.tsv data/results/*.rds
 
+## zip public results for transfer to local
+.PHONY: public
+public:
+	zip -r public.zip data/public/*.tsv data/public/*.rds
+
