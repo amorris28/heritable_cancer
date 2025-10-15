@@ -31,22 +31,21 @@ args = commandArgs(trailingOnly=TRUE)
 model_file = args[1] # PHS file
 metadata_file = args[2] # Phenotype data
 inverse = args[3]
-tsd_proj = args[4]
-bootstrap_iters = args[5]
-perform_bool = args[6]
-out = args[7]
+bootstrap_iters = as.numeric(args[4])
+perform_bool = args[5]
 
-if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/husk_phenotypes.tsv"
-    tsd_proj = "p2521"
-    model_file = "data/processed/p2521_phs601.profile" # PHS file
-} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-    tsd_proj = "p212"
-}
+# if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+#     metadata_file = "data/processed/husk_phenotypes.tsv"
+#     tsd_proj = "p2521"
+#     model_file = "data/processed/p2521_phs601.profile" # PHS file
+# } else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+#     metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+#     tsd_proj = "p212"
+# }
 
-model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-inverse = FALSE
+# model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
+model = tools::file_path_sans_ext(basename(model_file))
+
 
 #########################################
 # Import PHS data and metadata
@@ -165,21 +164,21 @@ rbind(any_pca_coxph,
       coxph_results
 
 # Save Output
-write_tsv(phs_zph_tidy, paste(out, "phs_zph_tidy.tsv", sep = "_"))
-write_tsv(any_pca_perform, paste(out, "any_pca_performance.tsv", sep = "_"))
-write_tsv(perform, paste(out, "metastatic_performance.tsv", sep = "_"))
-write_tsv(sample_size, paste(out, "sample_size.tsv", sep = "_"))
-write_tsv(coxph_results, paste(out, "coxph.tsv", sep = "_"))
+write_tsv(phs_zph_tidy, paste(model, "phs_zph_tidy.tsv", sep = "_"))
+write_tsv(any_pca_perform, paste(model, "any_pca_performance.tsv", sep = "_"))
+write_tsv(metastatic_perform, paste(model, "metastatic_performance.tsv", sep = "_"))
+write_tsv(sample_size, paste(model, "sample_size.tsv", sep = "_"))
+write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
 
 
 # ggsave(name_output(results, "km_curve.pdf"), km_curve,
 #        height = 6 * 0.618, width = 6)
 # ggsave(name_output(results, "km_curve.png"), km_curve,
 #        height = 6 * 0.618, width = 6)
-saveRDS(km_curve, paste(out, "any_pca_km_curve.rds", sep = "_"))
+saveRDS(km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
 
 # ggsave(name_output(results, "km_curve_metastatic.pdf"), km_curve,
 #        height = 6 * 0.618, width = 6)
 # ggsave(name_output(results, "km_curve_metastatic.png"), km_curve,
 #        height = 6 * 0.618, width = 6)
-saveRDS(km_curve, paste(out, "metastatic_km_curve.rds", sep = "_"))
+saveRDS(km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))

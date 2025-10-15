@@ -2,8 +2,8 @@ library(tidyverse)
 library(readxl)
 library(survival)
 
-source("src/00_config/config.R")
-source("src/00_config/functions.R")
+source("src/config.R")
+source("src/functions.R")
 
 #########################################
 # First argument: PHS file
@@ -24,19 +24,18 @@ args = commandArgs(trailingOnly=TRUE)
 model_file = args[1] # PHS file
 metadata_file = args[2] # Phenotype data
 inverse = args[3]
-tsd_proj = args[4]
+# tsd_proj = args[4]
 
-if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/husk_phenotypes.tsv"
-    tsd_proj = "p2521"
-} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-    tsd_proj = "p212"
-}
+# if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+#     metadata_file = "data/processed/husk_phenotypes.tsv"
+#     tsd_proj = "p2521"
+# } else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+#     metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+#     tsd_proj = "p212"
+# }
 
-model_file = "data/processed/PHS601_phs" # PHS file
-model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-inverse = FALSE
+# model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
+model = tools::file_path_sans_ext(basename(model_file))
 #########################################
 # Import data
 
@@ -159,19 +158,19 @@ yearly_data = fit_incidence_model(incidence, "total", 2)
 
 (p = plot_comparison_figure(yearly_data, full_data))
 
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
-           height = 6 * 0.618, width = 6)
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
-           height = 6 * 0.618, width = 6)
-saveRDS(p, paste0(results, paste(tsd_proj, model, "cumulative_comparison.rds", sep = "_")))
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.png", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison.pdf", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
+saveRDS(p, paste(model, "cumulative_comparison.rds", sep = "_"))
 
 (p = plot_stratified_figure(yearly_data, full_data))
 
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.png", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.pdf", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.rds", sep = "_")))
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.png", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific.pdf", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+saveRDS(p, paste(model, "stratified_incidence_agespecific.rds", sep = "_"))
 
 
 incidence %>%
@@ -192,11 +191,11 @@ p +
     geom_point(aes(x = median_age, y = total, color = NULL), data = incidence) ->
     p
 p
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.png", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.pdf", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_test.rds", sep = "_")))
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.png", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_test.pdf", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+# saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_test.rds", sep = "_")))
 
 ######################################################################################
 # Metastatic PCa
@@ -204,18 +203,18 @@ yearly_data = fit_incidence_model(incidence, "reg_met", order = 1)
 
 (p = plot_comparison_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis"))
 
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.png", sep = "_")), p,
-           height = 6 * 0.618, width = 6)
-ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.pdf", sep = "_")), p,
-           height = 6 * 0.618, width = 6)
-saveRDS(p, paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.rds", sep = "_")))
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.png", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "cumulative_comparison_metastatic.pdf", sep = "_")), p,
+#            height = 6 * 0.618, width = 6)
+saveRDS(p, paste(model, "cumulative_comparison_metastatic.rds", sep = "_"))
 
 (p = plot_stratified_figure(yearly_data, full_data, age = "age_of_metastasis", status = "metastasis"))
 
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.png", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.pdf", sep = "_")), 
-       p, height = 6 * 0.618, width = 6)
-saveRDS(p, paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.rds", sep = "_")))
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.png", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+# ggsave(paste0(results, paste(tsd_proj, model, "stratified_incidence_agespecific_metastatic.pdf", sep = "_")), 
+#        p, height = 6 * 0.618, width = 6)
+saveRDS(p, paste(model, "stratified_incidence_agespecific_metastatic.rds", sep = "_"))
 
 ggplot(incidence, aes(x = median_age, y = total)) + geom_point()

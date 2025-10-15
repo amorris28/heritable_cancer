@@ -153,8 +153,7 @@ process preprocess_metadata {
     script:
     """
     mkdir -p data/processed
-    Rscript \
-        ${preprocess_script} \
+    Rscript ${preprocess_script} \
         ${params.cluster}_phenotypes.tsv
     """
 }
@@ -167,28 +166,25 @@ process run_analysis {
     path metadata_file
     path 'src/config.R'
     path 'src/functions.R'
-    path 'src/fit-models-plot-figures.R'
+    path analysis_script
 
     output:
-    path "${model_file}_phs_zph_tidy.tsv"
-    path "${model_file}_any_pca_performance.tsv"
-    path "${model_file}_metastatic_performance.tsv"
-    path "${model_file}_sample_size.tsv"
-    path "${model_file}_coxph.tsv"
-    path "${model_file}_any_pca_km_curve.rds"
-    path "${model_file}_metastatic_km_curve.rds"
+    path "${model_file.baseName}_phs_zph_tidy.tsv"
+    path "${model_file.baseName}_any_pca_performance.tsv"
+    path "${model_file.baseName}_metastatic_performance.tsv"
+    path "${model_file.baseName}_sample_size.tsv"
+    path "${model_file.baseName}_coxph.tsv"
+    path "${model_file.baseName}_any_pca_km_curve.rds"
+    path "${model_file.baseName}_metastatic_km_curve.rds"
 
     script:
     """
-    mkdir -p data/public
-    Rscript src/fit-models-plot-figures.R \
+    Rscript ${analysis_script} \
         ${model_file} \
         ${metadata_file} \
         FALSE \
-        $TSD_PROJ \
         999 \
-        TRUE \
-        ${model_file.baseName}
+        TRUE
     """
 }
 
@@ -201,28 +197,21 @@ process run_analysis_incidence {
     path metadata_file
     path 'src/config.R'
     path 'src/functions.R'
-    path 'src/fit-models-plot-figures.R'
+    path incidence_script
+    path 'data/external/ASIS_per100k_Huynh-Le_2020.xlsx'
 
     output:
-    path "${model_file}_phs_zph_tidy.tsv"
-    path "${model_file}_any_pca_performance.tsv"
-    path "${model_file}_metastatic_performance.tsv"
-    path "${model_file}_sample_size.tsv"
-    path "${model_file}_coxph.tsv"
-    path "${model_file}_any_pca_km_curve.rds"
-    path "${model_file}_metastatic_km_curve.rds"
+    path "${model_file.baseName}_cumulative_comparison.rds"
+    path "${model_file.baseName}_stratified_incidence_agespecific.rds"
+    path "${model_file.baseName}_cumulative_comparison_metastatic.rds"
+    path "${model_file.baseName}_stratified_incidence_agespecific_metastatic.rds"
 
     script:
     """
-    mkdir -p data/public
-    Rscript src/fit-models-plot-figures-incidence-rate.R \
+    Rscript ${incidence_script} \
         ${model_file} \
         ${metadata_file} \
-        FALSE \
-        $TSD_PROJ \
-        999 \
-        TRUE \
-        ${model_file.baseName}
+        FALSE
     """
 }
 workflow get_bim_files {
@@ -315,7 +304,17 @@ workflow {
         phenotypes = preprocess_metadata(file(params.preprocess_script),
   			                file(params.r_config),
     			            file(params.r_functions))
-        // run_analysis(phs_scores, phenotypes)
+        run_analysis(phs_scores, 
+                     phenotypes,
+  			         file(params.r_config),
+    			     file(params.r_functions),
+                     file(params.analysis_script))
+        run_analysis_incidence(phs_scores, 
+                               phenotypes,
+  			                   file(params.r_config),
+    			               file(params.r_functions),
+                               file(params.incidence_script),
+                               file('data/external/ASIS_per100k_Huynh-Le_2020.xlsx'))
     }
     if (params.cluster == 'local') {
         // postprocess()
