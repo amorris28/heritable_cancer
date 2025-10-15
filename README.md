@@ -44,20 +44,21 @@ Project/
 │                         
 ├── Makefile           <- Makefile with convenience commands 
 │
-├── README.md          <- The top-level README for developers using this
-│                         project.
+├── README.md          <- The top-level README
+│                         
 ├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── public         <- Summary data that can be download from TSD.
+│   ├── external       <- Data from third party sources
+│   ├── raw            <- Raw data
+│   ├── interim        <- Intermediate data that has been transformed
+│   ├── processed      <- The final, canonical data sets for modeling
+│   └── public         <- Summary data that can be download from TSD
 │
-├── manuscript         <- Manuscript documents.
-│   ├── manuscript.qmd <- Quarto markdown document containing the main text.
-│   ├── reference.docx <- Reference file for formatting Quarto docx output.
-│   └── references.bib <- Bibtex references for citing in the text.
+├── manuscript         <- Manuscript documents
+│   ├── manuscript.qmd <- Quarto markdown document containing the main text
+│   ├── reference.docx <- Reference file for formatting Quarto docx output
+│   └── references.bib <- Bibtex references for citing in the text
 │
 └── src                <- Source code for R, Python, and bash scripts used 
-                          in this project.
+                          in this project
 ```
 
