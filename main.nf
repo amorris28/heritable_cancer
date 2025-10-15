@@ -248,26 +248,52 @@ process run_analysis_wgs {
     """
 }
 process postprocess_figures {
-    publishDir params.public_dir, mode: 'copy'
+    publishDir params.manuscript_dir, mode: 'copy'
     container params.r_image
 
     input:
     path make_figures_script
-    path public_dir
+    path 'data/public'
     path 'src/config.R'
     path 'src/functions.R'
-    path incidence_script
-    path 'data/external/ASIS_per100k_Huynh-Le_2020.xlsx'
 
     output:
-    path "${model_file.baseName}_cumulative_comparison.rds"
-    path "${model_file.baseName}_stratified_incidence_agespecific.rds"
-    path "${model_file.baseName}_cumulative_comparison_metastatic.rds"
-    path "${model_file.baseName}_stratified_incidence_agespecific_metastatic.rds"
+    path "figures_and_tables"
+//    path "km_curve.{png,pdf}"
+//    path "metastatic_km_curve.{png,pdf}"
+//    path "stratified_incidence_agespecific.{png,pdf}"
+//    path "cumulative_comparison.{png,pdf}"
+//    path "p212_phs601_wgs_km_curve.{png,pdf}"
+//    path "table_1.tsv"
 
     script:
     """
+    mkdir -p figures_and_tables
     Rscript ${make_figures_script}
+    """
+}
+process knit_manuscript {
+    publishDir params.manuscript_dir, mode: 'copy'
+
+    input:
+    path manuscript_file
+    path 'src/config.R'
+    path 'src/functions.R'
+    path 'reference.docx'
+    path 'references.bib'
+    path '_extensions'
+    path 'data/public'
+    path 'manuscript/figures_and_tables'
+
+
+    output:
+    path "manuscript.pdf"
+    path "manuscript.docx"
+
+    script:
+    """
+    quarto render ${manuscript_file} --to docx
+    quarto render ${manuscript_file} --to pdf
     """
 }
 workflow get_bim_files {
@@ -389,9 +415,17 @@ workflow {
     }
     if (params.cluster == 'local') {
         postprocess_figures(file(params.figures_script), 
-                            path(params.public_dir),
+                            file(params.public_dir),
   			                file(params.r_config),
     			            file(params.r_functions))
-        // knit_manuscript()
+
+        knit_manuscript(file(params.manuscript_file),
+  			            file(params.r_config),
+    			        file(params.r_functions),
+                        file('manuscript/reference.docx'),
+                        file('manuscript/references.bib'),
+                        file('manuscript/_extensions'),
+                        file(params.public_dir),
+                        postprocess_figures.out)
     }
 } 

@@ -80,13 +80,13 @@ crossref:
 ```{r load}
 library(ggplot2)
 library(tidyverse)
-library(patchwork)
-library(kableExtra)
-library(here)
+#library(patchwork)
+#library(kableExtra)
+#library(here)
 library(knitr)
 
-source(here("src/00_config/config.R"))
-source(here("src/00_config/functions.R"))
+source("src/config.R")
+source("src/functions.R")
 model = "PHS601"
 ```
 # Introduction
@@ -125,14 +125,9 @@ PCa cases were defined as male subjects with ICD10 code C61. Diagnosis date was 
 
 ## Clean summary statistics and PHS calculation
 
-```{r css-summary}
-p212_css_summary = read_tsv(here("data/results/p212_PHS601_css_summary.tsv"))
-p2521_css_summary = read_tsv(here("data/results/p212_PHS601_css_summary.tsv"))
-
-``` 
 Three SNPs were removed based on incompatible alleles. The rest had a perfect match without considering strand flips.
 
-We evaluated the performance of the PCa PHS model PHS601 (cite). The list of variants used by the model, and their effect sizes, were acquired by contacting the authors. Individual genotype data and model variants were aligned using the cleansumstats pipeline (github link) to harmonize effect and reference alleles as well as chromosome positions and RSIDs to GRCh37 genomic build. This pipeline removed palindromes, indels, and impossible allele pairs. The reference panel for our imputation did not include indels so their removal would not affect the results. After the pipeline, of the initial 601 SNPs in PHS601, `r p212_css_summary$removed_css` SNPs were removed as palindromes (i.e., ambiguous allele pairs), indels, or impossible allele pairs leaving `r p212_css_summary$post_snps` SNPs in the model. Of the `r p212_css_summary$post_snps` SNPs remaining from PHS601, `r p212_css_summary$missing_geno` SNPs were missing from the NFCS genotype data, which meant the PHSes for these subjects were calculated from the remaining `r p212_css_summary$end_snps` SNPs. Likewise`r p2521_css_summary$missing_geno` SNPs were missing from the HUSK genotype data so the PHSes for these SNPs were calculated from `r p2521_css_summary$end_snps` SNPs remaining from PHS601. Polygenic hazard scores were calculated for each cohort via matrix multiplication. The resulting PHSes were centered and scaled prior to modeling.
+We evaluated the performance of the PCa PHS model PHS601 (cite). The list of variants used by the model, and their effect sizes, were acquired by contacting the authors. Individual genotype data and model variants were aligned using the cleansumstats pipeline (github link) to harmonize effect and reference alleles as well as chromosome positions and RSIDs to GRCh37 genomic build. This pipeline removed palindromes, indels, and impossible allele pairs. The reference panel for our imputation did not include indels so their removal would not affect the results. After the pipeline, of the initial 601 SNPs in PHS601,  SNPs were removed as palindromes (i.e., ambiguous allele pairs), indels, or impossible allele pairs leaving  SNPs in the model. Of the  SNPs remaining from PHS601,  SNPs were missing from the NFCS genotype data, which meant the PHSes for these subjects were calculated from the remaining  SNPs. Likewise SNPs were missing from the HUSK genotype data so the PHSes for these SNPs were calculated from  SNPs remaining from PHS601. Polygenic hazard scores were calculated for each cohort via matrix multiplication. The resulting PHSes were centered and scaled prior to modeling.
 
 ## Sequencing and variant calling
 
@@ -152,24 +147,24 @@ All Cox models were evaluated for the proportional hazards assumption using the 
 
 ```{r stats}
 
-p2521_PHS601 = readr::read_tsv(here("data/results/p2521_PHS601_any_pca_performance.tsv"))
-p212_PHS601 = readr::read_tsv(here("data/results/p212_PHS601_any_pca_performance.tsv"))
-p2521_PHS601_meta = readr::read_tsv(here("data/results/p2521_PHS601_metastatic_performance.tsv"))
-p212_PHS601_meta = readr::read_tsv(here("data/results/p212_PHS601_metastatic_performance.tsv"))
+p2521_PHS601 = readr::read_tsv("data/public/p2521_phs601_any_pca_performance.tsv")
+p212_PHS601 = readr::read_tsv("data/public/p212_phs601_any_pca_performance.tsv")
+p2521_PHS601_meta = readr::read_tsv("data/public/p2521_phs601_metastatic_performance.tsv")
+p212_PHS601_meta = readr::read_tsv("data/public/p212_phs601_metastatic_performance.tsv")
 
-p212_zph = readr::read_tsv(here("data/results/p212_PHS601_phs_zph_tidy.tsv"))
-p2521_zph = readr::read_tsv(here("data/results/p2521_PHS601_phs_zph_tidy.tsv"))
-p2521_sample_size = readr::read_tsv(here("data/results/p2521_PHS601_sample_size.tsv"))
-p212_sample_size = readr::read_tsv(here("data/results/p212_PHS601_sample_size.tsv"))
-p212_coxph_results = readr::read_tsv(here("data/results/p212_PHS601_coxph.tsv"))
-p2521_coxph_results = readr::read_tsv(here("data/results/p2521_PHS601_coxph.tsv"))
-wgs_summary = readr::read_tsv(here("data/results/p212_wgs_summary.tsv"))
-fisher = readr::read_tsv(here("data/results/p212_fisher.tsv"))
-wgs_phs = readr::read_tsv(here("data/results/p212_PHS601_wgs_phs_performance.tsv"))
-wgs_phs_95 = readr::read_tsv(here("data/results/p212_PHS601_wgs_phs_performance_95.tsv"))
-wgs_hoxb13 = readr::read_tsv(here("data/results/p212_PHS601_wgs_hoxb13_performance.tsv"))
-binomial_phs_hoxb13 = readr::read_tsv(here("data/results/p212_PHS601_binomial_phs_hoxb13.tsv"))
-wgs_results = readr::read_tsv(here("data/results/p212_PHS601_wgs.tsv"))
+p212_zph = readr::read_tsv("data/public/p212_phs601_phs_zph_tidy.tsv")
+p2521_zph = readr::read_tsv("data/public/p2521_phs601_phs_zph_tidy.tsv")
+p2521_sample_size = readr::read_tsv("data/public/p2521_phs601_sample_size.tsv")
+p212_sample_size = readr::read_tsv("data/public/p212_phs601_sample_size.tsv")
+p212_coxph_results = readr::read_tsv("data/public/p212_phs601_coxph.tsv")
+p2521_coxph_results = readr::read_tsv("data/public/p2521_phs601_coxph.tsv")
+wgs_summary = readr::read_tsv("data/public/p212_phs601_wgs_summary.tsv")
+fisher = readr::read_tsv("data/public/p212_phs601_fisher.tsv")
+wgs_phs = readr::read_tsv("data/public/p212_phs601_wgs_phs_performance.tsv")
+wgs_phs_95 = readr::read_tsv("data/public/p212_phs601_wgs_phs_performance_95.tsv")
+wgs_hoxb13 = readr::read_tsv("data/public/p212_phs601_wgs_hoxb13_performance.tsv")
+binomial_phs_hoxb13 = readr::read_tsv("data/public/p212_phs601_binomial_phs_hoxb13.tsv")
+wgs_results = readr::read_tsv("data/public/p212_phs601_wgs.tsv")
 
 ```
 
@@ -254,7 +249,7 @@ This work was supported by a grant from the Research Council of Norway (award #3
 #| fig-align: center
 #| fig-cap: Kaplan-Meier curves showing proportion of prostate cancer-free participants as a function of age and stratified by centile ranges of polygenic hazard score. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of event is age at diagnosis of prostate cancer. (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.25-1.0
 
-knitr::include_graphics(here("data/results/PHS601_km_curve.pdf"))
+knitr::include_graphics("manuscript/figures_and_tables/km_curve.pdf")
 
 ```
 
@@ -266,7 +261,7 @@ knitr::include_graphics(here("data/results/PHS601_km_curve.pdf"))
 #| fig-align: center
 #| fig-cap: Kaplan-Meier curves showing proportion of metastatic prostate cancer-free participants as a function of age and stratified by centile ranges of polygenic hazard score. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of "failure" is age at diagnosis of metastatic prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.80-1.0 to better visualize the stratification between PHS groups given the lower rate of metastatic PCa than any PCa.
 
-knitr::include_graphics(here("data/results/PHS601_metastatic_km_curve.pdf"))
+knitr::include_graphics("manuscript/figures_and_tables/metastatic_km_curve.pdf")
 
 ```
 
@@ -278,7 +273,7 @@ knitr::include_graphics(here("data/results/PHS601_metastatic_km_curve.pdf"))
 #| fig-align: center
 #| fig-cap: Kaplan-Meier curves showing proportion of prostate cancer-free participants for the whole-genome sequenced subsample of the NFCS cohort. **(A)** Centile ranges of polygenic hazard score and **(B)** HOXB13 carriers. Time of event is age at diagnosis of prostate cancer. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
-knitr::include_graphics(here("data/results/p212_PHS601_wgs_km_curve.pdf"))
+knitr::include_graphics("manuscript/figures_and_tables/p212_phs601_wgs_km_curve.pdf")
 ```
 
 ```{r fig-strat}
@@ -289,7 +284,7 @@ knitr::include_graphics(here("data/results/p212_PHS601_wgs_km_curve.pdf"))
 #| fig-align: center
 #| fig-cap: Cumulative incidence rate of prostate cancer per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit to the HUSK data. **(A)** Any PCa and **(B)** metastatic PCa. Decline in incidence rate after age 70 in **A** is likely due to decreased screening, not a real decrease in incidence.
 
-knitr::include_graphics(here("data/results/PHS601_stratified_incidence_agespecific.pdf"))
+knitr::include_graphics("manuscript/figures_and_tables/stratified_incidence_agespecific.pdf")
 ```
 
 # Tables {.unnumbered}
@@ -298,7 +293,7 @@ knitr::include_graphics(here("data/results/PHS601_stratified_incidence_agespecif
 #| label: tbl-1
 #| tbl-cap: Hazard ratios and concordance index for the any-PCa and metastatic PCa models. HRSD is the increase in HR for a 1 standard deviation increase in PHS. HR80/20 is the HR between the top quintile and the bottom quintile of PHS. Confidence intervals are the 95% bootstrap confidence intervals from 999 iterations. "Any" = any PCa, "Meta" = metastatic PCa.
 
-table_1 = read_tsv(here("data/results/table_1.tsv"))
+table_1 = read_tsv("manuscript/figures_and_tables/table_1.tsv")
 table_1 %>%
     rename(HR8020 = HR80_20, CIndex = C_Index) %>%
     select(-n) %>%
@@ -309,7 +304,7 @@ table_1 %>%
 
 ::: {#suppfig-comp}
 
-![](../data/results/PHS601_cumulative_comparison.pdf){width=85%}
+![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
 
 Comparison of the cumulative incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is the predicted annualized incidence rate for prostate cancer cases in Norway, 2014-2017 as reported by Huynh-Le et al. (2020) **(A,C)** HUSK cohort, **(B,D)** NFCS cohort, **(A,B)** incidence rate for any PCa, and **(C,D)** incidence rate for metastatic PCa.
 
