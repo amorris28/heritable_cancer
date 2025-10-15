@@ -9,12 +9,12 @@ source("src/config.R")
 
 all_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 1)
 case_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 2)
-fam_file = read_table("data/raw/moba_imputed_all.fam", col_names = FALSE) %>% as_tibble()
+#fam_file = read_table("data/raw/moba_imputed_all.fam", col_names = FALSE) %>% as_tibble()
 cancer_reg = read_delim("/ess/p212/data/durable/brca2_cancer_registry/cancer_registry_20180628.tsv", delim = ";")
 id_key = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
 
-decode_variants = read_csv("data/raw/deCODE_variant_data.coding_only.20250408.csv")
-sample_phenotype_map = read_csv("data/raw/deCODE_variant_data.coding_only.20250408.sample_phenotype_map.csv")
+decode_variants = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.csv")
+sample_phenotype_map = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.sample_phenotype_map.csv")
 
 rare_variants = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 3)
 
@@ -230,19 +230,19 @@ bca_combined_data %>%
 ####################################################################
 # Hoxb13 SNP
 
-rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
-rs138213197[, 10:ncol(rs138213197)] %>%
-  pivot_longer(cols = everything(), names_to = "bfile_id") %>%
-  mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
-  mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
-  rowwise() %>%
-  mutate(hoxb13_snp = sum(pos1, pos2)) %>%
-  select(-value, -pos1, -pos2) ->
-  hoxb13
-
-combined_data %>%
-  left_join(hoxb13, by = join_by(bfile_id)) ->
-  combined_data
+#rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
+#rs138213197[, 10:ncol(rs138213197)] %>%
+#  pivot_longer(cols = everything(), names_to = "bfile_id") %>%
+#  mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
+#  mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
+#  rowwise() %>%
+#  mutate(hoxb13_snp = sum(pos1, pos2)) %>%
+#  select(-value, -pos1, -pos2) ->
+#  hoxb13
+#
+#combined_data %>%
+#  left_join(hoxb13, by = join_by(bfile_id)) ->
+#  combined_data
 
 # Save output
 write_tsv(combined_data, output_file)

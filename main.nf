@@ -61,23 +61,23 @@ process merge_phs_outputs {
 }
 
 process filter_bfiles {
-    storeDir "${params.interim_dir}/extract_snps"
+    storeDir "${params.interim_dir}/filter_bfiles"
 
     input:
-    path bfiles
+    tuple val(base), path(bfiles)
     path snp_file
 
     output:
-    path "${bfiles.getBaseName(2)}.phs601.{bed,bim,fam}", emit: bfiles
+    path "${base}.phs601.{bed,bim,fam}", emit: bfiles
     
     script:
     """
     plink2 \
-        --bfile ${input_file} \
-        ${psam_flag} \
+        --bfile ${base} \
+        ${params.psam_flag} \
         --extract ${snp_file} \
         --make-bed \
-        --out ${bfiles.getBaseName(2)}.phs601
+        --out ${base}.phs601
     """
 }
 
@@ -254,7 +254,18 @@ workflow prepare_bfiles {
     if (params.vcf_template) {
         filtered = filter_vcfs(vcf_files, snps)
     } else {
-        filtered = filter_bfiles(bim_files)
+        bfile_tuples = bim_files
+            .map { bim ->
+                def base = bim.baseName
+                def dir = bim.parent
+                def files = [
+                    file("${dir}/${base}.bed"),
+                    file("${dir}/${base}.bim"),
+                    file("${dir}/${base}.fam")
+                ]
+                tuple(base, files)
+            }
+        filtered = filter_bfiles(bfile_tuples, snps)
     }
     merge_list = filtered
         .map { it.find { it.name.endsWith('.bed') }.baseName } // extract basename
@@ -272,11 +283,11 @@ workflow calculate_phs {
 
     main:
     bfiles
-    .map { files ->
-        def base = files.find { it.name.endsWith('.bed') }.baseName
-        tuple(base, files)
-    }
-    .set { bfiles_with_base }
+        .map { files ->
+            def base = files.find { it.name.endsWith('.bed') }.baseName
+            tuple(base, files)
+        }
+        .set { bfiles_with_base }
 
     plink_score(bfiles_with_base, model_csv)
 
