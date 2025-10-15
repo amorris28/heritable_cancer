@@ -3,13 +3,11 @@ library(stringr)
 library(hazrd)
 library(survival)
 library(patchwork)
-source("src/00_config/config.R")
-source("src/00_config/functions.R")
+source("src/config.R")
+source("src/functions.R")
 
 ###########################################
 # Output flags
-bootstrap_iters = 999
-perform_bool = TRUE
 
 #########################################
 # First argument: PHS file
@@ -30,20 +28,22 @@ args = commandArgs(trailingOnly=TRUE)
 model_file = args[1] # PHS file
 metadata_file = args[2] # Phenotype data
 inverse = args[3]
-tsd_proj = args[4]
+bootstrap_iters = as.numeric(args[4])
+perform_bool = args[5]
 
 
-if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/husk_phenotypes.tsv"
-    tsd_proj = "p2521"
-} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-    tsd_proj = "p212"
-}
+#if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
+#    metadata_file = "data/processed/husk_phenotypes.tsv"
+#    tsd_proj = "p2521"
+#} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
+#    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
+#    tsd_proj = "p212"
+#}
+model = tools::file_path_sans_ext(basename(model_file))
 
-model_file = "data/processed/PHS601_phs" # PHS file
-model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-inverse = FALSE
+#model_file = "data/processed/PHS601_phs" # PHS file
+#model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
+#bootstrap_iters = 999
 #########################################
 # Import PHS data and metadata
 phs_data = import_phs_data(model_file, inverse)
@@ -53,7 +53,7 @@ metadata = read_tsv(metadata_file) # Phenotype data
 combined_data = process_combined_data(metadata, phs_data)
 
 combined_data %>%
-    select(status, age, phs, age_of_metastasis, metastasis, wgs, brca2_carrier:hoxb13_snp) %>%
+    select(status, age, phs, age_of_metastasis, metastasis, wgs, brca2_carrier:atm_carrier) %>%
     mutate(across(brca2_carrier:atm_carrier, ~ if_else(is.na(.x), 0, .x))) ->
     carriers
 
@@ -71,7 +71,7 @@ wgs %>%
     summarize(across(everything(), list(sum))) ->
     wgs_summary
 
-write_tsv(wgs_summary, paste0(results, paste(tsd_proj, "wgs_summary.tsv", sep = "_")))
+write_tsv(wgs_summary, paste(model, "wgs_summary.tsv", sep = "_"))
 
 wgs %>%
     select(-msh2_carrier, -msh6_carrier) ->
@@ -104,7 +104,7 @@ fisher_tibble %>%
     mutate(p.adjust = p.adjust(p.value, method = "fdr")) ->
     fisher_tibble
 fisher_tibble
-write_tsv(fisher_tibble, paste0(results, paste(tsd_proj, "fisher.tsv", sep = "_")))
+write_tsv(fisher_tibble, paste(model, "fisher.tsv", sep = "_"))
 
 # survival analysis
 phs_wgs_fit = coxph(Surv(age, status) ~ phs, wgs)
@@ -141,7 +141,7 @@ cox.zph(phs_hoxb13_wgs_inter)
 
 if (perform_bool) {
     perform = get_performance_metrics(wgs, bootstrap_iters, model)
-    write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance.tsv", sep = "_")))
+    write_tsv(perform, paste(model, "wgs_phs_performance.tsv", sep = "_"))
 }
 
 
@@ -156,14 +156,14 @@ c_index = get_cindex(wgs,
                   bootstrap_iterations = bootstrap_iters)
 HR95_50$index = "HR"
 
-  indices = list(HR95_50, c_index)
+indices = list(HR95_50, c_index)
 
-  perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
-                                                                  value = x$value, 
-                                                                  conf.low = x$conf.low, 
-                                                                  conf.high = x$conf.high)}))
-  perform = cbind(model, perform)
-    write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_phs_performance_95.tsv", sep = "_")))
+perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index = x$index, 
+                                                                value = x$value, 
+                                                                conf.low = x$conf.low, 
+                                                                conf.high = x$conf.high)}))
+perform = cbind(model, perform)
+write_tsv(perform, paste(model, "wgs_phs_performance_95.tsv", sep = "_"))
 
 #################################################################################
 # Performance metrics, HOXB13
@@ -207,7 +207,7 @@ if (perform_bool) {
     return(perform)
     }
     perform = get_performance_metrics_hoxb13(wgs, boostrap_iters, model)
-    write_tsv(perform, paste0(results, paste(tsd_proj, model, "wgs_hoxb13_performance.tsv", sep = "_")))
+    write_tsv(perform, paste(model, "wgs_hoxb13_performance.tsv", sep = "_"))
 }
 ## New plot of PHS km curves but on the subsetted WGS dataset
 
@@ -217,7 +217,7 @@ wgs_km = plot_km_curves(wgs)
 # ggsave(paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.png", sep = "_")), wgs_km,
 #        height = 6 * 0.618, width = 6)
 
-saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.rds", sep = "_")))
+#saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.rds", sep = "_")))
 
 ## Plot of HOXB13 km curve on WGS data
 # KM Curves
@@ -314,88 +314,88 @@ wgs_p =
     plot_annotation(tag_levels = 'A') &
     theme(legend.position = "bottom") 
 wgs_p
-ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.pdf", sep = "_")), wgs_p,
+ggsave(paste(model, "wgs_km_curve.pdf", sep = "_"), wgs_p,
         height = 8 * 0.618, width = 8)
-ggsave(paste0(results, paste(tsd_proj, model, "wgs_km_curve.png", sep = "_")), wgs_p,
+ggsave(paste(model, "wgs_km_curve.png", sep = "_"), wgs_p,
         height = 8 * 0.618, width = 8)
-saveRDS(wgs_p, paste0(results, paste(tsd_proj, model, "hoxb13_km_curve.rds", sep = "_")))
+saveRDS(wgs_p, paste(model, "wgs_km_curve.rds", sep = "_"))
 
 #####################################################################################
 # HOXB13 SNPs
 #####################################################################################
 
 
-# survival analysis
-phs_fit = coxph(Surv(age, status) ~ phs, combined_data)
-summary(phs_fit)
-
-
-hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, combined_data)
-summary(hoxb13_snp_fit)
-hoxb13_snp_coxph = broom::tidy(hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
-cox.zph(hoxb13_snp_fit)
-# hoxb13_snp_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_snp, combined_data)
-# summary(hoxb13_snp_fit)
-
-phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, combined_data)
-summary(phs_hoxb13_snp_fit)
-phs_hoxb13_snp_coxph = broom::tidy(phs_hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
-
-cox.zph_test <- cox.zph(phs_hoxb13_snp_fit)
-print(cox.zph_test)
-plot(cox.zph_test)
-
-phs_hoxb13_snp_inter = coxph(Surv(age, status) ~ phs * hoxb13_snp, combined_data)
-summary(phs_hoxb13_wgs_inter)
-phs_hoxb13_snp_inter_coxph = broom::tidy(phs_hoxb13_snp_inter, exponentiate = TRUE, conf.int = TRUE)
-
-## Plot of HOXB13 SNPs km curve on entire data
-
-fit = coxph(Surv(age, status) ~ hoxb13_snp, data = combined_data)
-summary(fit)
-new_data0 = data.frame(hoxb13_snp = c(0))
-new_data1 = data.frame(hoxb13_snp = c(1))
-fit_surv0 = survfit(fit, newdata = new_data0)
-df0 = data.frame(hoxb13_snp = 0, 
-                surv = fit_surv0$surv, 
-                time = fit_surv0$time,
-                lower = fit_surv0$lower, 
-                upper = fit_surv0$upper)
-fit_surv1 = survfit(fit, newdata = new_data1)
-df1 = data.frame(hoxb13_snp = 1, 
-                surv = fit_surv1$surv, 
-                time = fit_surv1$time,
-                lower = fit_surv1$lower, 
-                upper = fit_surv1$upper)
-prediction = rbind(df0, df1) %>%
-    mutate(hoxb13_snp = as.factor(hoxb13_snp))
-
-hoxb13_snp_p = ggplot(prediction, aes(x = time, 
-                    y = surv, 
-                    ymin = lower,
-                    ymax = upper,
-                    color = hoxb13_snp,
-                    fill = hoxb13_snp)) +
-    geom_ribbon(alpha = 0.1,
-                color = 0) +
-    geom_step() +
-    theme_classic() +
-    xlim(40, 100) + 
-    ylim(0, 1) +
-    labs(x = "Age", y = "Disease-free Survival") +
-    scale_color_brewer(palette = "Set1",
-                    name = "HOXB13 Carrier") +
-    scale_fill_brewer(palette = "Set1",
-                    name = "HOXB13 Carrier") + 
-theme(aspect.ratio = 1) +
-    theme(legend.position = "bottom") 
-
-fig_width = 6
-ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.pdf", sep = "_")), hoxb13_snp_p,
-        height = fig_width * 0.618, width = fig_width)
-ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.png", sep = "_")), hoxb13_snp_p,
-        height = fig_width * 0.618, width = fig_width)
-saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.rds", sep = "_")))
+## survival analysis
+#phs_fit = coxph(Surv(age, status) ~ phs, combined_data)
+#summary(phs_fit)
+#
+#
+#hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, combined_data)
+#summary(hoxb13_snp_fit)
+#hoxb13_snp_coxph = broom::tidy(hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
+#cox.zph(hoxb13_snp_fit)
+## hoxb13_snp_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_snp, combined_data)
+## summary(hoxb13_snp_fit)
+#
+#phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, combined_data)
+#summary(phs_hoxb13_snp_fit)
+#phs_hoxb13_snp_coxph = broom::tidy(phs_hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
+#
+#cox.zph_test <- cox.zph(phs_hoxb13_snp_fit)
+#print(cox.zph_test)
+#plot(cox.zph_test)
+#
+#phs_hoxb13_snp_inter = coxph(Surv(age, status) ~ phs * hoxb13_snp, combined_data)
+#summary(phs_hoxb13_wgs_inter)
+#phs_hoxb13_snp_inter_coxph = broom::tidy(phs_hoxb13_snp_inter, exponentiate = TRUE, conf.int = TRUE)
+#
+### Plot of HOXB13 SNPs km curve on entire data
+#
+#fit = coxph(Surv(age, status) ~ hoxb13_snp, data = combined_data)
+#summary(fit)
+#new_data0 = data.frame(hoxb13_snp = c(0))
+#new_data1 = data.frame(hoxb13_snp = c(1))
+#fit_surv0 = survfit(fit, newdata = new_data0)
+#df0 = data.frame(hoxb13_snp = 0, 
+#                surv = fit_surv0$surv, 
+#                time = fit_surv0$time,
+#                lower = fit_surv0$lower, 
+#                upper = fit_surv0$upper)
+#fit_surv1 = survfit(fit, newdata = new_data1)
+#df1 = data.frame(hoxb13_snp = 1, 
+#                surv = fit_surv1$surv, 
+#                time = fit_surv1$time,
+#                lower = fit_surv1$lower, 
+#                upper = fit_surv1$upper)
+#prediction = rbind(df0, df1) %>%
+#    mutate(hoxb13_snp = as.factor(hoxb13_snp))
+#
+#hoxb13_snp_p = ggplot(prediction, aes(x = time, 
+#                    y = surv, 
+#                    ymin = lower,
+#                    ymax = upper,
+#                    color = hoxb13_snp,
+#                    fill = hoxb13_snp)) +
+#    geom_ribbon(alpha = 0.1,
+#                color = 0) +
+#    geom_step() +
+#    theme_classic() +
+#    xlim(40, 100) + 
+#    ylim(0, 1) +
+#    labs(x = "Age", y = "Disease-free Survival") +
+#    scale_color_brewer(palette = "Set1",
+#                    name = "HOXB13 Carrier") +
+#    scale_fill_brewer(palette = "Set1",
+#                    name = "HOXB13 Carrier") + 
+#theme(aspect.ratio = 1) +
+#    theme(legend.position = "bottom") 
+#
+#fig_width = 6
+#ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.pdf", sep = "_")), hoxb13_snp_p,
+#        height = fig_width * 0.618, width = fig_width)
+#ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.png", sep = "_")), hoxb13_snp_p,
+#        height = fig_width * 0.618, width = fig_width)
+#saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.rds", sep = "_")))
 
 
 
@@ -423,18 +423,18 @@ saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curv
 binomial_phs_hoxb13 <- glm(hoxb13_carrier ~ phs, family="binomial", data=wgs)
 summary(binomial_phs_hoxb13)
 broom::tidy(binomial_phs_hoxb13, conf.int = TRUE, exponentiate = TRUE) %>%
-write_tsv(paste0(results, paste(tsd_proj, model, "binomial_phs_hoxb13.tsv", sep = "_")))
+write_tsv(paste(model, "binomial_phs_hoxb13.tsv", sep = "_"))
 
 phs_wgs_coxph$model = "phs_wgs"
 hoxb13_wgs_coxph$model = "hoxb13_wgs"
 phs_hoxb13_wgs_coxph$model = "phs_hoxb13"
 phs_hoxb13_inter_coxph$model = "phs_hoxb13_inter"
-hoxb13_snp_coxph$model = "hoxb13_snp"
+#hoxb13_snp_coxph$model = "hoxb13_snp"
 
 rbind(phs_wgs_coxph, 
 hoxb13_wgs_coxph, 
 phs_hoxb13_wgs_coxph, 
-phs_hoxb13_inter_coxph,
-hoxb13_snp_coxph) ->
+phs_hoxb13_inter_coxph) ->
+#hoxb13_snp_coxph) ->
 wgs_results
-write_tsv(wgs_results, paste0(results, paste(tsd_proj, model, "wgs.tsv", sep = "_")))
+write_tsv(wgs_results, paste(model, "wgs.tsv", sep = "_"))

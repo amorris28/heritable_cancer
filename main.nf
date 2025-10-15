@@ -214,6 +214,39 @@ process run_analysis_incidence {
         FALSE
     """
 }
+process run_analysis_wgs {
+    publishDir params.public_dir, mode: 'copy'
+    container params.r_image
+
+    input:
+    path wgs_script
+    path model_file
+    path metadata_file
+    path 'src/config.R'
+    path 'src/functions.R'
+
+    output:
+    path "${model_file.baseName}_wgs_summary.tsv"
+    path "${model_file.baseName}_fisher.tsv"
+    path "${model_file.baseName}_wgs_phs_performance.tsv"
+    path "${model_file.baseName}_wgs_phs_performance_95.tsv"
+    path "${model_file.baseName}_wgs_hoxb13_performance.tsv"
+    path "${model_file.baseName}_binomial_phs_hoxb13.tsv"
+    path "${model_file.baseName}_wgs.tsv"
+    path "${model_file.baseName}_wgs_km_curve.rds"
+    path "${model_file.baseName}_wgs_km_curve.png"
+    path "${model_file.baseName}_wgs_km_curve.pdf"
+
+    script:
+    """
+    Rscript ${wgs_script} \
+        ${model_file} \
+        ${metadata_file} \
+        FALSE \
+        999 \
+        TRUE
+    """
+}
 process postprocess_figures {
     publishDir params.public_dir, mode: 'copy'
     container params.r_image
@@ -346,6 +379,13 @@ workflow {
     			               file(params.r_functions),
                                file(params.incidence_script),
                                file('data/external/ASIS_per100k_Huynh-Le_2020.xlsx'))
+        if ( params.cluster == 'p212' ) {
+            run_analysis_wgs(file(params.wgs_script),
+                             phs_scores, 
+                             phenotypes,
+  	    		             file(params.r_config),
+        			         file(params.r_functions))
+        }
     }
     if (params.cluster == 'local') {
         postprocess_figures(file(params.figures_script), 
