@@ -55,7 +55,7 @@ Project/
 ├── manuscript         <- Manuscript documents.
 │   ├── manuscript.qmd <- Quarto markdown document containing the main text.
 │   ├── reference.docx <- Reference file for formatting Quarto docx output.
-│   ├── references.bib <- Bibtex references for citing in the text.
+│   └── references.bib <- Bibtex references for citing in the text.
 │
 └── src                <- Source code for R, Python, and bash scripts used 
                           in this project.

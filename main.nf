@@ -285,9 +285,6 @@ workflow calculate_phs {
 }
 
 workflow {
-    if (params.cluster == 'local') {
-        //download_models()
-    }
     if ( params.cluster != 'local' ) {
        vcf_files = params.vcf_template
             ? Channel.fromPath(params.vcf_template, checkIfExists:true)
