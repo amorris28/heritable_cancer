@@ -158,6 +158,73 @@ process preprocess_metadata {
         ${params.cluster}_phenotypes.tsv
     """
 }
+process run_analysis {
+    publishDir params.public_dir, mode: 'copy'
+    container params.r_image
+
+    input:
+    path model_file
+    path metadata_file
+    path 'src/config.R'
+    path 'src/functions.R'
+    path 'src/fit-models-plot-figures.R'
+
+    output:
+    path "${model_file}_phs_zph_tidy.tsv"
+    path "${model_file}_any_pca_performance.tsv"
+    path "${model_file}_metastatic_performance.tsv"
+    path "${model_file}_sample_size.tsv"
+    path "${model_file}_coxph.tsv"
+    path "${model_file}_any_pca_km_curve.rds"
+    path "${model_file}_metastatic_km_curve.rds"
+
+    script:
+    """
+    mkdir -p data/public
+    Rscript src/fit-models-plot-figures.R \
+        ${model_file} \
+        ${metadata_file} \
+        FALSE \
+        $TSD_PROJ \
+        999 \
+        TRUE \
+        ${model_file.baseName}
+    """
+}
+
+process run_analysis_incidence {
+    publishDir params.public_dir, mode: 'copy'
+    container params.r_image
+
+    input:
+    path model_file
+    path metadata_file
+    path 'src/config.R'
+    path 'src/functions.R'
+    path 'src/fit-models-plot-figures.R'
+
+    output:
+    path "${model_file}_phs_zph_tidy.tsv"
+    path "${model_file}_any_pca_performance.tsv"
+    path "${model_file}_metastatic_performance.tsv"
+    path "${model_file}_sample_size.tsv"
+    path "${model_file}_coxph.tsv"
+    path "${model_file}_any_pca_km_curve.rds"
+    path "${model_file}_metastatic_km_curve.rds"
+
+    script:
+    """
+    mkdir -p data/public
+    Rscript src/fit-models-plot-figures-incidence-rate.R \
+        ${model_file} \
+        ${metadata_file} \
+        FALSE \
+        $TSD_PROJ \
+        999 \
+        TRUE \
+        ${model_file.baseName}
+    """
+}
 workflow get_bim_files {
     take:
     vcf_files

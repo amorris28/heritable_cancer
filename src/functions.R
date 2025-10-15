@@ -2,7 +2,8 @@
 # Function definitons
 ##  Data processing
 import_phs_data = function(model_file, inverse = FALSE) {
-    readr::read_tsv(model_file, col_names = c("bfile_id", "phs")) %>%
+    readr::read_table(model_file) %>%
+        dplyr::select(bfile_id = IID, phs = SCORESUM) %>%
         dplyr::mutate(phs = as.vector(scale(phs, center = TRUE, scale = TRUE))) ->
         phs_data
     if (inverse) {dplyr::mutate(phs_data, phs = phs * -1) -> phs_data}

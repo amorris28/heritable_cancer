@@ -3,15 +3,11 @@ library(stringr)
 library(hazrd)
 library(survival)
 library(patchwork)
-source("src/00_config/config.R")
-source("src/00_config/functions.R")
+source("src/config.R")
+source("src/functions.R")
 
 ###########################################
 # Output flags
-bootstrap_iters = 999
-perform_bool = TRUE
-process = "nocss"
-
 name_output = function(directory, filename) {
   paste0(directory, paste(tsd_proj, model, process, filename, sep = "_"))
 }
@@ -36,44 +32,29 @@ model_file = args[1] # PHS file
 metadata_file = args[2] # Phenotype data
 inverse = args[3]
 tsd_proj = args[4]
+bootstrap_iters = args[5]
+perform_bool = args[6]
+out = args[7]
 
 if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
     metadata_file = "data/processed/husk_phenotypes.tsv"
     tsd_proj = "p2521"
+    model_file = "data/processed/p2521_phs601.profile" # PHS file
 } else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
     metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
     tsd_proj = "p212"
 }
 
-model_file = "data/processed/PHS601_phs" # PHS file
 model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 inverse = FALSE
 
-
 #########################################
 # Import PHS data and metadata
-phs_data1 = import_phs_data(model_file, inverse)
-phs_data2 = read_table("data/processed/PHSes/data_prs_p212_chrALL.profile")
-phs_data2 %>%
-  select(bfile_id = IID, phs = SCORESUM) ->
-  phs_data2
-phs_data2 %>%
-  left_join(phs_data1, by = "bfile_id") %>%
-  ggplot(aes(x = phs.x, y = phs.y)) +
-    geom_point() +
-    stat_smooth(method = 'lm')
-if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-phs_data2 = read_table("src/xx_merge_snps/data_prs_husk.profile")
-} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-phs_data2 = read_table("data/processed/PHSes/data_prs_p212_chrALL.profile")
-}
-phs_data2 %>%
-  select(bfile_id = IID, phs = SCORESUM) ->
-  phs_data2
+phs_data = import_phs_data(model_file, inverse)
 
 metadata = read_tsv(metadata_file) # Phenotype data
 
-combined_data = process_combined_data(metadata, phs_data2)
+combined_data = process_combined_data(metadata, phs_data)
 
 #########################################
 # Analyze PHS data
@@ -98,8 +79,6 @@ zph_fit %>%
   print() %>%
   as_tibble ->
 phs_zph_tidy
-
-write_tsv(phs_zph_tidy, name_output(results, "phs_zph_tidy.tsv"))
 
 any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
 
@@ -129,18 +108,11 @@ ggplot(zph_tbl, aes(x = time, y = beta_t)) +
 # Performance metrics
 
 if (perform_bool) {
-  perform = get_performance_metrics(combined_data, bootstrap_iters, model)
-  write_tsv(perform, name_output(results, "any_pca_performance.tsv"))
+  any_pca_perform = get_performance_metrics(combined_data, bootstrap_iters, model)
 }
 
 # Plot KM Curves
-km_curve = plot_km_curves(combined_data)
-
-ggsave(name_output(results, "km_curve.pdf"), km_curve,
-       height = 6 * 0.618, width = 6)
-ggsave(name_output(results, "km_curve.png"), km_curve,
-       height = 6 * 0.618, width = 6)
-saveRDS(km_curve, name_output(results, "any_pca_km_curve.rds"))
+any_pca_km_curve = plot_km_curves(combined_data)
 
 # Time to metastatic diseaes
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
@@ -149,20 +121,12 @@ metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = T
 # Performance metrics
 
 if (perform_bool) {
-  perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
-  write_tsv(perform, name_output(results, "metastatic_performance.tsv"))
+  metastatic_perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
 }
 
 # KM Curves for metastatic disease
 km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
 km_curve = km_curve + lims(y = c(0.80, 1.0))
-ggsave("kmcurve_metastasis_strict.png", km_curve, height = 6 * 0.618, width = 6)
-
-ggsave(name_output(results, "km_curve_metastatic.pdf"), km_curve,
-       height = 6 * 0.618, width = 6)
-ggsave(name_output(results, "km_curve_metastatic.png"), km_curve,
-       height = 6 * 0.618, width = 6)
-saveRDS(km_curve, name_output(results, "metastatic_km_curve.rds"))
 
 
 # Gather sample sizes
@@ -189,7 +153,6 @@ sample_size = tibble(group = c("any_pca", "metastatic"),
        cases = c(any_pca_sample_size_cases, metastatic_sample_size_cases),
        controls = c(any_pca_sample_size_controls, metastatic_sample_size_controls))
 
-write_tsv(sample_size, name_output(results, "sample_size.tsv"))
 
 # Combine Coxph results
 any_pca_coxph$model = "any_pca"
@@ -198,9 +161,25 @@ phs_tt_tidy$model = "phs_tt"
 
 rbind(any_pca_coxph, 
       metastatic_coxph, 
-      phs_tt_tidy) %>%
-write_tsv(name_output(results, "coxph.tsv"))
+      phs_tt_tidy) ->
+      coxph_results
+
+# Save Output
+write_tsv(phs_zph_tidy, paste(out, "phs_zph_tidy.tsv", sep = "_"))
+write_tsv(any_pca_perform, paste(out, "any_pca_performance.tsv", sep = "_"))
+write_tsv(perform, paste(out, "metastatic_performance.tsv", sep = "_"))
+write_tsv(sample_size, paste(out, "sample_size.tsv", sep = "_"))
+write_tsv(coxph_results, paste(out, "coxph.tsv", sep = "_"))
 
 
+# ggsave(name_output(results, "km_curve.pdf"), km_curve,
+#        height = 6 * 0.618, width = 6)
+# ggsave(name_output(results, "km_curve.png"), km_curve,
+#        height = 6 * 0.618, width = 6)
+saveRDS(km_curve, paste(out, "any_pca_km_curve.rds", sep = "_"))
 
-
+# ggsave(name_output(results, "km_curve_metastatic.pdf"), km_curve,
+#        height = 6 * 0.618, width = 6)
+# ggsave(name_output(results, "km_curve_metastatic.png"), km_curve,
+#        height = 6 * 0.618, width = 6)
+saveRDS(km_curve, paste(out, "metastatic_km_curve.rds", sep = "_"))
