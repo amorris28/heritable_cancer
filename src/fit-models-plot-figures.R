@@ -71,7 +71,7 @@ combined_data %>%
 fit = coxph(Surv(age, status) ~ phs, data = combined_data)
 zph_fit = cox.zph(fit)
 
-plot(zph_fit)
+#plot(zph_fit)
 summary(fit)
 
 zph_fit %>%
@@ -124,8 +124,8 @@ if (perform_bool) {
 }
 
 # KM Curves for metastatic disease
-km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
-km_curve = km_curve + lims(y = c(0.80, 1.0))
+metastatic_km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
+metastatic_km_curve = metastatic_km_curve + lims(y = c(0.80, 1.0))
 
 
 # Gather sample sizes
@@ -175,10 +175,10 @@ write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
 #        height = 6 * 0.618, width = 6)
 # ggsave(name_output(results, "km_curve.png"), km_curve,
 #        height = 6 * 0.618, width = 6)
-saveRDS(km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
+saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
 
 # ggsave(name_output(results, "km_curve_metastatic.pdf"), km_curve,
 #        height = 6 * 0.618, width = 6)
 # ggsave(name_output(results, "km_curve_metastatic.png"), km_curve,
 #        height = 6 * 0.618, width = 6)
-saveRDS(km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
+saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
