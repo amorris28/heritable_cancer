@@ -214,6 +214,29 @@ process run_analysis_incidence {
         FALSE
     """
 }
+process postprocess_figures {
+    publishDir params.public_dir, mode: 'copy'
+    container params.r_image
+
+    input:
+    path make_figures_script
+    path public_dir
+    path 'src/config.R'
+    path 'src/functions.R'
+    path incidence_script
+    path 'data/external/ASIS_per100k_Huynh-Le_2020.xlsx'
+
+    output:
+    path "${model_file.baseName}_cumulative_comparison.rds"
+    path "${model_file.baseName}_stratified_incidence_agespecific.rds"
+    path "${model_file.baseName}_cumulative_comparison_metastatic.rds"
+    path "${model_file.baseName}_stratified_incidence_agespecific_metastatic.rds"
+
+    script:
+    """
+    Rscript ${make_figures_script}
+    """
+}
 workflow get_bim_files {
     take:
     vcf_files
@@ -325,7 +348,10 @@ workflow {
                                file('data/external/ASIS_per100k_Huynh-Le_2020.xlsx'))
     }
     if (params.cluster == 'local') {
-        // postprocess()
+        postprocess_figures(file(params.figures_script), 
+                            path(params.public_dir),
+  			                file(params.r_config),
+    			            file(params.r_functions))
         // knit_manuscript()
     }
 } 
