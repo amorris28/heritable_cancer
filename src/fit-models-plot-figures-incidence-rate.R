@@ -41,7 +41,7 @@ model = tools::file_path_sans_ext(basename(model_file))
 
 # Huyhn-LE 2020 ASIS data
 column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
-huynhle_asis = read_excel("data/external/ASIS_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
+huynhle_asis = read_excel("data/external/ASIRs_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
 
 huynhle_asis %>%
     rowwise() %>%

@@ -183,7 +183,6 @@ process run_analysis {
         ${model_file} \
         ${metadata_file} \
         FALSE \
-        999 \
         TRUE
     """
 }
@@ -198,7 +197,7 @@ process run_analysis_incidence {
     path 'src/config.R'
     path 'src/functions.R'
     path incidence_script
-    path 'data/external/ASIS_per100k_Huynh-Le_2020.xlsx'
+    path 'data/external/ASIRs_per100k_Huynh-Le_2020.xlsx'
 
     output:
     path "${model_file.baseName}_cumulative_comparison.rds"
@@ -243,7 +242,6 @@ process run_analysis_wgs {
         ${model_file} \
         ${metadata_file} \
         FALSE \
-        999 \
         TRUE
     """
 }
@@ -404,7 +402,7 @@ workflow {
   			                   file(params.r_config),
     			               file(params.r_functions),
                                file(params.incidence_script),
-                               file('data/external/ASIS_per100k_Huynh-Le_2020.xlsx'))
+                               file('data/external/ASIRs_per100k_Huynh-Le_2020.xlsx'))
         if ( params.cluster == 'p212' ) {
             run_analysis_wgs(file(params.wgs_script),
                              phs_scores, 

@@ -1,5 +1,0 @@
-ftp://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000067/ScoringFiles/PGS000067.txt.gz
-ftp://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000733/ScoringFiles/PGS000733.txt.gz
-ftp://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000741/ScoringFiles/PGS000741.txt.gz
-ftp://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS000742/ScoringFiles/PGS000742.txt.gz
-ftp://ftp.ebi.ac.uk/pub/databases/spot/pgs/scores/PGS003331/ScoringFiles/PGS003331.txt.gz

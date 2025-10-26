@@ -28,8 +28,7 @@ args = commandArgs(trailingOnly=TRUE)
 model_file = args[1] # PHS file
 metadata_file = args[2] # Phenotype data
 inverse = args[3]
-bootstrap_iters = as.numeric(args[4])
-perform_bool = args[5]
+perform_bool = args[4]
 
 
 #if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {

@@ -1,6 +1,0 @@
-data/interim/PGS000067.yaml
-data/interim/PGS000733.yaml
-data/interim/PGS000741.yaml
-data/interim/PGS000742.yaml
-data/interim/PGS003331.yaml
-data/interim/PHS601.yaml

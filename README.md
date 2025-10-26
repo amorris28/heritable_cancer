@@ -47,7 +47,7 @@ Project/
 ├── README.md          <- The top-level README
 │                         
 ├── data
-│   ├── external       <- Data from third party sources
+│   ├── external       <- Data from third-party sources
 │   ├── raw            <- Raw data
 │   ├── interim        <- Intermediate data that has been transformed
 │   ├── processed      <- The final, canonical data sets for modeling
