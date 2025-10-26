@@ -19,6 +19,7 @@ renv.lock
 #/*
 
 # Add files
+scratch.R
 
 #!analysis.qmd
 #!analysis_python.qmd

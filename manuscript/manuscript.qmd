@@ -120,7 +120,6 @@ wgs_results = readr::read_tsv("data/public/p212_phs601_wgs.tsv")
 
 # Introduction
 
-
 Prostate cancer (PCa) is the second most prevalent form of cancer among men worldwide accounting for 29.4% of cancer cases and is the fifth leading cause of cancer deaths among men (Bray et al. 2024). In spite of this, PCa screening poses a risk of false-positives with over-diagnosis and over-treatment (look for a citation for this. cochrane review includes ERSPC and PLCO with contradictory results. Goteborg shows positive results of screening. Maybe read the individual studies). Treatment of indolent disease that would have never developed into metastatic disease can cause considerable harms. Therefore, there is a need for more-accurate screening methods to improve the effectiveness of early screening and to reduce the negative consequences of overdiagnosis among men. Furthermore, screening methods should ideally identify individuals at elevated risk of aggressive, metastatic, or clinically-significant prostate cancer for early screening of prostate cancer via PSA and MRI to avoid over-diagnosis and over-treatment of indolent disease.
 
 The heritability of PCa is high, estimated to 42% (cite Lichtenstein), and more than ### common (cite) and rare genetic variants (cite) have been identified. One approach to reduce the false positive rate for early screening and to reduce the risk of harms due to screening is to employ genetic testing to stratify individuals by inherited risk factors. The most common approach to genetic screening for cancer is with rare pathogenic variants (RPVs). For example, women carrying a pathogenic mutation in the BRCA2 gene have a 60% chance of developing breast cancer in their lifetime \[citation\]. There are a number of RPVs associated with increased risk of PCa that are, in some cases, associated with worse prognosis, including BRCA1, BRCA2, and HOXB13 G84E \[cite Tyler's paper\]. For example, carrying a HOXB13 mutation can increase an individual's risk by a factor of 2-6 \[Tyler\]. However, these variants are at relatively low frequency in the general population (typically, 0.05-0.1%) and therefore are of limited use in identifying most individuals with clinically relevant risk, though certain variants, such as HOXB13, are at a higher frequency in Scandinavian populations (1.3%; Seibert).
@@ -149,7 +148,7 @@ The second cohort was the Norwegian Familial Cancer Study (NFCS; Mattingsdal, 20
 
 ## Characterization of PCa Cases
 
-PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the registry data. Controls were limited to males over age 40, since no diagnoses were observed before that age, and censored at age of last observation and we did not remove individuals with other cancer diagnoses. Metastatic disease was defined as disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures (corresponding to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian cancer registry). 
+PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the registry data. Controls were limited to males excluding those censored before age 40, since no diagnoses were observed before that age, and censored at age of last observation and we did not remove individuals with other cancer diagnoses. Metastatic disease was defined as disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures (corresponding to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry). 
 
 ## Harmonize alleles and calculate PHSes
 
@@ -233,6 +232,7 @@ Future Directions
 
 - Develop a model with Norwegian-specific SNPs. Possible with a larger sample size, perhaps through federated learning using multiple Norwegian cohorts.
 - Cost-benefit analysis for genetic cancer screening (compare the cost of genotyping all individuals including the biobank infrastructure to the price per QALY.)
+- In our dataset, we did not have access to family history data or prostate-specific antigen measurements. Future studies should expand on this model by including these other factors... should people with high risk score be selected for PSA screening and then PSA added to the risk prediction?
 
 One limitation of this study is the limited sample size of participants with diagnosis data, age of diagnosis, and metastasis code. If we could get a bigger data set, we could potentially identify additional SNPs specific to the Norwegian population.
 
