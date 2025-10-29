@@ -166,7 +166,7 @@ variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2
 for(i in variants) {
   new <- if_else(all_decode_variants$SYMBOL == i, 1, NA)
   all_decode_variants[ , ncol(all_decode_variants) + 1] <- new
-  colnames(all_decode_variants)[ncol(all_decode_variants)] <- i
+  colnames(all_decode_variants)[ncol(all_decode_variants)] <- paste(i, "carrier", sep = "_")
 }
 
 all_decode_variants %>%
@@ -179,62 +179,12 @@ all_decode_variants %>%
 #  mutate(atm_carrier = if_else(SYMBOL == "ATM", 1, NA)) %>%
   select(-SYMBOL) %>% 
   filter(if_any(-bfile_id, ~ !is.na(.))) ->
-  brca2_hoxb13_carriers
+  carriers
 
 combined_data %>%
-  left_join(brca2_hoxb13_carriers, by = join_by(bfile_id)) ->
+  left_join(carriers, by = join_by(bfile_id)) ->
   combined_data
 
-###################################################################
-# Female subjects with BRCA2 and/or breast cancer
-
-
-# BRCA2 breast cancer data
-
-# Get case IDs and diagnosis date
-case_data %>%
-    filter(icd9 == 174) %>%
-    select(pid, age_diag = age_ca) %>%
-    mutate(status = 1) %>%
-    mutate(pid = as.character(pid)) ->
-    bca_cases
-
-# Get control IDs and date last obs
-all_data %>%
-    filter(SEX == "F") %>%
-    select(pid = PID, age_lob = AGELASTOBS, wgs = WGS) %>%
-    mutate(wgs = if_else(is.na(wgs), 0, wgs)) %>%
-    mutate(pid = as.character(pid)) ->
-    female_subjects
-
-# link cases and controls
-female_subjects %>%
-    full_join(bca_cases, by = "pid") %>%
-    mutate(age = if_else(is.na(age_diag), age_lob, age_diag)) %>%
-    mutate(status = if_else(is.na(status), 0, status)) %>%
-    left_join(id_key, by = join_by(pid)) ->
-    bca_combined_data
-
-# Pull out BRCA2 carriers
-
-all_decode_variants %>%
-  mutate(brca2_carrier = if_else(SYMBOL == "BRCA2", 1, NA)) %>%
-  select(-SYMBOL) %>%
-  filter(!is.na(brca2_carrier)) ->
-  brca2_carriers
-
-bca_combined_data %>%
-  left_join(brca2_carriers, by = join_by(bfile_id)) %>%
-    mutate(brca2_carrier = if_else(is.na(brca2_carrier), 0 , brca2_carrier)) ->
-    bca_combined_data
-
-# There's only 4 brca2 carriers??
-bca_combined_data %>%
-  # filter(wgs == 1) %>%
-  select(status, brca2_carrier) %>%
-  table()
-
-####################################################################
 # Hoxb13 SNP
 
 #rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)

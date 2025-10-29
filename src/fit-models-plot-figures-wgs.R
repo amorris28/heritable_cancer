@@ -52,34 +52,34 @@ metadata = read_tsv(metadata_file) # Phenotype data
 combined_data = process_combined_data(metadata, phs_data)
 
 combined_data %>%
-    select(status, age, phs, age_of_metastasis, metastasis, wgs, brca2_carrier:atm_carrier) %>%
-    mutate(across(brca2_carrier:atm_carrier, ~ if_else(is.na(.x), 0, .x))) ->
+    select(status, age, phs, age_of_metastasis, metastasis, wgs, ends_with("_carrier")) %>%
+    mutate(across(ends_with("_carrier"), ~ if_else(is.na(.x), 0, .x))) ->
     carriers
 
 carriers %>%
-    filter(wgs == 1) %>%
+    filter(wgs == 1) ->
     # any_carrier is 1 for people who have any of the listed RPVs
-    mutate(any_carrier = case_when(if_any(brca2_carrier:atm_carrier, ~ .x == 1) ~ 1, .default = 0)) ->#%>%
+    # mutate(any_carrier = case_when(if_any(brca2_carrier:atm_carrier, ~ .x == 1) ~ 1, .default = 0)) ->#%>%
     # all_carrier is the sum of all RPVs that each individual has (in this case, nobody has
     # more than one)
     # mutate(all_carrier = rowSums(across(brca2_carrier:atm_carrier))) ->
     wgs
 
 wgs %>%
-    select(status, wgs:atm_carrier, any_carrier) %>%
+    select(status, wgs, ends_with("_carrier")) %>%
     summarize(across(everything(), list(sum))) ->
     wgs_summary
 
 write_tsv(wgs_summary, paste(model, "wgs_summary.tsv", sep = "_"))
 
-wgs %>%
-    select(-msh2_carrier, -msh6_carrier) ->
-    wgs
+# wgs %>%
+#     select(-msh2_carrier, -msh6_carrier) ->
+#     wgs
 # 0 subjects with these mutations
 
 #Fisher test
 variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
-variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any")#, "all")
+#variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any")#, "all")
 fisher_results = list()
 for (i in 1:length(variants)) {
     variant = paste0(variants[i], "_carrier")
@@ -112,20 +112,20 @@ summary(phs_wgs_fit)
 phs_wgs_coxph = broom::tidy(phs_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
 cox.zph(phs_wgs_fit)
 
-hoxb13_wgs_fit = coxph(Surv(age, status) ~ hoxb13_carrier, wgs)
+hoxb13_wgs_fit = coxph(Surv(age, status) ~ HOXB13_carrier, wgs)
 summary(hoxb13_wgs_fit)
 hoxb13_wgs_coxph = broom::tidy(hoxb13_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
 cox.zph(hoxb13_wgs_fit)
 # hoxb13_wgs_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_carrier, wgs)
 # summary(hoxb13_wgs_fit)
 
-phs_hoxb13_wgs_fit = coxph(Surv(age, status) ~ phs + hoxb13_carrier, wgs)
+phs_hoxb13_wgs_fit = coxph(Surv(age, status) ~ phs + HOXB13_carrier, wgs)
 summary(phs_hoxb13_wgs_fit)
 phs_hoxb13_wgs_coxph = broom::tidy(phs_hoxb13_wgs_fit, exponentiate = TRUE, conf.int = TRUE)
 
 cox.zph(phs_hoxb13_wgs_fit)
 
-phs_hoxb13_wgs_inter = coxph(Surv(age, status) ~ phs * hoxb13_carrier, wgs)
+phs_hoxb13_wgs_inter = coxph(Surv(age, status) ~ phs * HOXB13_carrier, wgs)
 summary(phs_hoxb13_wgs_inter)
 phs_hoxb13_inter_coxph = broom::tidy(phs_hoxb13_wgs_inter, exponentiate = TRUE, conf.int = TRUE)
 
@@ -145,7 +145,7 @@ if (perform_bool) {
 }
 
 
-sum(wgs$hoxb13_carrier) / nrow(wgs) # 1.7%
+sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
 HR95_50 = get_hr(wgs, 
                 lower_interval = c(0.2, 0.80), # median
                 upper_interval = c(1.00-.017, 1),  # top 1.7%
@@ -170,7 +170,7 @@ write_tsv(perform, paste(model, "wgs_phs_performance_95.tsv", sep = "_"))
 # HR, C Index
 if (perform_bool) {
     get_hr_hoxb13 = function(wgs, bootstrap_iterations = 999) {
-        return_hr = function(wgs) {summary(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs))$coefficients[2]}
+        return_hr = function(wgs) {summary(coxph(Surv(age, status) ~ HOXB13_carrier, data = wgs))$coefficients[2]}
         HR = return_hr(wgs)
         boot_out = boot_conf(wgs, bootstrap_iters, return_hr)
         return(list(index = "HR", 
@@ -179,7 +179,7 @@ if (perform_bool) {
             conf.high = boot_out$quantiles[[2]], 
             iters = boot_out$iters))
     }
-    return_cindex = function(wgs) {as.numeric(coxph(Surv(age, status) ~ hoxb13_carrier, data = wgs)$concordance['concordance'])}
+    return_cindex = function(wgs) {as.numeric(coxph(Surv(age, status) ~ HOXB13_carrier, data = wgs)$concordance['concordance'])}
     get_cindex_hoxb13 = function(wgs, bootstrap_iterations = 999) {
         c_index = return_cindex(wgs)
         boot_out = boot_conf(wgs, bootstrap_iters, return_cindex)
@@ -222,8 +222,8 @@ wgs_km = plot_km_curves(wgs)
 ## Plot of HOXB13 km curve on WGS data
 # KM Curves
 km_curves = data.frame()
-noncarrier_data <- wgs[wgs$hoxb13_carrier == 0, ]
-carrier_data <- wgs[wgs$hoxb13_carrier == 1, ]
+noncarrier_data <- wgs[wgs$HOXB13_carrier == 0, ]
+carrier_data <- wgs[wgs$HOXB13_carrier == 1, ]
 mod <- survfit(Surv(age, status) ~ 1, data = noncarrier_data)
 mod_data <- data.frame(time = mod$time, n.risk = mod$n.risk, 
     n.event = mod$n.event, n.censor = mod$n.censor, estimate = mod$surv, 
@@ -420,7 +420,7 @@ saveRDS(wgs_p, paste(model, "wgs_km_curve.rds", sep = "_"))
 #####################################################################################
 # Does having a high PHS icnrease your risk of carrying a rare variant?
 #####################################################################################
-binomial_phs_hoxb13 <- glm(hoxb13_carrier ~ phs, family="binomial", data=wgs)
+binomial_phs_hoxb13 <- glm(HOXB13_carrier ~ phs, family="binomial", data=wgs)
 summary(binomial_phs_hoxb13)
 broom::tidy(binomial_phs_hoxb13, conf.int = TRUE, exponentiate = TRUE) %>%
 write_tsv(paste(model, "binomial_phs_hoxb13.tsv", sep = "_"))

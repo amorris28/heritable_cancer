@@ -188,19 +188,15 @@ saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
 ##################################################################
 # case-only local to met analysis
 combined_data %>%
-  filter(case) %>%
-  select(date_lastobs, diagnose_dato, metastasis_date, metastasis, phs) %>%
-  mutate(event_date = coalesce(metastasis_date, date_lastobs, diagnose_dato)) %>%
-  mutate(event_years = interval(diagnose_dato, event_date) / years(1)) %>%
-  select(event_years, metastasis, phs) ->
+  filter(status == 1) ->
   local_to_met_data
 
-fit = coxph(Surv(event_years, metastasis) ~ phs, data = local_to_met_data)
+fit = coxph(Surv(conversion_to_metastasis_years, metastasis) ~ phs, data = local_to_met_data)
 summary(fit)
 ##################################################################
 # case-only birth to met analysis
 combined_data %>%
-  filter(case) ->
+  filter(status == 1) ->
   birth_to_met_data
 
 fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, data = birth_to_met_data)
