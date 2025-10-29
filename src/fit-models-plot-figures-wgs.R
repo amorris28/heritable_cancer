@@ -57,9 +57,9 @@ combined_data %>%
     carriers
 
 carriers %>%
-    filter(wgs == 1) ->
+    filter(wgs == 1) %>%
     # any_carrier is 1 for people who have any of the listed RPVs
-    # mutate(any_carrier = case_when(if_any(brca2_carrier:atm_carrier, ~ .x == 1) ~ 1, .default = 0)) ->#%>%
+    mutate(any_carrier = case_when(if_any(ends_with("_carrier"), ~ .x == 1) ~ 1, .default = 0)) ->#%>%
     # all_carrier is the sum of all RPVs that each individual has (in this case, nobody has
     # more than one)
     # mutate(all_carrier = rowSums(across(brca2_carrier:atm_carrier))) ->
