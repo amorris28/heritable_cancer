@@ -161,15 +161,22 @@ decode_variants %>%
     filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
     select(bfile_id, SYMBOL) ->
     all_decode_variants
+variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
+
+for(i in variants) {
+  new <- if_else(all_decode_variants$SYMBOL == i, 1, NA)
+  all_decode_variants[ , ncol(all_decode_variants) + 1] <- new
+  colnames(all_decode_variants)[ncol(all_decode_variants)] <- i
+}
 
 all_decode_variants %>%
-  mutate(brca2_carrier = if_else(SYMBOL == "BRCA2", 1, NA)) %>%
-  mutate(hoxb13_carrier = if_else(SYMBOL == "HOXB13", 1, NA)) %>%
-  mutate(brca1_carrier = if_else(SYMBOL == "BRCA1", 1, NA)) %>%
-  mutate(mlh1_carrier = if_else(SYMBOL == "MLH1", 1, NA)) %>%
-  mutate(msh2_carrier = if_else(SYMBOL == "MSH2", 1, NA)) %>%
-  mutate(msh6_carrier = if_else(SYMBOL == "MSH6", 1, NA)) %>%
-  mutate(atm_carrier = if_else(SYMBOL == "ATM", 1, NA)) %>%
+#  mutate(brca2_carrier = if_else(SYMBOL == "BRCA2", 1, NA)) %>%
+#  mutate(hoxb13_carrier = if_else(SYMBOL == "HOXB13", 1, NA)) %>%
+#  mutate(brca1_carrier = if_else(SYMBOL == "BRCA1", 1, NA)) %>%
+#  mutate(mlh1_carrier = if_else(SYMBOL == "MLH1", 1, NA)) %>%
+#  mutate(msh2_carrier = if_else(SYMBOL == "MSH2", 1, NA)) %>%
+#  mutate(msh6_carrier = if_else(SYMBOL == "MSH6", 1, NA)) %>%
+#  mutate(atm_carrier = if_else(SYMBOL == "ATM", 1, NA)) %>%
   select(-SYMBOL) %>% 
   filter(if_any(-bfile_id, ~ !is.na(.))) ->
   brca2_hoxb13_carriers
