@@ -402,7 +402,7 @@ workflow {
   			                   file(params.r_config),
     			               file(params.r_functions),
                                file(params.incidence_script),
-                               file('data/external/ASIRs_per100k_Huynh-Le_2020.xlsx'))
+                               file(params.asir_file))
         if ( params.cluster == 'p212' ) {
             run_analysis_wgs(file(params.wgs_script),
                              phs_scores, 
@@ -420,9 +420,9 @@ workflow {
         knit_manuscript(file(params.manuscript_file),
   			            file(params.r_config),
     			        file(params.r_functions),
-                        file('manuscript/reference.docx'),
-                        file('manuscript/references.bib'),
-                        file('manuscript/_extensions'),
+                        file(params.reference_docx),
+                        file(params.bibtex_file),
+                        file(params.extensions_dir),
                         file(params.public_dir),
                         postprocess_figures.out)
     }
