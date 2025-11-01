@@ -153,8 +153,8 @@ rbind(wgs_hoxb13, wgs_phs_95) %>%
 # Stratified incidence rate figure
 ###############################################################
 
-anypca <- readRDS("data/public/p2521_phs601_stratified_incidence_agespecific.rds")
-metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_agespecific_metastatic.rds")
+anypca <- readRDS("data/public/p2521_phs601_stratified_incidence.rds")
+metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_metastatic.rds")
 anypca = anypca + labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "")
 metastatic = metastatic + labs(y = "metastatic, per 100,000", title = "")
 

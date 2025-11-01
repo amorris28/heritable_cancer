@@ -107,11 +107,15 @@ group_labels <- c(
 )
 plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
   # y_var must be "cum_risk" or "hazard"
-  y_label = "Hazard (per 100,000)"
-  if (y_var == "cum_risk") {
-    y_label = "Cumulative Incidence (Risk)"
+  if (y_var == "hazard") {
+    y_label = "Hazard (per 100,000)"
+    stratified_df[, y_var] = stratified_df[, y_var] * 1e5
+  } else if (y_var == "cum_risk") {
+    y_label = "Cumulative Incidence (% Risk)"
+    stratified_df[, y_var] = stratified_df[, y_var] * 1e2
   }
-  ggplot(stratified_df, aes(x = age, y = y_var, color = curve)) +
+  y_var = sym(y_var)
+  ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve)) +
     geom_line(linewidth = 1.2) +
     scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = group_labels) +
     labs(x = "Age", y = y_label, color = "") +
@@ -119,15 +123,15 @@ plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
     theme(aspect.ratio = 1)
 }
 # Plot stratified (figure 4)
-p_stratified_hazard_pca = plot_stratified(stratified_hazard_pca, group_labels)
-p_stratified_hazard_meta = plot_stratified(stratified_hazard_meta, group_labels)
+# p_stratified_hazard_pca = plot_stratified(stratified_hazard_pca, group_labels)
+# p_stratified_hazard_meta = plot_stratified(stratified_hazard_meta, group_labels)
 p_stratified_risk_pca = plot_stratified(stratified_risk_pca, group_labels, "cum_risk")
 p_stratified_risk_meta = plot_stratified(stratified_risk_meta, group_labels, "cum_risk")
 
-saveRDS(p_stratified_hazard_pca, paste(model, "stratified_hazard_pca.rds", sep = "_"))
-saveRDS(p_stratified_hazard_meta, paste(model, "stratified_hazard_meta.rds", sep = "_"))
-saveRDS(p_stratified_risk_pca, paste(model, "stratified_risk_pca.rds", sep = "_"))
-saveRDS(p_stratified_risk_meta, paste(model, "stratified_risk_meta.rds", sep = "_"))
+# saveRDS(p_stratified_hazard_pca, paste(model, "stratified_hazard_pca.rds", sep = "_"))
+# saveRDS(p_stratified_hazard_meta, paste(model, "stratified_hazard_meta.rds", sep = "_"))
+saveRDS(p_stratified_risk_pca, paste(model, "stratified_incidence.rds", sep = "_"))
+saveRDS(p_stratified_risk_meta, paste(model, "stratified_incidence_metastatic.rds", sep = "_"))
 
 # cumulative incidence function
 return_cohort_ci = function(cox_fit) {
@@ -148,25 +152,28 @@ plot_comparison = function(pca_risk, cohort_ci, y_var = "hazard") {
   # y_var must be either "hazard" or "cum_risk"
   if (y_var == "hazard") {
     y_cohort = "H0"
-    y_label = "Cumulative Incidence (per 100,000)"
-  } else if (y_var = "cum_risk") {
-    y_cohort = "F_cohort"
     y_label = "Hazard (per 100,000)"
+    pca_risk[, y_var] = pca_risk[, y_var] * 1e5
+    cohort_ci[, y_cohort] = cohort_ci[, y_cohort] * 1e5
+  } else if (y_var == "cum_risk") {
+    y_cohort = "F_cohort"
+    y_label = "Cumulative Incidence (% risk)"
+    pca_risk[, y_var] = pca_risk[, y_var] * 1e2
+    cohort_ci[, y_cohort] = cohort_ci[, y_cohort] * 1e2
   }
+  y_var = sym(y_var)
+  y_cohort = sym(y_cohort)
   ggplot() +
-    geom_line(aes(age, y_var), pca_risk, color = "black", linewidth = 1) +
-    geom_step(aes(age, y_cohort), cohort_ci, color = "red", linewidth = 1.1) +
+    geom_line(aes(age, !!y_var), pca_risk, color = "black", linewidth = 1) +
+    geom_step(aes(age, !!y_cohort), cohort_ci, color = "red", linewidth = 1.1) +
     labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 13) +
     theme(aspect.ratio = 1)
 }
-p_cumulative_comparison_pca = plot_comparison(pca_risk, cohort_ci_pca)
-p_cumulative_comparison_metastatic = plot_comparison(meta_risk, cohort_ci_meta)
-p_cumulative_comparison_pca_risk = plot_comparison(pca_risk, cohort_ci_pca, "cum_risk")
-p_cumulative_comparison_metastatic_risk = plot_comparison(meta_risk, cohort_ci_meta, "cum_risk")
+# p_cumulative_comparison_pca = plot_comparison(pca_risk, cohort_ci_pca)
+# p_cumulative_comparison_metastatic = plot_comparison(meta_risk, cohort_ci_meta)
+p_cumulative_comparison_pca = plot_comparison(pca_risk, cohort_ci_pca, "cum_risk")
+p_cumulative_comparison_metastatic = plot_comparison(meta_risk, cohort_ci_meta, "cum_risk")
 
 saveRDS(p_cumulative_comparison_pca, paste(model, "cumulative_comparison.rds", sep = "_"))
 saveRDS(p_cumulative_comparison_metastatic, paste(model, "cumulative_comparison_metastatic.rds", sep = "_"))
-saveRDS(p_cumulative_comparison_pca_risk, paste(model, "cumulative_comparison_risk.rds", sep = "_"))
-saveRDS(p_cumulative_comparison_metastatic_risk, paste(model, "cumulative_comparison_metastatic_risk.rds", sep = "_"))
-

@@ -201,9 +201,9 @@ process run_analysis_incidence {
 
     output:
     path "${model_file.baseName}_cumulative_comparison.rds"
-    path "${model_file.baseName}_stratified_incidence_agespecific.rds"
+    path "${model_file.baseName}_stratified_incidence.rds"
     path "${model_file.baseName}_cumulative_comparison_metastatic.rds"
-    path "${model_file.baseName}_stratified_incidence_agespecific_metastatic.rds"
+    path "${model_file.baseName}_stratified_incidence_metastatic.rds"
 
     script:
     """
