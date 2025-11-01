@@ -116,7 +116,7 @@ plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
   }
   y_var = sym(y_var)
   ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve)) +
-    geom_line(linewidth = 1.2) +
+    geom_line(linewidth = 1) +
     scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = group_labels) +
     labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 13) +
@@ -165,7 +165,7 @@ plot_comparison = function(pca_risk, cohort_ci, y_var = "hazard") {
   y_cohort = sym(y_cohort)
   ggplot() +
     geom_line(aes(age, !!y_var), pca_risk, color = "black", linewidth = 1) +
-    geom_step(aes(age, !!y_cohort), cohort_ci, color = "red", linewidth = 1.1) +
+    geom_step(aes(age, !!y_cohort), cohort_ci, color = "red", linewidth = 1) +
     labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 13) +
     theme(aspect.ratio = 1)

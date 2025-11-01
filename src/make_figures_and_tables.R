@@ -155,8 +155,12 @@ rbind(wgs_hoxb13, wgs_phs_95) %>%
 
 anypca <- readRDS("data/public/p2521_phs601_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_metastatic.rds")
-anypca = anypca + labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "")
-metastatic = metastatic + labs(y = "metastatic, per 100,000", title = "")
+anypca = anypca + 
+    labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "") +
+    geom_line(linewidth = 1)
+metastatic = metastatic + 
+    labs(y = "metastatic, per 100,000", title = "") +
+    geom_line(linewidth = 1)
 
 stratified = 
     anypca + 
@@ -166,11 +170,11 @@ stratified =
     theme(legend.position = "bottom") &
     theme(aspect.ratio=1)
 
-ggsave("figures_and_tables/stratified_incidence_agespecific.pdf", stratified,
+ggsave("figures_and_tables/stratified_incidence.pdf", stratified,
        height = 8 * 0.618, width = 8)
-ggsave("figures_and_tables/stratified_incidence_agespecific.png", stratified,
+ggsave("figures_and_tables/stratified_incidence.png", stratified,
        height = 8 * 0.618, width = 8)
-#saveRDS(stratified, here(paste0(results, paste(model, "stratified_incidence_agespecific.rds", sep = "_"))))
+#saveRDS(stratified, here(paste0(results, paste(model, "stratified_incidence.rds", sep = "_"))))
 
 
 ###############################################################

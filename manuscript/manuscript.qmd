@@ -271,7 +271,7 @@ Kaplan-Meier curves showing proportion of PCa-free participants for the whole-ge
 
 ::: {#fig-strat}
 
-![](manuscript/figures_and_tables/stratified_incidence_agespecific.pdf){width=90%}
+![](manuscript/figures_and_tables/stratified_incidence.pdf){width=90%}
 
 Predicted age-specific annualized PCa incidence rates per 100,000 individuals for the general population of Norway from the Norwegian Cancer Registry. Population baseline is for PCa cases in Norway, 2014-2017 as reported by Huynh-Le, et al. (2020). Incidence rates are stratified by the HR for the top 20% and bottom 20% of PHSes from the PHS601 model fit to the HUSK data. **(A)** PCa (any stage) and **(B)** metastatic PCa. Decline in incidence rate after age 70 in **A** is likely due to decreased screening, not a real decrease in incidence. Note the difference in y-axis range in **A** and **B**.
 
