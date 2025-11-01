@@ -47,9 +47,9 @@ return_cum_risk = function(incidence_data, response, order = 1) {
     }
     # mid-year ages
     tibble(age = seq(min(incidence$median_age) + 0.5, max(incidence$median_age) - 0.5, by = 1)) %>%
-        mutate(haz_reg = exp(predict(fit_reg, newdata = data.frame(median_age = age))),
-            annual_risk = 1 - exp(-haz_reg),
-            cum_H = cumsum(haz_reg),
+        mutate(hazard = exp(predict(fit_reg, newdata = data.frame(median_age = age))),
+            annual_risk = 1 - exp(-hazard),
+            cum_H = cumsum(hazard),
             cum_risk = 1 - exp(-cum_H)) ->
             output_df
 
@@ -62,8 +62,8 @@ cox_fit_pca <- coxph(Surv(age, status) ~ phs, data = full_data)
 cox_fit_meta <- coxph(Surv(age_of_metastasis, metastasis) ~ phs, data = full_data)
 
 # cohort data, pca_risk data
-stratify_risk = function(full_data, pca_risk, fit_cox) {
-    # Fit cox model of cohort data
+stratify_curve = function(full_data, pca_risk, fit_cox, output = "hazard") {
+    # output must be "hazard" or "cum_risk"
 
     # Get predicted hazard at each quantile
     q <- quantile(full_data$phs, probs = c(0.2, 0.5, 0.8))
@@ -72,51 +72,62 @@ stratify_risk = function(full_data, pca_risk, fit_cox) {
     HR80 <- exp(eta[3] - eta[2])
     HR20 <- exp(eta[1] - eta[2])
 
-    # stratify registry data (haz_reg) by high and low HR
+    # stratify registry data (hazard) by high and low HR
     pca_risk %>%
-        mutate(haz_reg_80 = haz_reg * HR80,
-            annual_risk_80 = 1 - exp(-haz_reg_80),
-            cum_risk_80 = 1 - exp(-cumsum(haz_reg_80))) %>%
-        mutate(haz_reg_20 = pca_risk$haz_reg * HR20,
-            annual_risk_20 = 1 - exp(-haz_reg_20),
-            cum_risk_20 = 1 - exp(-cumsum(haz_reg_20))) ->
+        mutate(hazard_80 = hazard * HR80,
+            annual_risk_80 = 1 - exp(-hazard_80),
+            cum_risk_80 = 1 - exp(-cumsum(hazard_80))) %>%
+        mutate(hazard_20 = pca_risk$hazard * HR20,
+            annual_risk_20 = 1 - exp(-hazard_20),
+            cum_risk_20 = 1 - exp(-cumsum(hazard_20))) ->
         pca_risk
+
     pca_risk %>%
-        select(age, starts_with("cum_risk")) %>%
-        pivot_longer(starts_with("cum_risk"), names_to = "curve", values_to = "cum_risk") %>%
-        mutate(curve = factor(curve, levels = c("cum_risk_80", "cum_risk", "cum_risk_20"))) ->
+        select(age, starts_with(output)) %>%
+        pivot_longer(starts_with(output), names_to = "curve", values_to = output) %>%
+        mutate(curve = factor(curve, levels = paste0(output, c("_80", "", "_20")))) ->
         stratified_df_long
     return(stratified_df_long)
 }
 
-stratified_df_pca = stratify_risk(full_data, pca_risk, cox_fit_pca)
-stratified_df_meta = stratify_risk(full_data, meta_risk, cox_fit_meta)
+stratified_hazard_pca = stratify_curve(full_data, pca_risk, cox_fit_pca)
+stratified_hazard_meta = stratify_curve(full_data, meta_risk, cox_fit_meta)
+stratified_risk_pca = stratify_curve(full_data, pca_risk, cox_fit_pca, output = "cum_risk")
+stratified_risk_meta = stratify_curve(full_data, meta_risk, cox_fit_meta, output = "cum_risk")
 
 group_labels <- c(
     cum_risk_80 = "PHS 80%",
     cum_risk = "Population baseline",
     cum_risk_20 = "PHS 20%"
 )
-
-# Plot stratified (figure 4)
-p = ggplot(stratified_df_pca, aes(x = age, y = cum_risk, color = curve)) +
+group_labels <- c(
+    "PHS 80%",
+    "Population baseline",
+    "PHS 20%"
+)
+plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
+  # y_var must be "cum_risk" or "hazard"
+  y_label = "Hazard (per 100,000)"
+  if (y_var == "cum_risk") {
+    y_label = "Cumulative Incidence (Risk)"
+  }
+  ggplot(stratified_df, aes(x = age, y = y_var, color = curve)) +
     geom_line(linewidth = 1.2) +
     scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = group_labels) +
-    labs(x = "Age", y = "Cumulative Incidence", color = "", 
-         title = "Absolute risk (cumulative incidence) by risk group") +
+    labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 13) +
     theme(aspect.ratio = 1)
-saveRDS(p, paste(model, "stratified_incidence_agespecific.rds", sep = "_"))
-
+}
 # Plot stratified (figure 4)
-p = ggplot(stratified_df_meta, aes(x = age, y = cum_risk, color = curve)) +
-    geom_line(linewidth = 1.2) +
-    scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = group_labels) +
-    labs(x = "Age", y = "Cumulative Incidence", color = "", 
-         title = "Absolute risk (cumulative incidence) by risk group") +
-    theme_classic(base_size = 13) +
-    theme(aspect.ratio = 1)
-saveRDS(p, paste(model, "stratified_incidence_agespecific_metastatic.rds", sep = "_"))
+p_stratified_hazard_pca = plot_stratified(stratified_hazard_pca, group_labels)
+p_stratified_hazard_meta = plot_stratified(stratified_hazard_meta, group_labels)
+p_stratified_risk_pca = plot_stratified(stratified_risk_pca, group_labels, "cum_risk")
+p_stratified_risk_meta = plot_stratified(stratified_risk_meta, group_labels, "cum_risk")
+
+saveRDS(p_stratified_hazard_pca, paste(model, "stratified_hazard_pca.rds", sep = "_"))
+saveRDS(p_stratified_hazard_meta, paste(model, "stratified_hazard_meta.rds", sep = "_"))
+saveRDS(p_stratified_risk_pca, paste(model, "stratified_risk_pca.rds", sep = "_"))
+saveRDS(p_stratified_risk_meta, paste(model, "stratified_risk_meta.rds", sep = "_"))
 
 # cumulative incidence function
 return_cohort_ci = function(cox_fit) {
@@ -126,24 +137,36 @@ return_cohort_ci = function(cox_fit) {
         H0    = bh$hazard,
         F_cohort = 1 - exp(-H0)    # cumulative risk by age
     )
+    return(cohort_ci)
 }
-cohort_ci_pca = return_cohort_ci(cox_fit_pca)
-p = ggplot() +
-    geom_step(aes(age, F_cohort), cohort_ci_pca, color = "red", linewidth = 1.1) +
-    geom_line(aes(age, cum_risk), pca_risk, color = "black", linewidth = 1) +
-    labs(x = "Age", y = "Cumulative Incidence (per 100,000)",
-            color = "", title = "Absolute risk (cumulative incidence) by age") +
-    theme_classic(base_size = 13) +
-    theme(aspect.ratio = 1)
-saveRDS(p, paste(model, "cumulative_comparison.rds", sep = "_"))
 
+cohort_ci_pca = return_cohort_ci(cox_fit_pca)
 cohort_ci_meta = return_cohort_ci(cox_fit_meta)
-p = ggplot() +
-    geom_step(aes(age, F_cohort), cohort_ci_meta, color = "red", linewidth = 1.1) +
-    geom_line(aes(age, cum_risk), meta_risk, color = "black", linewidth = 1) +
-    labs(x = "Age", y = "Cumulative Incidence (per 100,000)",
-            color = "", title = "Absolute risk (cumulative incidence) by age") +
+
+# Two switches: pca/meta and hazard/risk
+plot_comparison = function(pca_risk, cohort_ci, y_var = "hazard") {
+  # y_var must be either "hazard" or "cum_risk"
+  if (y_var == "hazard") {
+    y_cohort = "H0"
+    y_label = "Cumulative Incidence (per 100,000)"
+  } else if (y_var = "cum_risk") {
+    y_cohort = "F_cohort"
+    y_label = "Hazard (per 100,000)"
+  }
+  ggplot() +
+    geom_line(aes(age, y_var), pca_risk, color = "black", linewidth = 1) +
+    geom_step(aes(age, y_cohort), cohort_ci, color = "red", linewidth = 1.1) +
+    labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 13) +
     theme(aspect.ratio = 1)
-saveRDS(p, paste(model, "cumulative_comparison_metastatic.rds", sep = "_"))
+}
+p_cumulative_comparison_pca = plot_comparison(pca_risk, cohort_ci_pca)
+p_cumulative_comparison_metastatic = plot_comparison(meta_risk, cohort_ci_meta)
+p_cumulative_comparison_pca_risk = plot_comparison(pca_risk, cohort_ci_pca, "cum_risk")
+p_cumulative_comparison_metastatic_risk = plot_comparison(meta_risk, cohort_ci_meta, "cum_risk")
+
+saveRDS(p_cumulative_comparison_pca, paste(model, "cumulative_comparison.rds", sep = "_"))
+saveRDS(p_cumulative_comparison_metastatic, paste(model, "cumulative_comparison_metastatic.rds", sep = "_"))
+saveRDS(p_cumulative_comparison_pca_risk, paste(model, "cumulative_comparison_risk.rds", sep = "_"))
+saveRDS(p_cumulative_comparison_metastatic_risk, paste(model, "cumulative_comparison_metastatic_risk.rds", sep = "_"))
 

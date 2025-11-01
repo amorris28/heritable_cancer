@@ -112,7 +112,8 @@ get_performance_metrics = function(combined_data, bootstrap_iters, model, age = 
   return(perform)
 }
 
-plot_km_curves = function(combined_data, age = "age", status = "status") {
+plot_km_curves = function(combined_data, age = "age", status = "status", style = "surv") {
+  # Style must be one of "surv" or "risk"
   curves = data.frame(curve0_20   = c(0,   0.2),
                       curve20_80  = c(0.2, 0.8),
                       curve80_100 = c(0.8, 1.0))
@@ -136,7 +137,13 @@ plot_km_curves = function(combined_data, age = "age", status = "status") {
     curven$label = label_generator(curves[1, i], curves[2, i])
     km_curves = rbind(km_curves, curven)
   }
-
+  yaxis = "Disease-free Survival"
+  if (style == "risk") {
+    km_curves %>%
+      mutate(estimate = -estimate) ->
+      km_curves
+    yaxis = "Cumulative incidence (risk)"
+  }
 
   ggplot(km_curves, aes(x = time,
                         y = estimate,
@@ -150,7 +157,7 @@ plot_km_curves = function(combined_data, age = "age", status = "status") {
     theme_classic() +
     xlim(40, 100) +
     ylim(0, 1) +
-    labs(x = "Age", y = "Disease-free Survival") +
+    labs(x = "Age", y = yaxis) +
     scale_color_brewer(palette = "Set1", direction = -1,
                       name = "PHS Centile") +
     scale_fill_brewer(palette = "Set1", direction = -1,

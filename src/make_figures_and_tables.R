@@ -155,8 +155,8 @@ rbind(wgs_hoxb13, wgs_phs_95) %>%
 
 anypca <- readRDS("data/public/p2521_phs601_stratified_incidence_agespecific.rds")
 metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_agespecific_metastatic.rds")
-anypca = anypca + labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000")
-metastatic = metastatic + labs(y = "metastatic, per 100,000")
+anypca = anypca + labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "")
+metastatic = metastatic + labs(y = "metastatic, per 100,000", title = "")
 
 stratified = 
     anypca + 
@@ -182,10 +182,15 @@ p2521_metastatic <- readRDS("data/public/p2521_phs601_cumulative_comparison_meta
 p212_anypca <- readRDS("data/public/p212_phs601_cumulative_comparison.rds")
 p212_metastatic <- readRDS("data/public/p212_phs601_cumulative_comparison_metastatic.rds")
 
-p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
-p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
-p2521_metastatic = p2521_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)")
-p212_metastatic = p212_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)")
+p2521_anypca = p2521_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)", title = "")
+p212_anypca = p212_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)", title = "")
+p2521_metastatic = p2521_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)", title = "")
+p212_metastatic = p212_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)", title = "")
+# p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
+# p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
+# p2521_metastatic = p2521_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)")
+# p212_metastatic = p212_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)")
+
 
 comparison = 
     p2521_anypca + 

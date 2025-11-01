@@ -111,6 +111,7 @@ if (perform_bool) {
 
 # Plot KM Curves
 any_pca_km_curve = plot_km_curves(combined_data)
+any_pca_inc_curve = plot_km_curves(combined_data, style = "risk")
 
 # Time to metastatic diseaes
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
@@ -124,7 +125,8 @@ if (perform_bool) {
 
 # KM Curves for metastatic disease
 metastatic_km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
-metastatic_km_curve = metastatic_km_curve + lims(y = c(0.80, 1.0))
+metastatic_inc_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis", style = "risk")
+#metastatic_km_curve = metastatic_km_curve + lims(y = c(0.80, 1.0))
 
 
 # Gather sample sizes
@@ -170,17 +172,10 @@ write_tsv(sample_size, paste(model, "sample_size.tsv", sep = "_"))
 write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
 
 
-# ggsave(name_output(results, "km_curve.pdf"), km_curve,
-#        height = 6 * 0.618, width = 6)
-# ggsave(name_output(results, "km_curve.png"), km_curve,
-#        height = 6 * 0.618, width = 6)
 saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
-
-# ggsave(name_output(results, "km_curve_metastatic.pdf"), km_curve,
-#        height = 6 * 0.618, width = 6)
-# ggsave(name_output(results, "km_curve_metastatic.png"), km_curve,
-#        height = 6 * 0.618, width = 6)
 saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
+saveRDS(any_pca_inc_curve, paste(model, "any_pca_inc_curve.rds", sep = "_"))
+saveRDS(metastatic_inc_curve, paste(model, "metastatic_inc_curve.rds", sep = "_"))
 
 
 
