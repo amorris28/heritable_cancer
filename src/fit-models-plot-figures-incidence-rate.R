@@ -1,6 +1,7 @@
 library(tidyverse)
 library(readxl)
 library(survival)
+library(hazrd)
 
 source("src/config.R")
 source("src/functions.R")
@@ -64,20 +65,28 @@ cox_fit_meta <- coxph(Surv(age_of_metastasis, metastasis) ~ phs, data = full_dat
 # cohort data, pca_risk data
 stratify_curve = function(full_data, pca_risk, fit_cox, output = "hazard") {
     # output must be "hazard" or "cum_risk"
+    HR80_50 = get_hr(full_data, 
+                    upper_interval = c(0.8, 1.0),  # 80
+                    lower_interval = c(0.2, 0.80), # 50
+                    CI = FALSE)$value
+    HR20_50 = get_hr(full_data, 
+                    upper_interval = c(0.0, 0.2),  # 80
+                    lower_interval = c(0.2, 0.80), # 50
+                    CI = FALSE)$value
 
-    # Get predicted hazard at each quantile
-    q <- quantile(full_data$phs, probs = c(0.2, 0.5, 0.8))
-    eta <- predict(fit_cox, newdata = data.frame(phs = q), type = "lp")
-    # HR between top20/bottom20 and median
-    HR80 <- exp(eta[3] - eta[2])
-    HR20 <- exp(eta[1] - eta[2])
+    # # Get predicted hazard at each quantile
+    # q <- quantile(full_data$phs, probs = c(0.2, 0.5, 0.8))
+    # eta <- predict(fit_cox, newdata = data.frame(phs = q), type = "lp")
+    # # HR between top20/bottom20 and median
+    # HR80 <- exp(eta[3] - eta[2])
+    # HR20 <- exp(eta[1] - eta[2])
 
     # stratify registry data (hazard) by high and low HR
     pca_risk %>%
-        mutate(hazard_80 = hazard * HR80,
+        mutate(hazard_80 = hazard * HR80_50,
             annual_risk_80 = 1 - exp(-hazard_80),
             cum_risk_80 = 1 - exp(-cumsum(hazard_80))) %>%
-        mutate(hazard_20 = pca_risk$hazard * HR20,
+        mutate(hazard_20 = pca_risk$hazard * HR20_50,
             annual_risk_20 = 1 - exp(-hazard_20),
             cum_risk_20 = 1 - exp(-cumsum(hazard_20))) ->
         pca_risk
@@ -111,7 +120,7 @@ plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
     y_label = "Hazard (per 100,000)"
     stratified_df[, y_var] = stratified_df[, y_var] * 1e5
   } else if (y_var == "cum_risk") {
-    y_label = "Cumulative Incidence (% Risk)"
+    y_label = "Cumulative incidence, %\n(Absolute risk)"
     stratified_df[, y_var] = stratified_df[, y_var] * 1e2
   }
   y_var = sym(y_var)

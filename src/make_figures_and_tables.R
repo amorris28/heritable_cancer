@@ -31,16 +31,19 @@ wgs_results = readr::read_tsv("data/public/p212_PHS601_wgs.tsv")
 # PHS K-M Curve Figure for Any-PCa
 ###############################################################
 
-p212 <- readRDS("data/public/p212_phs601_any_pca_km_curve.rds")
-p2521 <- readRDS("data/public/p2521_phs601_any_pca_km_curve.rds")
-p212 = p212 + labs(y = "Proportion cancer-free, any stage (NFCS)")
-p2521 = p2521 + labs(y = "Proportion cancer-free, any stage (HUSK)")
+p212 <- readRDS("data/public/p212_phs601_any_pca_inc_curve.rds")
+p2521 <- readRDS("data/public/p2521_phs601_any_pca_inc_curve.rds")
+# p212 = p212 + 
+#     labs(y = "Proportion cancer-free, any stage (NFCS)") +
+    #   lims(y = c(0.25, 1))
+# p2521 = p2521 + 
+#     labs(y = "Proportion cancer-free, any stage (HUSK)") +
+    #   lims(y = c(0.25, 1))
 any_pca = p2521 +
     p212 +
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
-    theme(legend.position = "bottom") &
-    lims(y = c(0.25, 1))
+    theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/km_curve.pdf", any_pca,
        height = 8 * 0.618, width = 8)
@@ -81,16 +84,17 @@ write_tsv(table_1, "figures_and_tables/table_1.tsv")
 ###############################################################
 # PHS K-M Curve Figure for Meta-PCa
 ###############################################################
-p212 <- readRDS("data/public/p212_phs601_metastatic_km_curve.rds")
-p2521 <- readRDS("data/public/p2521_phs601_metastatic_km_curve.rds")
-p212 = p212 + labs(y = "Proportion cancer-free, metastatic (NFCS)")
-p2521 = p2521 + labs(y = "Proportion cancer-free, metastatic (HUSK)")
+p212 <- readRDS("data/public/p212_phs601_metastatic_inc_curve.rds")
+p2521 <- readRDS("data/public/p2521_phs601_metastatic_inc_curve.rds")
+# p212 = p212 + labs(y = "Proportion cancer-free, metastatic (NFCS)") +
+#     lims(y = c(0.80, 1.0))
+# p2521 = p2521 + labs(y = "Proportion cancer-free, metastatic (HUSK)") +
+#     lims(y = c(0.80, 1.0))
 metastatic = p2521 + 
     p212 +
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
-    theme(legend.position = "bottom") &
-    lims(y = c(0.80, 1.0))
+    theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/metastatic_km_curve.pdf", metastatic,
            height = 8 * 0.618, width = 8)
@@ -155,10 +159,12 @@ rbind(wgs_hoxb13, wgs_phs_95) %>%
 
 anypca <- readRDS("data/public/p2521_phs601_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_metastatic.rds")
-# anypca = anypca + 
-#     labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "")
-# metastatic = metastatic + 
-#     labs(y = "metastatic, per 100,000", title = "")
+anypca = anypca + 
+    labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
+    lims(x = c(40, 90), y = c(0, 40))
+metastatic = metastatic + 
+    labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
+    lims(x = c(40, 90), y = c(0, 8))
 
 stratified = 
     anypca + 
@@ -184,10 +190,18 @@ p2521_metastatic <- readRDS("data/public/p2521_phs601_cumulative_comparison_meta
 p212_anypca <- readRDS("data/public/p212_phs601_cumulative_comparison.rds")
 p212_metastatic <- readRDS("data/public/p212_phs601_cumulative_comparison_metastatic.rds")
 
-# p2521_anypca = p2521_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)", title = "")
-# p212_anypca = p212_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)", title = "")
-# p2521_metastatic = p2521_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)", title = "")
-# p212_metastatic = p212_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)", title = "")
+p2521_anypca = p2521_anypca + 
+    labs(y = "Cumulative incidence,\nany stage, % (HUSK)", title = "") +
+    lims(x = c(40, 90), y = c(0, 30))
+p212_anypca = p212_anypca + 
+    labs(y = "Cumulative incidence,\nany stage, % (NFCS)", title = "") +
+    lims(x = c(40, 90), y = c(0, 30))
+p2521_metastatic = p2521_metastatic + 
+    labs(y = "Cumulative incidence,\nmetastatic, % (HUSK)", title = "") +
+    lims(x = c(40, 90), y = c(0, 6))
+p212_metastatic = p212_metastatic + 
+    labs(y = "Cumulative incidence,\nmetastatic, % (NFCS)", title = "") +
+    lims(x = c(40, 90), y = c(0, 6))
 # p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
 # p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
 # p2521_metastatic = p2521_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)")

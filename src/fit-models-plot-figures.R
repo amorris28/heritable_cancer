@@ -153,7 +153,6 @@ sample_size = tibble(group = c("any_pca", "metastatic"),
        cases = c(any_pca_sample_size_cases, metastatic_sample_size_cases),
        controls = c(any_pca_sample_size_controls, metastatic_sample_size_controls))
 
-
 # Combine Coxph results
 any_pca_coxph$model = "any_pca"
 metastatic_coxph$model = "metastatic"
@@ -171,14 +170,10 @@ write_tsv(metastatic_perform, paste(model, "metastatic_performance.tsv", sep = "
 write_tsv(sample_size, paste(model, "sample_size.tsv", sep = "_"))
 write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
 
-
 saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
 saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
 saveRDS(any_pca_inc_curve, paste(model, "any_pca_inc_curve.rds", sep = "_"))
 saveRDS(metastatic_inc_curve, paste(model, "metastatic_inc_curve.rds", sep = "_"))
-
-
-
 
 ##################################################################
 # case-only local to met analysis
@@ -196,4 +191,3 @@ combined_data %>%
 
 fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, data = birth_to_met_data)
 summary(fit)
-

@@ -213,6 +213,7 @@ if (perform_bool) {
 
 # KM Curves
 wgs_km = plot_km_curves(wgs)
+wgs_inc = plot_km_curves(wgs, style = "risk")
 
 # ggsave(paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.png", sep = "_")), wgs_km,
 #        height = 6 * 0.618, width = 6)
@@ -242,6 +243,16 @@ curven = select(mod_data, time, estimate, conf.low,
     conf.high, cumhaz)
 curven$label = "carrier"
 km_curves = rbind(km_curves, curven)
+yaxis = "Disease-free Survival"
+ylims = c(0, 1)
+
+km_curves %>%
+    mutate(estimate = (1 - estimate) * 100,
+            conf.high = (1 - conf.high) * 100,
+            conf.low = (1 - conf.low) * 100) ->
+    km_curves
+yaxis = "Cumulative incidence, %\n(Absolute risk)"
+ylims = c(0, 100)
 
 color_set = RColorBrewer::brewer.pal(9, "Set1")
 hoxb13_p = ggplot(km_curves, aes(x = time,
@@ -254,9 +265,8 @@ hoxb13_p = ggplot(km_curves, aes(x = time,
                 color = 0) +
     geom_step() +
     theme_classic() +
-    xlim(40, 100) + 
-    ylim(0, 1) +
-    labs(x = "Age", y = "Disease-free Survival") +
+    lims(x = c(40, 100), y = ylims) +
+    labs(x = "Age", y = yaxis) +
     scale_color_manual(values = c(color_set[5], color_set[2]),
                         name = "HOXB13 Carrier") +
     scale_fill_manual(values = c(color_set[5], color_set[2]),
@@ -309,7 +319,8 @@ hoxb13_p = ggplot(km_curves, aes(x = time,
 #       theme(legend.position = "bottom") 
 
 wgs_p = 
-    wgs_km +
+    # wgs_km +
+    wgs_inc +
     hoxb13_p + 
     plot_annotation(tag_levels = 'A') &
     theme(legend.position = "bottom") 

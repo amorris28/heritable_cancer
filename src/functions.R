@@ -137,15 +137,26 @@ plot_km_curves = function(combined_data, age = "age", status = "status", style =
     curven$label = label_generator(curves[1, i], curves[2, i])
     km_curves = rbind(km_curves, curven)
   }
+  cutoff_data <- km_curves %>%
+    group_by(label) %>%
+    filter(estimate == min(estimate)) %>%
+    summarise(cutoff_time = min(time)) %>%
+    right_join(km_curves, by = "label") %>%
+    filter(time <= cutoff_time)
   yaxis = "Disease-free Survival"
+  ylims = c(0, 1)
   if (style == "risk") {
-    km_curves %>%
-      mutate(estimate = -estimate) ->
-      km_curves
-    yaxis = "Cumulative incidence (risk)"
+    cutoff_data %>%
+      mutate(estimate = (1 - estimate) * 100,
+             conf.high = (1 - conf.high) * 100,
+             conf.low = (1 - conf.low) * 100) ->
+      cutoff_data
+    yaxis = "Cumulative incidence, %\n(Absolute risk)"
+    ylims = c(0, 100)
   }
 
-  ggplot(km_curves, aes(x = time,
+
+  ggplot(cutoff_data, aes(x = time,
                         y = estimate,
                         ymin = conf.low,
                         ymax = conf.high,
@@ -154,9 +165,8 @@ plot_km_curves = function(combined_data, age = "age", status = "status", style =
     geom_ribbon(alpha = 0.1,
                 color = 0) +
     geom_step() +
-    theme_classic() +
-    xlim(40, 100) +
-    ylim(0, 1) +
+    theme_classic(base_size = 12) +
+    lims(x = c(40, 100), y = ylims) +
     labs(x = "Age", y = yaxis) +
     scale_color_brewer(palette = "Set1", direction = -1,
                       name = "PHS Centile") +

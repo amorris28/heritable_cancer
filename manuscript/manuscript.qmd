@@ -293,7 +293,7 @@ table_1 %>%
 
 ![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
 
-Comparison of the cumulative PCa incidence rate for the cohort data to the data for all of Norway from the Norwegian Cancer Registry. The red line is the cumulative incidence data from the cohort data. The black line is the predicted annualized incidence rate for PCa cases in Norway, 2014-2017 as reported by Huynh-Le, et al. (2020). **(A,C)** HUSK cohort, **(B,D)** NFCS cohort, **(A,B)** incidence rate for PCa (any stage) and **(C,D)** incidence rate for metastatic PCa.
+Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** illustrate the incidence rates for PCa (any stage) in the HUSK and NFCS cohorts, respectively, whereas panels **(C)** and **(D)** show the incidence rates for metastatic PCa in the same cohorts.
 
 :::
 
