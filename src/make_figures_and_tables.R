@@ -155,20 +155,18 @@ rbind(wgs_hoxb13, wgs_phs_95) %>%
 
 anypca <- readRDS("data/public/p2521_phs601_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_metastatic.rds")
-anypca = anypca + 
-    labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "") +
-    geom_line(linewidth = 1)
-metastatic = metastatic + 
-    labs(y = "metastatic, per 100,000", title = "") +
-    geom_line(linewidth = 1)
+# anypca = anypca + 
+#     labs(y = "Predicted age-specific annualized\nincidence rate, any stage, per 100,000", title = "")
+# metastatic = metastatic + 
+#     labs(y = "metastatic, per 100,000", title = "")
 
 stratified = 
     anypca + 
     metastatic +
     plot_annotation(tag_levels = 'A') +
     plot_layout(guides='collect') &
-    theme(legend.position = "bottom") &
-    theme(aspect.ratio=1)
+    theme(legend.position = "bottom") #&
+    # theme(aspect.ratio=1)
 
 ggsave("figures_and_tables/stratified_incidence.pdf", stratified,
        height = 8 * 0.618, width = 8)
@@ -186,10 +184,10 @@ p2521_metastatic <- readRDS("data/public/p2521_phs601_cumulative_comparison_meta
 p212_anypca <- readRDS("data/public/p212_phs601_cumulative_comparison.rds")
 p212_metastatic <- readRDS("data/public/p212_phs601_cumulative_comparison_metastatic.rds")
 
-p2521_anypca = p2521_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)", title = "")
-p212_anypca = p212_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)", title = "")
-p2521_metastatic = p2521_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)", title = "")
-p212_metastatic = p212_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)", title = "")
+# p2521_anypca = p2521_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)", title = "")
+# p212_anypca = p212_anypca + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)", title = "")
+# p2521_metastatic = p2521_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)", title = "")
+# p212_metastatic = p212_metastatic + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (NFCS)", title = "")
 # p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
 # p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
 # p2521_metastatic = p2521_metastatic + lims(y = c(0, 6500)) + labs(y = "Cumulative PCa incidence rate,\nmetastatic, per 100,000 (HUSK)")
@@ -201,13 +199,12 @@ comparison =
     p212_anypca +
     p2521_metastatic +
     p212_metastatic +
-    plot_annotation(tag_levels = 'A') &
-    theme(aspect.ratio=1)
+    plot_annotation(tag_levels = 'A')
 
 ggsave("figures_and_tables/cumulative_comparison.pdf", comparison,
-       height = 12 * 0.618, width = 8)
+       height = 8, width = 8)
 ggsave("figures_and_tables/cumulative_comparison.png", comparison,
-       height = 12 * 0.618, width = 8)
+       height = 8, width = 8)
 #saveRDS(comparison, here(paste0(results, paste(model, "cumulative_comparison.rds", sep = "_"))))
 #knitr::include_graphics(here("data/results/PHS601_cumulative_comparison.png"))
 
