@@ -172,8 +172,8 @@ write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
 
 saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
 saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
-saveRDS(any_pca_inc_curve, paste(model, "any_pca_inc_curve.rds", sep = "_"))
-saveRDS(metastatic_inc_curve, paste(model, "metastatic_inc_curve.rds", sep = "_"))
+saveRDS(any_pca_inc_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
+saveRDS(metastatic_inc_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
 
 ##################################################################
 # case-only local to met analysis

@@ -31,8 +31,8 @@ wgs_results = readr::read_tsv("data/public/p212_PHS601_wgs.tsv")
 # PHS K-M Curve Figure for Any-PCa
 ###############################################################
 
-p212 <- readRDS("data/public/p212_phs601_any_pca_inc_curve.rds")
-p2521 <- readRDS("data/public/p2521_phs601_any_pca_inc_curve.rds")
+p212 <- readRDS("data/public/p212_phs601_any_pca_km_curve.rds")
+p2521 <- readRDS("data/public/p2521_phs601_any_pca_km_curve.rds")
 # p212 = p212 + 
 #     labs(y = "Proportion cancer-free, any stage (NFCS)") +
     #   lims(y = c(0.25, 1))
