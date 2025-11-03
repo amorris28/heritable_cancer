@@ -168,7 +168,8 @@ write_tsv(perform, paste(model, "wgs_phs_performance_95.tsv", sep = "_"))
 #################################################################################
 # Performance metrics, HOXB13
 # HR, C Index
-if (perform_bool) {
+#if (perform_bool) {
+if (FALSE) {
     get_hr_hoxb13 = function(wgs, bootstrap_iterations = 999) {
         return_hr = function(wgs) {summary(coxph(Surv(age, status) ~ HOXB13_carrier, data = wgs))$coefficients[2]}
         HR = return_hr(wgs)

@@ -229,7 +229,7 @@ process run_analysis_wgs {
     path "${model_file.baseName}_fisher.tsv"
     path "${model_file.baseName}_wgs_phs_performance.tsv"
     path "${model_file.baseName}_wgs_phs_performance_95.tsv"
-    path "${model_file.baseName}_wgs_hoxb13_performance.tsv"
+    //path "${model_file.baseName}_wgs_hoxb13_performance.tsv"
     path "${model_file.baseName}_binomial_phs_hoxb13.tsv"
     path "${model_file.baseName}_wgs.tsv"
     path "${model_file.baseName}_wgs_km_curve.rds"
