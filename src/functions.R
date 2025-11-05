@@ -144,19 +144,20 @@ plot_km_curves = function(combined_data, age = "age", status = "status", style =
   #   right_join(km_curves, by = "label") %>%
   #   filter(time <= cutoff_time)
   yaxis = "Disease-free Survival"
-  ylims = c(0, 1)
+  # ylims = c(0, 1)
   if (style == "risk") {
-    cutoff_data %>%
+    # cutoff_data %>%
+    km_curves %>%
       mutate(estimate = (1 - estimate) * 100,
              conf.high = (1 - conf.high) * 100,
              conf.low = (1 - conf.low) * 100) ->
-      cutoff_data
+      km_curves
     yaxis = "Cumulative incidence, %\n(Absolute risk)"
-    ylims = c(0, 100)
+    # ylims = c(0, 100)
   }
 
 
-  ggplot(cutoff_data, aes(x = time,
+  ggplot(km_curves, aes(x = time,
                         y = estimate,
                         ymin = conf.low,
                         ymax = conf.high,
