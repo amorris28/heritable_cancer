@@ -137,12 +137,12 @@ plot_km_curves = function(combined_data, age = "age", status = "status", style =
     curven$label = label_generator(curves[1, i], curves[2, i])
     km_curves = rbind(km_curves, curven)
   }
-  cutoff_data <- km_curves %>%
-    group_by(label) %>%
-    filter(estimate == min(estimate)) %>%
-    summarise(cutoff_time = min(time)) %>%
-    right_join(km_curves, by = "label") %>%
-    filter(time <= cutoff_time)
+  # cutoff_data <- km_curves %>%
+  #   group_by(label) %>%
+  #   filter(estimate == min(estimate)) %>%
+  #   summarise(cutoff_time = min(time)) %>%
+  #   right_join(km_curves, by = "label") %>%
+  #   filter(time <= cutoff_time)
   yaxis = "Disease-free Survival"
   ylims = c(0, 1)
   if (style == "risk") {

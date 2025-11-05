@@ -7,8 +7,8 @@ source("src/config.R")
 source("src/functions.R")
 
 # Import results
-p2521 = readr::read_tsv("data/public/p2521_any_pca_performance.tsv")
-p212 = readr::read_tsv("data/public/p212_any_pca_performance.tsv")
+p2521_perform = readr::read_tsv("data/public/p2521_any_pca_performance.tsv")
+p212_perform = readr::read_tsv("data/public/p212_any_pca_performance.tsv")
 p2521_meta = readr::read_tsv("data/public/p2521_metastatic_performance.tsv")
 p212_meta = readr::read_tsv("data/public/p212_metastatic_performance.tsv")
 
@@ -22,7 +22,7 @@ wgs_summary = readr::read_tsv("data/public/p212_wgs_summary.tsv")
 fisher = readr::read_tsv("data/public/p212_fisher.tsv")
 wgs_phs = readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
 wgs_phs_95 = readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
-wgs_hoxb13 = readr::read_tsv("data/public/p212_wgs_hoxb13_performance.tsv")
+#wgs_hoxb13 = readr::read_tsv("data/public/p212_wgs_hoxb13_performance.tsv")
 binomial_phs_hoxb13 = readr::read_tsv("data/public/p212_binomial_phs_hoxb13.tsv")
 wgs_results = readr::read_tsv("data/public/p212_wgs.tsv")
 
@@ -54,10 +54,10 @@ ggsave("figures_and_tables/km_curve.png", any_pca,
 ###############################################################
 p2521_sample_size$cohort = "HUSK"
 p212_sample_size$cohort = "NFCS"
-p2521$cohort = "HUSK"
-p2521$PCa = "Any"
-p212$cohort = "NFCS"
-p212$PCa = "Any"
+p2521_perform$cohort = "HUSK"
+p2521_perform$PCa = "Any"
+p212_perform$cohort = "NFCS"
+p212_perform$PCa = "Any"
 p2521_meta$cohort = "HUSK"
 p2521_meta$PCa = "Meta"
 p212_meta$cohort = "NFCS"
@@ -68,7 +68,7 @@ p2521_sample_size %>%
     mutate(PCa = if_else(group == "any_pca", "Any", if_else(group == "metastatic", "Meta", NA))) ->
     sample_size
 
-rbind(p2521, p212, p2521_meta, p212_meta) %>%
+rbind(p2521_perform, p212_perform, p2521_meta, p212_meta) %>%
     filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
     mutate(value = sprintf("%.2f (%.2f,%.2f)", value, conf.low, conf.high)) %>%
     select(-conf.low, -conf.high) %>%
@@ -135,19 +135,19 @@ ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
 # WGS HOXB13 Table
 ###############################################################
 
-# rbind(p2521, p212, p2521_meta, p212_meta) %>%
-wgs_hoxb13$model = "hoxb13"
-wgs_phs_95$model = "phs"
-# options(knitr.kable.NA = '-')
-rbind(wgs_hoxb13, wgs_phs_95) %>%
-    filter(index %in% c("HR", "C_Index")) %>%
-    mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
-    select(-conf.low, -conf.high) %>%
-    pivot_wider(names_from = "index", values_from = "value") %>%
-    select(model, HR, C_Index) %>%
-    arrange(desc(model)) ->
-    table_2
-#write_tsv(table_2, "table_2.tsv")
+# # rbind(p2521, p212, p2521_meta, p212_meta) %>%
+# wgs_hoxb13$model = "hoxb13"
+# wgs_phs_95$model = "phs"
+# # options(knitr.kable.NA = '-')
+# rbind(wgs_hoxb13, wgs_phs_95) %>%
+#     filter(index %in% c("HR", "C_Index")) %>%
+#     mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
+#     select(-conf.low, -conf.high) %>%
+#     pivot_wider(names_from = "index", values_from = "value") %>%
+#     select(model, HR, C_Index) %>%
+#     arrange(desc(model)) ->
+#     table_2
+# #write_tsv(table_2, "table_2.tsv")
 
 
 ###############################################################
@@ -158,10 +158,12 @@ anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca = anypca + 
     labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
-    lims(x = c(40, 90), y = c(0, 100))
+    lims(x = c(40, 90))
+#    lims(x = c(40, 90), y = c(0, 100))
 metastatic = metastatic + 
     labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
-    lims(x = c(40, 90), y = c(0, 20))
+    lims(x = c(40, 90))
+#    lims(x = c(40, 90), y = c(0, 20))
 
 stratified = 
     anypca + 

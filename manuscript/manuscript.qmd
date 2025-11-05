@@ -93,27 +93,27 @@ model = "PHS601"
 
 ```{r import}
 
-p2521_PHS601 = readr::read_tsv("data/public/p2521_phs601_any_pca_performance.tsv")
-p212_PHS601 = readr::read_tsv("data/public/p212_phs601_any_pca_performance.tsv")
-p2521_PHS601_meta = readr::read_tsv("data/public/p2521_phs601_metastatic_performance.tsv")
-p212_PHS601_meta = readr::read_tsv("data/public/p212_phs601_metastatic_performance.tsv")
+p2521 = readr::read_tsv("data/public/p2521_any_pca_performance.tsv")
+p212 = readr::read_tsv("data/public/p212_any_pca_performance.tsv")
+p2521_meta = readr::read_tsv("data/public/p2521_metastatic_performance.tsv")
+p212_meta = readr::read_tsv("data/public/p212_metastatic_performance.tsv")
 
-p212_zph = readr::read_tsv("data/public/p212_phs601_phs_zph_tidy.tsv")
-p2521_zph = readr::read_tsv("data/public/p2521_phs601_phs_zph_tidy.tsv")
-p2521_sample_size = readr::read_tsv("data/public/p2521_phs601_sample_size.tsv")
-p212_sample_size = readr::read_tsv("data/public/p212_phs601_sample_size.tsv")
+p212_zph = readr::read_tsv("data/public/p212_phs_zph_tidy.tsv")
+p2521_zph = readr::read_tsv("data/public/p2521_phs_zph_tidy.tsv")
+p2521_sample_size = readr::read_tsv("data/public/p2521_sample_size.tsv")
+p212_sample_size = readr::read_tsv("data/public/p212_sample_size.tsv")
 
-p212_coxph_results = readr::read_tsv("data/public/p212_phs601_coxph.tsv")
-p2521_coxph_results = readr::read_tsv("data/public/p2521_phs601_coxph.tsv")
-wgs_summary = readr::read_tsv("data/public/p212_phs601_wgs_summary.tsv")
-fisher = readr::read_tsv("data/public/p212_phs601_fisher.tsv")
+p212_coxph_results = readr::read_tsv("data/public/p212_coxph.tsv")
+p2521_coxph_results = readr::read_tsv("data/public/p2521_coxph.tsv")
+wgs_summary = readr::read_tsv("data/public/p212_wgs_summary.tsv")
+fisher = readr::read_tsv("data/public/p212_fisher.tsv")
 
-wgs_phs = readr::read_tsv("data/public/p212_phs601_wgs_phs_performance.tsv")
-wgs_phs_95 = readr::read_tsv("data/public/p212_phs601_wgs_phs_performance_95.tsv")
-wgs_hoxb13 = readr::read_tsv("data/public/p212_phs601_wgs_hoxb13_performance.tsv")
-binomial_phs_hoxb13 = readr::read_tsv("data/public/p212_phs601_binomial_phs_hoxb13.tsv")
+wgs_phs = readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
+wgs_phs_95 = readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
+#wgs_hoxb13 = readr::read_tsv("data/public/p212_wgs_hoxb13_performance.tsv")
+binomial_phs_hoxb13 = readr::read_tsv("data/public/p212_binomial_phs_hoxb13.tsv")
 
-wgs_results = readr::read_tsv("data/public/p212_phs601_wgs.tsv")
+wgs_results = readr::read_tsv("data/public/p212_wgs.tsv")
 
 ```
 
@@ -181,7 +181,7 @@ All Cox models were evaluated for the proportional hazards assumption using the 
 
 ## PHS601 strongly stratified PCa risk in two Norwegian cohorts
 
-PHS601 strongly stratified PCa risk in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases,  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`). Individuals in the top quintile of PHS had over `{r} floor(p2521_PHS601[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521_PHS601[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521_PHS601[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521_PHS601[2, 5], 2))`\]) and `{r} (round(p2521_PHS601[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521_PHS601[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521_PHS601[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521_PHS601[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases, `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`), with HR~80/20~ = `{r} sprintf("%.2f", round(p212_PHS601[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212_PHS601[2, 4], 2))`, `{r} sprintf("%.2f", round(p212_PHS601[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212_PHS601[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212_PHS601[4, 4], 2))`, `{r} sprintf("%.2f", round(p212_PHS601[4, 5], 2))`\]; @{fig-phs}B).
+PHS601 strongly stratified PCa risk in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases,  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} (round(p2521[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases, `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
 
 In both cohorts, proportional hazards tests and plots of weighted residuals revealed a negative trend in hazards ratio with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`) indicating that the effect of PHS diminished with age. To model this, we fit an extended Cox model with a linear time-dependent PHS term (intercept at age 40). At age 40, each SD increase in PHS was associated with a `{r} sprintf("%.1f", round(p2521_coxph_results[3, "estimate"], 1))`-fold (HUSK: HR = `{r} sprintf("%.2f", round(p2521_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[3, "p.value"]])`) and `{r} sprintf("%.1f", round(p212_coxph_results[3, "estimate"], 0))`-fold (NFCS: HR = `{r} sprintf("%.2f", round(p212_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[3, "p.value"]])`) higher risk, declining by approximately `r round(1 - p2521_coxph_results[4, "estimate"], 3) * 100`\% and `r round(1 - p212_coxph_results[4, "estimate"], 3) * 100`\% per year, respectively (both p < 0.01). However, the time-varying effects were weak and residual plots showed high variability, so we present the simpler proportional hazards models in the main results and figures.
 
@@ -189,7 +189,7 @@ Together, these results confirm that PHS601 effectively stratifies PCa risk in b
 
 ## PHS601 was associated with metastatic PCa in Norwegian cohorts
 
-In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with metastatic disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` metastatic cases, `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[2, "p.value"]])`; @{tbl-1}). Individuals in the top quintile of PHS had `{r} floor(p2521_PHS601_meta[2, 3])`-fold greater risk of metastatic disease than individuals in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521_PHS601_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_PHS601_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521_PHS601_meta[2, 5], 2))`\]) and `{r} (round(p2521_PHS601_meta[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521_PHS601_meta[4, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_PHS601_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521_PHS601_meta[4, 5], 2))`\]; @{fig-meta}A). Similarily, in the NFCS cohort (`{r} p212_sample_size[2, 3]` metastatic cases, `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease (HR = `{r} sprintf("%.2f", round(p212_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[2, "p.value"]])`; @{tbl-1}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212_PHS601_meta[2, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_PHS601_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p212_PHS601_meta[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212_PHS601_meta[4, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_PHS601_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p212_PHS601_meta[4, 5], 2))`\]; @{fig-meta}B)
+In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with metastatic disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` metastatic cases, `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[2, "p.value"]])`; @{tbl-1}). Individuals in the top quintile of PHS had `{r} floor(p2521_meta[2, 3])`-fold greater risk of metastatic disease than individuals in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[2, 5], 2))`\]) and `{r} (round(p2521_meta[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521_meta[4, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[4, 5], 2))`\]; @{fig-meta}A). Similarily, in the NFCS cohort (`{r} p212_sample_size[2, 3]` metastatic cases, `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of metastatic disease (HR = `{r} sprintf("%.2f", round(p212_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[2, "p.value"]])`; @{tbl-1}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212_meta[2, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212_meta[4, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[4, 5], 2))`\]; @{fig-meta}B)
 
 ## HOXB13 effect on PCa risk was not independent of PHS in the NFCS cohort
 
@@ -263,7 +263,7 @@ Kaplan-Meier curves showing proportion of metastatic-PCa-free participants as a 
 
 ::: {#fig-hoxb13}
 
-![](manuscript/figures_and_tables/p212_phs601_wgs_km_curve.pdf){width=90%}
+![](manuscript/figures_and_tables/p212_wgs_km_curve.pdf){width=90%}
 
 Kaplan-Meier curves showing proportion of PCa-free participants for the whole-genome sequenced subsample of the NFCS cohort. **(A)** Centile ranges of PHS and **(B)** HOXB13 carriers. Time of event was age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
