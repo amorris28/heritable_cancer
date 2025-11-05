@@ -84,8 +84,8 @@ write_tsv(table_1, "figures_and_tables/table_1.tsv")
 ###############################################################
 # PHS K-M Curve Figure for Meta-PCa
 ###############################################################
-p212 <- readRDS("data/public/p212_phs601_metastatic_inc_curve.rds")
-p2521 <- readRDS("data/public/p2521_phs601_metastatic_inc_curve.rds")
+p212 <- readRDS("data/public/p212_phs601_metastatic_km_curve.rds")
+p2521 <- readRDS("data/public/p2521_phs601_metastatic_km_curve.rds")
 # p212 = p212 + labs(y = "Proportion cancer-free, metastatic (NFCS)") +
 #     lims(y = c(0.80, 1.0))
 # p2521 = p2521 + labs(y = "Proportion cancer-free, metastatic (HUSK)") +
@@ -161,10 +161,10 @@ anypca <- readRDS("data/public/p2521_phs601_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_phs601_stratified_incidence_metastatic.rds")
 anypca = anypca + 
     labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
-    lims(x = c(40, 90), y = c(0, 40))
+    lims(x = c(40, 90), y = c(0, 100))
 metastatic = metastatic + 
     labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
-    lims(x = c(40, 90), y = c(0, 8))
+    lims(x = c(40, 90), y = c(0, 20))
 
 stratified = 
     anypca + 

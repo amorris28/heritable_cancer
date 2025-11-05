@@ -144,6 +144,7 @@ process preprocess_metadata {
 
     input:
     path preprocess_script
+    path model_file
     path 'src/config.R'
     path 'src/functions.R'
 
@@ -154,15 +155,16 @@ process preprocess_metadata {
     """
     mkdir -p data/processed
     Rscript ${preprocess_script} \
+        ${model_file} \
+        FALSE \
         ${params.cluster}_phenotypes.tsv
     """
 }
-process run_analysis {
+process fit_models {
     publishDir params.public_dir, mode: 'copy'
     container params.r_image
 
     input:
-    path model_file
     path metadata_file
     path 'src/config.R'
     path 'src/functions.R'
@@ -174,25 +176,41 @@ process run_analysis {
     path "${model_file.baseName}_metastatic_performance.tsv"
     path "${model_file.baseName}_sample_size.tsv"
     path "${model_file.baseName}_coxph.tsv"
+
+    script:
+    """
+    Rscript ${analysis_script} \
+        ${metadata_file} \
+        TRUE
+    """
+}
+process plot_figures {
+    publishDir params.public_dir, mode: 'copy'
+    container params.r_image
+
+    input:
+    path metadata_file
+    path 'src/config.R'
+    path 'src/functions.R'
+    path analysis_script
+
+    output:
     path "${model_file.baseName}_any_pca_km_curve.rds"
     path "${model_file.baseName}_metastatic_km_curve.rds"
 
     script:
     """
     Rscript ${analysis_script} \
-        ${model_file} \
-        ${metadata_file} \
-        FALSE \
-        TRUE
+        ${metadata_file}
     """
 }
+
 
 process run_analysis_incidence {
     publishDir params.public_dir, mode: 'copy'
     container params.r_image
 
     input:
-    path model_file
     path metadata_file
     path 'src/config.R'
     path 'src/functions.R'
@@ -208,9 +226,7 @@ process run_analysis_incidence {
     script:
     """
     Rscript ${incidence_script} \
-        ${model_file} \
-        ${metadata_file} \
-        FALSE
+        ${metadata_file}
     """
 }
 process run_analysis_wgs {
@@ -219,7 +235,6 @@ process run_analysis_wgs {
 
     input:
     path wgs_script
-    path model_file
     path metadata_file
     path 'src/config.R'
     path 'src/functions.R'
@@ -239,9 +254,7 @@ process run_analysis_wgs {
     script:
     """
     Rscript ${wgs_script} \
-        ${model_file} \
         ${metadata_file} \
-        FALSE \
         TRUE
     """
 }
@@ -390,22 +403,24 @@ workflow {
         phs_scores = calculate_phs(bfiles, model.csv)
 
         phenotypes = preprocess_metadata(file(params.preprocess_script),
+                            phs_scores,
   			                file(params.r_config),
     			            file(params.r_functions))
-        run_analysis(phs_scores, 
-                     phenotypes,
+        fit_models(phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),
-                     file(params.analysis_script))
-        run_analysis_incidence(phs_scores, 
-                               phenotypes,
+                     file(params.fit_models_script))
+        plot_figures(phenotypes,
+  			         file(params.r_config),
+    			     file(params.r_functions),
+                     file(params.plot_figures_script))
+        run_analysis_incidence(phenotypes,
   			                   file(params.r_config),
     			               file(params.r_functions),
                                file(params.incidence_script),
                                file(params.asir_file))
         if ( params.cluster == 'p212' ) {
             run_analysis_wgs(file(params.wgs_script),
-                             phs_scores, 
                              phenotypes,
   	    		             file(params.r_config),
         			         file(params.r_functions))

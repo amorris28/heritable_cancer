@@ -8,11 +8,12 @@ source("src/functions.R")
 
 args = commandArgs(trailingOnly=TRUE)
 
-model_file = args[1] # PHS file
-metadata_file = args[2] # Phenotype data
-inverse = args[3]
+# model_file = args[1] # PHS file
+metadata_file = args[1] # Phenotype data
+# inverse = args[3]
 
-model = tools::file_path_sans_ext(basename(model_file))
+# model = tools::file_path_sans_ext(basename(model_file))
+model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
 column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
 huynhle_asis = read_excel("data/external/ASIRs_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
 
@@ -27,14 +28,8 @@ huynhle_asis %>%
     mutate(meta_rate_per_year = reg_met / 1e5) ->
     incidence
 
-# import phs data
-phs_data = import_phs_data(model_file, inverse)
-
-# import phenotype data
-metadata = read_tsv(metadata_file)
-
-# combine phs and metadata
-full_data = process_combined_data(metadata, phs_data)
+# import data
+full_data = read_tsv(metadata_file)
 
 # Compute the various curves in a function that takes arguments for
 # registry data, age column, response column, linear model or polynomial

@@ -166,7 +166,8 @@ plot_km_curves = function(combined_data, age = "age", status = "status", style =
                 color = 0) +
     geom_step() +
     theme_classic(base_size = 12) +
-    lims(x = c(40, 100), y = ylims) +
+    # lims(x = c(40, 100), y = ylims) +
+    lims(x = c(40, 100)) +
     labs(x = "Age", y = yaxis) +
     scale_color_brewer(palette = "Set1", direction = -1,
                       name = "PHS Centile") +

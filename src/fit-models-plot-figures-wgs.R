@@ -25,10 +25,8 @@ source("src/functions.R")
 
 args = commandArgs(trailingOnly=TRUE)
 
-model_file = args[1] # PHS file
-metadata_file = args[2] # Phenotype data
-inverse = args[3]
-perform_bool = args[4]
+metadata_file = args[1] # Phenotype data
+perform_bool = args[2]
 
 
 #if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
@@ -38,18 +36,15 @@ perform_bool = args[4]
 #    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
 #    tsd_proj = "p212"
 #}
-model = tools::file_path_sans_ext(basename(model_file))
+# model = tools::file_path_sans_ext(basename(model_file))
+model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
 
 #model_file = "data/processed/PHS601_phs" # PHS file
 #model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
 #bootstrap_iters = 999
 #########################################
 # Import PHS data and metadata
-phs_data = import_phs_data(model_file, inverse)
-
-metadata = read_tsv(metadata_file) # Phenotype data
-
-combined_data = process_combined_data(metadata, phs_data)
+combined_data = read_tsv(metadata_file)
 
 combined_data %>%
     select(status, age, phs, age_of_metastasis, metastasis, wgs, ends_with("_carrier")) %>%

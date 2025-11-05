@@ -6,53 +6,16 @@ library(patchwork)
 source("src/config.R")
 source("src/functions.R")
 
-###########################################
-# Output flags
-name_output = function(directory, filename) {
-  paste0(directory, paste(tsd_proj, model, process, filename, sep = "_"))
-}
-
-#########################################
-# First argument: PHS file
-# tab delimited file, no header, first column ID, second column PHS score
-# Second argument: metadata file
-# column names. Missing is okay, different order is okay, must match string exactly: 
-# pid	death	wgs	age_lastobs	age_diagnosis	status	age	bfile_id	age_of_metastasis	
-# metastasis_code	metastasis	conversion_to_metastasis_years	doed_av_pca	age_at_death	
-# diagnosis_to_death_years	brca2_carrier	hoxb13_carrier	hoxb13_snp
-# tab delimited file with column names bfile_id, age, status. 
-# Additional columns will be ignored.
-# Third argument: 
-# boolean indicating whether to inverse (x * -1) the PHS scores
-# to reverse the direction of effect.
-
 args = commandArgs(trailingOnly=TRUE)
 
-model_file = args[1] # PHS file
-metadata_file = args[2] # Phenotype data
-inverse = args[3]
-perform_bool = args[4]
+metadata_file = args[1] # Phenotype data
+perform_bool = args[2]
 
-# if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-#     metadata_file = "data/processed/husk_phenotypes.tsv"
-#     tsd_proj = "p2521"
-#     model_file = "data/processed/p2521_phs601.profile" # PHS file
-# } else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-#     metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-#     tsd_proj = "p212"
-# }
-
-# model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-model = tools::file_path_sans_ext(basename(model_file))
-
+model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
 
 #########################################
 # Import PHS data and metadata
-phs_data = import_phs_data(model_file, inverse)
-
-metadata = read_tsv(metadata_file) # Phenotype data
-
-combined_data = process_combined_data(metadata, phs_data)
+combined_data = read_tsv(metadata_file)
 
 #########################################
 # Analyze PHS data
@@ -109,10 +72,6 @@ if (perform_bool) {
   any_pca_perform = get_performance_metrics(combined_data, bootstrap_iters, model)
 }
 
-# Plot KM Curves
-any_pca_km_curve = plot_km_curves(combined_data)
-any_pca_inc_curve = plot_km_curves(combined_data, style = "risk")
-
 # Time to metastatic diseaes
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
 metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = TRUE)
@@ -122,11 +81,6 @@ metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = T
 if (perform_bool) {
   metastatic_perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
 }
-
-# KM Curves for metastatic disease
-metastatic_km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
-metastatic_inc_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis", style = "risk")
-#metastatic_km_curve = metastatic_km_curve + lims(y = c(0.80, 1.0))
 
 
 # Gather sample sizes
@@ -169,11 +123,6 @@ write_tsv(any_pca_perform, paste(model, "any_pca_performance.tsv", sep = "_"))
 write_tsv(metastatic_perform, paste(model, "metastatic_performance.tsv", sep = "_"))
 write_tsv(sample_size, paste(model, "sample_size.tsv", sep = "_"))
 write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
-
-saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
-saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
-saveRDS(any_pca_inc_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
-saveRDS(metastatic_inc_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
 
 ##################################################################
 # case-only local to met analysis

@@ -1,6 +1,8 @@
 args = commandArgs(trailingOnly=TRUE)
 
-output_file = args[1] # output file name
+model_file = args[1] # PHS file
+inverse = args[2]
+output_file = args[3] # output file name
 
 # initialize packages
 library(tidyverse)
@@ -233,4 +235,10 @@ phenotype_data %>%
 	filter(huskmentid %in% all_male_huskmentids) ->
 	phenotype_data
 
-write_tsv(phenotype_data, output_file)
+# Add PHS
+phs_data = import_phs_data(model_file, inverse)
+
+combined_data = process_combined_data(phenotype_data, phs_data)
+
+# Save output
+write_tsv(combined_data, output_file)

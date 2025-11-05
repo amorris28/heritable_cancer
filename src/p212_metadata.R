@@ -1,6 +1,8 @@
 args = commandArgs(trailingOnly=TRUE)
 
-output_file = args[1] # output file name
+model_file = args[1] # PHS file
+inverse = args[2]
+output_file = args[3] # output file name
 
 library(tidyverse)
 library(readxl)
@@ -201,6 +203,10 @@ combined_data %>%
 #  left_join(hoxb13, by = join_by(bfile_id)) ->
 #  combined_data
 
+# Add PHS
+phs_data = import_phs_data(model_file, inverse)
+
+combined_data = process_combined_data(combined_data, phs_data)
+
 # Save output
 write_tsv(combined_data, output_file)
-
