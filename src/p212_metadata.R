@@ -16,8 +16,11 @@ case_data = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_2
 cancer_reg = read_delim("/ess/p212/data/durable/brca2_cancer_registry/cancer_registry_20180628.tsv", delim = ";")
 id_key = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/EDTA_REGNR_06.05.2022.xlsx")
 
-decode_variants = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.csv")
-sample_phenotype_map = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.sample_phenotype_map.csv")
+#decode_variants = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.csv")
+#sample_phenotype_map = read_csv("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.sample_phenotype_map.csv")
+
+decode_variants = read_excel("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.xlsx", sheet = 3)
+sample_phenotype_map = read_excel("/ess/p212/home/p212-andrewmo/heritable_cancer/data/raw/deCODE_variant_data.coding_only.20250408.xlsx", sheet = 1)
 
 rare_variants = read_excel("/ess/p212/home/p212-andrewmo/FW_Poly_tables/poly_final_220425_estimated_lastobs.xls", sheet = 3)
 
