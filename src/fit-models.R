@@ -10,9 +10,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 metadata_file = args[1] # Phenotype data
 perform_bool = args[2]
-
-model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
-
+output_prefix = args[3]
 #########################################
 # Import PHS data and metadata
 combined_data = read_tsv(metadata_file)
@@ -69,7 +67,7 @@ ggplot(zph_tbl, aes(x = time, y = beta_t)) +
 # Performance metrics
 
 if (perform_bool) {
-  any_pca_perform = get_performance_metrics(combined_data, bootstrap_iters, model)
+  any_pca_perform = get_performance_metrics(combined_data, bootstrap_iters, output_prefix)
 }
 
 # Time to metastatic diseaes
@@ -79,7 +77,7 @@ metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = T
 # Performance metrics
 
 if (perform_bool) {
-  metastatic_perform = get_performance_metrics(combined_data, bootstrap_iters, model, age = "age_of_metastasis", status = "metastasis")
+  metastatic_perform = get_performance_metrics(combined_data, bootstrap_iters, output_prefix, age = "age_of_metastasis", status = "metastasis")
 }
 
 
@@ -118,11 +116,11 @@ rbind(any_pca_coxph,
       coxph_results
 
 # Save Output
-write_tsv(phs_zph_tidy, paste(model, "phs_zph_tidy.tsv", sep = "_"))
-write_tsv(any_pca_perform, paste(model, "any_pca_performance.tsv", sep = "_"))
-write_tsv(metastatic_perform, paste(model, "metastatic_performance.tsv", sep = "_"))
-write_tsv(sample_size, paste(model, "sample_size.tsv", sep = "_"))
-write_tsv(coxph_results, paste(model, "coxph.tsv", sep = "_"))
+write_tsv(phs_zph_tidy, paste(output_prefix, "phs_zph_tidy.tsv", sep = "_"))
+write_tsv(any_pca_perform, paste(output_prefix, "any_pca_performance.tsv", sep = "_"))
+write_tsv(metastatic_perform, paste(output_prefix, "metastatic_performance.tsv", sep = "_"))
+write_tsv(sample_size, paste(output_prefix, "sample_size.tsv", sep = "_"))
+write_tsv(coxph_results, paste(output_prefix, "coxph.tsv", sep = "_"))
 
 ##################################################################
 # case-only local to met analysis

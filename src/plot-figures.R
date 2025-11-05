@@ -9,8 +9,7 @@ source("src/functions.R")
 args = commandArgs(trailingOnly=TRUE)
 
 metadata_file = args[1] # Phenotype data
-
-model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
+output_prefix = args[2]
 
 #########################################
 # Import PHS data and metadata
@@ -36,7 +35,7 @@ metastatic_km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", s
 metastatic_inc_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis", style = "risk")
 
 # Save Output
-saveRDS(any_pca_km_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
-saveRDS(metastatic_km_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
-saveRDS(any_pca_inc_curve, paste(model, "any_pca_km_curve.rds", sep = "_"))
-saveRDS(metastatic_inc_curve, paste(model, "metastatic_km_curve.rds", sep = "_"))
+saveRDS(any_pca_km_curve, paste(output_prefix, "any_pca_km_curve.rds", sep = "_"))
+saveRDS(metastatic_km_curve, paste(output_prefix, "metastatic_km_curve.rds", sep = "_"))
+saveRDS(any_pca_inc_curve, paste(output_prefix, "any_pca_km_curve.rds", sep = "_"))
+saveRDS(metastatic_inc_curve, paste(output_prefix, "metastatic_km_curve.rds", sep = "_"))

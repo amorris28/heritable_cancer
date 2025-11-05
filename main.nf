@@ -171,17 +171,18 @@ process fit_models {
     path analysis_script
 
     output:
-    path "${model_file.baseName}_phs_zph_tidy.tsv"
-    path "${model_file.baseName}_any_pca_performance.tsv"
-    path "${model_file.baseName}_metastatic_performance.tsv"
-    path "${model_file.baseName}_sample_size.tsv"
-    path "${model_file.baseName}_coxph.tsv"
+    path "${params.cluster}_phs_zph_tidy.tsv"
+    path "${params.cluster}_any_pca_performance.tsv"
+    path "${params.cluster}_metastatic_performance.tsv"
+    path "${params.cluster}_sample_size.tsv"
+    path "${params.cluster}_coxph.tsv"
 
     script:
     """
     Rscript ${analysis_script} \
         ${metadata_file} \
-        TRUE
+        TRUE \
+        ${params.cluster}
     """
 }
 process plot_figures {
@@ -195,13 +196,14 @@ process plot_figures {
     path analysis_script
 
     output:
-    path "${model_file.baseName}_any_pca_km_curve.rds"
-    path "${model_file.baseName}_metastatic_km_curve.rds"
+    path "${params.cluster}_any_pca_km_curve.rds"
+    path "${params.cluster}_metastatic_km_curve.rds"
 
     script:
     """
     Rscript ${analysis_script} \
-        ${metadata_file}
+        ${metadata_file} \
+        ${params.cluster}
     """
 }
 
@@ -218,15 +220,16 @@ process run_analysis_incidence {
     path 'data/external/ASIRs_per100k_Huynh-Le_2020.xlsx'
 
     output:
-    path "${model_file.baseName}_cumulative_comparison.rds"
-    path "${model_file.baseName}_stratified_incidence.rds"
-    path "${model_file.baseName}_cumulative_comparison_metastatic.rds"
-    path "${model_file.baseName}_stratified_incidence_metastatic.rds"
+    path "${params.cluster}_cumulative_comparison.rds"
+    path "${params.cluster}_stratified_incidence.rds"
+    path "${params.cluster}_cumulative_comparison_metastatic.rds"
+    path "${params.cluster}_stratified_incidence_metastatic.rds"
 
     script:
     """
     Rscript ${incidence_script} \
-        ${metadata_file}
+        ${metadata_file} \
+        ${params.cluster}
     """
 }
 process run_analysis_wgs {
@@ -240,22 +243,23 @@ process run_analysis_wgs {
     path 'src/functions.R'
 
     output:
-    path "${model_file.baseName}_wgs_summary.tsv"
-    path "${model_file.baseName}_fisher.tsv"
-    path "${model_file.baseName}_wgs_phs_performance.tsv"
-    path "${model_file.baseName}_wgs_phs_performance_95.tsv"
-    //path "${model_file.baseName}_wgs_hoxb13_performance.tsv"
-    path "${model_file.baseName}_binomial_phs_hoxb13.tsv"
-    path "${model_file.baseName}_wgs.tsv"
-    path "${model_file.baseName}_wgs_km_curve.rds"
-    path "${model_file.baseName}_wgs_km_curve.png"
-    path "${model_file.baseName}_wgs_km_curve.pdf"
+    path "${params.cluster}_wgs_summary.tsv"
+    path "${params.cluster}_fisher.tsv"
+    path "${params.cluster}_wgs_phs_performance.tsv"
+    path "${params.cluster}_wgs_phs_performance_95.tsv"
+    //path "${params.cluster}_wgs_hoxb13_performance.tsv"
+    path "${params.cluster}_binomial_phs_hoxb13.tsv"
+    path "${params.cluster}_wgs.tsv"
+    path "${params.cluster}_wgs_km_curve.rds"
+    path "${params.cluster}_wgs_km_curve.png"
+    path "${params.cluster}_wgs_km_curve.pdf"
 
     script:
     """
     Rscript ${wgs_script} \
         ${metadata_file} \
-        TRUE
+        TRUE \
+        ${params.cluster}
     """
 }
 process postprocess_figures {

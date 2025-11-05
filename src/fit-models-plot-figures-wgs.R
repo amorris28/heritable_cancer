@@ -27,21 +27,8 @@ args = commandArgs(trailingOnly=TRUE)
 
 metadata_file = args[1] # Phenotype data
 perform_bool = args[2]
+output_prefix = args[3]
 
-
-#if (Sys.info()["nodename"] == "p2521-hpc-01.tsd.usit.no") {
-#    metadata_file = "data/processed/husk_phenotypes.tsv"
-#    tsd_proj = "p2521"
-#} else if (Sys.info()["nodename"] == "p212-hpc-01.tsd.usit.no") {
-#    metadata_file = "data/processed/heritable_cancer_phenotypes.tsv" # Phenotype data
-#    tsd_proj = "p212"
-#}
-# model = tools::file_path_sans_ext(basename(model_file))
-model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
-
-#model_file = "data/processed/PHS601_phs" # PHS file
-#model = gsub("(.+?)(\\_.*)", "\\1", basename(model_file))
-#bootstrap_iters = 999
 #########################################
 # Import PHS data and metadata
 combined_data = read_tsv(metadata_file)
@@ -65,7 +52,7 @@ wgs %>%
     summarize(across(everything(), list(sum))) ->
     wgs_summary
 
-write_tsv(wgs_summary, paste(model, "wgs_summary.tsv", sep = "_"))
+write_tsv(wgs_summary, paste(output_prefix, "wgs_summary.tsv", sep = "_"))
 
 # wgs %>%
 #     select(-msh2_carrier, -msh6_carrier) ->
@@ -99,7 +86,7 @@ fisher_tibble %>%
     mutate(p.adjust = p.adjust(p.value, method = "fdr")) ->
     fisher_tibble
 fisher_tibble
-write_tsv(fisher_tibble, paste(model, "fisher.tsv", sep = "_"))
+write_tsv(fisher_tibble, paste(output_prefix, "fisher.tsv", sep = "_"))
 
 # survival analysis
 phs_wgs_fit = coxph(Surv(age, status) ~ phs, wgs)
@@ -135,8 +122,8 @@ cox.zph(phs_hoxb13_wgs_inter)
 # Performance metrics, PHS
 
 if (perform_bool) {
-    perform = get_performance_metrics(wgs, bootstrap_iters, model)
-    write_tsv(perform, paste(model, "wgs_phs_performance.tsv", sep = "_"))
+    perform = get_performance_metrics(wgs, bootstrap_iters, output_prefix)
+    write_tsv(perform, paste(output_prefix, "wgs_phs_performance.tsv", sep = "_"))
 }
 
 
@@ -157,8 +144,8 @@ perform = do.call(rbind.data.frame, lapply(indices, function(x){data.frame(index
                                                                 value = x$value, 
                                                                 conf.low = x$conf.low, 
                                                                 conf.high = x$conf.high)}))
-perform = cbind(model, perform)
-write_tsv(perform, paste(model, "wgs_phs_performance_95.tsv", sep = "_"))
+perform = cbind(output_prefix, perform)
+write_tsv(perform, paste(output_prefix, "wgs_phs_performance_95.tsv", sep = "_"))
 
 #################################################################################
 # Performance metrics, HOXB13
@@ -185,7 +172,7 @@ if (FALSE) {
             conf.high = boot_out$quantiles[[2]], 
             iters = boot_out$iters))
     }
-    get_performance_metrics_hoxb13 = function(wgs, bootstrap_iters, model) {
+    get_performance_metrics_hoxb13 = function(wgs, bootstrap_iters, output_prefix) {
 
     HR = get_hr_hoxb13(wgs, bootstrap_iters)
 
@@ -198,12 +185,12 @@ if (FALSE) {
                                                                     value = x$value, 
                                                                     conf.low = x$conf.low, 
                                                                     conf.high = x$conf.high)}))
-    perform = cbind(model, perform)
+    perform = cbind(output_prefix, perform)
 
     return(perform)
     }
-    perform = get_performance_metrics_hoxb13(wgs, boostrap_iters, model)
-    write_tsv(perform, paste(model, "wgs_hoxb13_performance.tsv", sep = "_"))
+    perform = get_performance_metrics_hoxb13(wgs, boostrap_iters, output_prefix)
+    write_tsv(perform, paste(output_prefix, "wgs_hoxb13_performance.tsv", sep = "_"))
 }
 ## New plot of PHS km curves but on the subsetted WGS dataset
 
@@ -211,10 +198,10 @@ if (FALSE) {
 wgs_km = plot_km_curves(wgs)
 wgs_inc = plot_km_curves(wgs, style = "risk")
 
-# ggsave(paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.png", sep = "_")), wgs_km,
+# ggsave(paste0(results, paste(tsd_proj, output_prefix, "phs_wgs_km_curve.png", sep = "_")), wgs_km,
 #        height = 6 * 0.618, width = 6)
 
-#saveRDS(km_curve, paste0(results, paste(tsd_proj, model, "phs_wgs_km_curve.rds", sep = "_")))
+#saveRDS(km_curve, paste0(results, paste(tsd_proj, output_prefix, "phs_wgs_km_curve.rds", sep = "_")))
 
 ## Plot of HOXB13 km curve on WGS data
 # KM Curves
@@ -321,11 +308,11 @@ wgs_p =
     plot_annotation(tag_levels = 'A') &
     theme(legend.position = "bottom") 
 wgs_p
-ggsave(paste(model, "wgs_km_curve.pdf", sep = "_"), wgs_p,
+ggsave(paste(output_prefix, "wgs_km_curve.pdf", sep = "_"), wgs_p,
         height = 8 * 0.618, width = 8)
-ggsave(paste(model, "wgs_km_curve.png", sep = "_"), wgs_p,
+ggsave(paste(output_prefix, "wgs_km_curve.png", sep = "_"), wgs_p,
         height = 8 * 0.618, width = 8)
-saveRDS(wgs_p, paste(model, "wgs_km_curve.rds", sep = "_"))
+saveRDS(wgs_p, paste(output_prefix, "wgs_km_curve.rds", sep = "_"))
 
 #####################################################################################
 # HOXB13 SNPs
@@ -398,11 +385,11 @@ saveRDS(wgs_p, paste(model, "wgs_km_curve.rds", sep = "_"))
 #    theme(legend.position = "bottom") 
 #
 #fig_width = 6
-#ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.pdf", sep = "_")), hoxb13_snp_p,
+#ggsave(paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.pdf", sep = "_")), hoxb13_snp_p,
 #        height = fig_width * 0.618, width = fig_width)
-#ggsave(paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.png", sep = "_")), hoxb13_snp_p,
+#ggsave(paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.png", sep = "_")), hoxb13_snp_p,
 #        height = fig_width * 0.618, width = fig_width)
-#saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, model, "hoxb13_snp_km_curve.rds", sep = "_")))
+#saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.rds", sep = "_")))
 
 
 
@@ -430,7 +417,7 @@ saveRDS(wgs_p, paste(model, "wgs_km_curve.rds", sep = "_"))
 binomial_phs_hoxb13 <- glm(HOXB13_carrier ~ phs, family="binomial", data=wgs)
 summary(binomial_phs_hoxb13)
 broom::tidy(binomial_phs_hoxb13, conf.int = TRUE, exponentiate = TRUE) %>%
-write_tsv(paste(model, "binomial_phs_hoxb13.tsv", sep = "_"))
+write_tsv(paste(output_prefix, "binomial_phs_hoxb13.tsv", sep = "_"))
 
 phs_wgs_coxph$model = "phs_wgs"
 hoxb13_wgs_coxph$model = "hoxb13_wgs"
@@ -444,4 +431,4 @@ phs_hoxb13_wgs_coxph,
 phs_hoxb13_inter_coxph) ->
 #hoxb13_snp_coxph) ->
 wgs_results
-write_tsv(wgs_results, paste(model, "wgs.tsv", sep = "_"))
+write_tsv(wgs_results, paste(output_prefix, "wgs.tsv", sep = "_"))

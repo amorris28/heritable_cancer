@@ -8,12 +8,9 @@ source("src/functions.R")
 
 args = commandArgs(trailingOnly=TRUE)
 
-# model_file = args[1] # PHS file
 metadata_file = args[1] # Phenotype data
-# inverse = args[3]
+output_prefix = args[2]
 
-# model = tools::file_path_sans_ext(basename(model_file))
-model = str_remove(basename(metadata_file), "_phenotypes\\.tsv$")
 column_names = c("age", "low_risk", "fav_interm", "unfav_interm", "high_risk", "regional", "metastatic")
 huynhle_asis = read_excel("data/external/ASIRs_per100k_Huynh-Le_2020.xlsx", skip = 2, col_names = column_names)
 
@@ -132,10 +129,10 @@ plot_stratified = function(stratified_df, group_labels, y_var = "hazard") {
 p_stratified_risk_pca = plot_stratified(stratified_risk_pca, group_labels, "cum_risk")
 p_stratified_risk_meta = plot_stratified(stratified_risk_meta, group_labels, "cum_risk")
 
-# saveRDS(p_stratified_hazard_pca, paste(model, "stratified_hazard_pca.rds", sep = "_"))
-# saveRDS(p_stratified_hazard_meta, paste(model, "stratified_hazard_meta.rds", sep = "_"))
-saveRDS(p_stratified_risk_pca, paste(model, "stratified_incidence.rds", sep = "_"))
-saveRDS(p_stratified_risk_meta, paste(model, "stratified_incidence_metastatic.rds", sep = "_"))
+# saveRDS(p_stratified_hazard_pca, paste(output_prefix, "stratified_hazard_pca.rds", sep = "_"))
+# saveRDS(p_stratified_hazard_meta, paste(output_prefix, "stratified_hazard_meta.rds", sep = "_"))
+saveRDS(p_stratified_risk_pca, paste(output_prefix, "stratified_incidence.rds", sep = "_"))
+saveRDS(p_stratified_risk_meta, paste(output_prefix, "stratified_incidence_metastatic.rds", sep = "_"))
 
 # cumulative incidence function
 return_cohort_ci = function(cox_fit) {
@@ -179,5 +176,5 @@ plot_comparison = function(pca_risk, cohort_ci, y_var = "hazard") {
 p_cumulative_comparison_pca = plot_comparison(pca_risk, cohort_ci_pca, "cum_risk")
 p_cumulative_comparison_metastatic = plot_comparison(meta_risk, cohort_ci_meta, "cum_risk")
 
-saveRDS(p_cumulative_comparison_pca, paste(model, "cumulative_comparison.rds", sep = "_"))
-saveRDS(p_cumulative_comparison_metastatic, paste(model, "cumulative_comparison_metastatic.rds", sep = "_"))
+saveRDS(p_cumulative_comparison_pca, paste(output_prefix, "cumulative_comparison.rds", sep = "_"))
+saveRDS(p_cumulative_comparison_metastatic, paste(output_prefix, "cumulative_comparison_metastatic.rds", sep = "_"))
