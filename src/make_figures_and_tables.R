@@ -124,7 +124,8 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 # # )
 
 wgs_km <- readRDS("data/public/p212_wgs_km_curve.rds")
-wgs_km = wgs_km & labs(y = "Proportion cancer-free, any stage (NFCS)")
+# wgs_km = wgs_km & labs(y = "Proportion cancer-free, any stage (NFCS)")
+wgs_km = wgs_km & labs(y = "Cumulative incidence, %\n(Absolute risk) (NFCS)")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
            height = 8 * 0.618, width = 8)
 ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
@@ -158,12 +159,15 @@ anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca = anypca + 
     labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
-    lims(x = c(40, 90))
+    lims(x = c(40, 90)) +
 #    lims(x = c(40, 90), y = c(0, 100))
+    scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
+
 metastatic = metastatic + 
     labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
-    lims(x = c(40, 90))
+    lims(x = c(40, 90)) +
 #    lims(x = c(40, 90), y = c(0, 20))
+    scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
 
 stratified = 
     anypca + 
