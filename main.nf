@@ -296,6 +296,7 @@ process knit_manuscript {
     path 'src/functions.R'
     path 'reference.docx'
     path 'references.bib'
+    path 'apa.csl'
     path '_extensions'
     path 'data/public'
     path 'manuscript/figures_and_tables'
@@ -441,6 +442,7 @@ workflow {
     			        file(params.r_functions),
                         file(params.reference_docx),
                         file(params.bibtex_file),
+                        file(params.csl_file),
                         file(params.extensions_dir),
                         file(params.public_dir),
                         postprocess_figures.out)

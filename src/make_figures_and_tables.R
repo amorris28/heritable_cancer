@@ -159,15 +159,15 @@ anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca = anypca + 
     labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
-    lims(x = c(40, 90)) +
+    lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 100))
-    scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
+    # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
 
 metastatic = metastatic + 
     labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
-    lims(x = c(40, 90)) +
+    lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 20))
-    scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
+    # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
 
 stratified = 
     anypca + 
