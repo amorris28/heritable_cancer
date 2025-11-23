@@ -134,7 +134,7 @@ Recent PCa PHS models were developed in large, multi-ethnic cohorts and show rob
 
 Two Norwegian cohorts were included in this study. 
 
-The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK). This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992/1993 and the second wave was in 1997/1999. HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2. QC steps for variants included removal of indels, non-ATGC, strand ambiguous, poorly genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 10,531,075 autosomal variants and 35,476 individuals.
+The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK). This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992/1993 and the second wave was in 1997/1999. HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2 [@purcell2007]. QC steps for variants included removal of indels, non-ATGC, strand ambiguous, poorly genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 10,531,075 autosomal variants and 35,476 individuals.
 
 The second cohort was the Norwegian Familial Cancer Study [NFCS; @mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland) [@mattingsdal2021]. The genotyped dataset consisted of 15,769 participants with 713,014 SNPs. Genotype data were imputed using the HRC v1.1 reference panel (Mattingsdal) following the same imputation protocol as The Norwegian Mother, Father and Child Cohort [@corfield2024]. After imputation, the dataset consisted of 7,526,252 autosomal SNPs. 
 
@@ -144,7 +144,7 @@ PCa cases were defined as participants with ICD10 code C61. Diagnosis date was t
 
 ## Harmonize alleles and calculate PHSes
 
- The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in XXX variants (in HUSK) and YYY variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink -score`.
+ The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors. Chromosome X imputation was not available in our genotype data so the 21 SNPs in the original model on chromosome X were removed leaving 580 SNPs. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in 519 variants (in HUSK) and 557 variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink -score`.
 
 ## Sequencing and variant calling
 
@@ -299,6 +299,15 @@ table_1 %>%
 ![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
 
 Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** illustrate the incidence rates for PCa (any stage) in the HUSK and NFCS cohorts, respectively, whereas panels **(C)** and **(D)** show the incidence rates for metastatic PCa in the same cohorts.
+
+:::
+
+
+::: {#suppfig-zph}
+
+![](manuscript/figures_and_tables/zph_tt.pdf){width=85%}
+
+Plot of the Schoenfeld residuals versus time to test the proportional hazards assumption
 
 :::
 

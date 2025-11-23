@@ -176,6 +176,7 @@ process fit_models {
     path "${params.cluster}_metastatic_performance.tsv"
     path "${params.cluster}_sample_size.tsv"
     path "${params.cluster}_coxph.tsv"
+    path "${params.cluster}_zph_tt.rds"
 
     script:
     """

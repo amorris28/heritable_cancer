@@ -58,11 +58,12 @@ tt_comp_f = function(t) {
 }
 zph_tbl$tt_comp = tt_comp_f(zph_tbl$time - 40)
 
-ggplot(zph_tbl, aes(x = time, y = beta_t)) +
+zph_tt = ggplot(zph_tbl, aes(x = time, y = beta_t)) +
     geom_point() +
     stat_smooth() +
     geom_line(aes(y = tt_comp), color = "red") +
     theme_classic()
+saveRDS(zph_tt, paste(output_prefix, "zph_tt.rds", sep = "_"))
 
 # Performance metrics
 
