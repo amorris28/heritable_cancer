@@ -27,6 +27,9 @@ combined_data %>%
   combined_data
 
 # ZPH TT
+fit = coxph(Surv(age, status) ~ phs, data = combined_data)
+zph_fit = cox.zph(fit)
+
 phs_fit_tt = coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
                   tt = function(x, t, ...) x * t)
 summary(phs_fit_tt)
