@@ -170,7 +170,7 @@ All Cox models were evaluated for the proportional hazards assumption using `cox
 
 PHS601 strongly stratified PCa risk in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`; @{tbl-1}). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} (round(p2521[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`; @{tbl-1}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
 
-In both cohorts, proportional hazards tests and plots of weighted residuals revealed a negative trend in hazard ratios with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`) indicating that the effect of PHS diminished with age. To model this, we fit an extended Cox model with a linear time-dependent PHS term (intercept at age 40). At age 40, each SD increase in PHS was associated with a `{r} sprintf("%.1f", round(p2521_coxph_results[3, "estimate"], 1))`-fold (HUSK: HR = `{r} sprintf("%.2f", round(p2521_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[3, "p.value"]])`) and `{r} sprintf("%.1f", round(p212_coxph_results[3, "estimate"], 0))`-fold (NFCS: HR = `{r} sprintf("%.2f", round(p212_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[3, "p.value"]])`) higher risk, declining by approximately `r round(1 - p2521_coxph_results[4, "estimate"], 3) * 100`\% and `r round(1 - p212_coxph_results[4, "estimate"], 3) * 100`\% per year, respectively (both p < 0.01). However, the time-varying effects were weak and residual plots showed high variability, so we present the simpler proportional hazards models in the main results and figures.
+In both cohorts, proportional hazards tests and plots of weighted residuals revealed a negative trend in hazard ratios with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{suppfig-zph}) indicating that the effect of PHS diminished with age. To model this, we fit an extended Cox model with a linear time-dependent PHS term (intercept at age 40). At age 40, each SD increase in PHS was associated with a `{r} sprintf("%.1f", round(p2521_coxph_results[3, "estimate"], 1))`-fold (HUSK: HR = `{r} sprintf("%.2f", round(p2521_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[3, "p.value"]])`) and `{r} sprintf("%.1f", round(p212_coxph_results[3, "estimate"], 0))`-fold (NFCS: HR = `{r} sprintf("%.2f", round(p212_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[3, "p.value"]])`) higher risk, declining by approximately `r round(1 - p2521_coxph_results[4, "estimate"], 3) * 100`\% and `r round(1 - p212_coxph_results[4, "estimate"], 3) * 100`\% per year, respectively (HUSK: HR = `{r} sprintf("%.3f", round(p2521_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p2521_coxph_results[[4, "p.value"]])`; NFCS: HR = `{r} sprintf("%.3f", round(p212_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p212_coxph_results[[4, "p.value"]])`). However, the time-varying effects were weak and residual plots showed high variability, so we present the simpler proportional hazards models in the main results and figures.
 
 Together, these results confirm that PHS601 effectively stratifies PCa risk in both Norwegian cohorts, with modest evidence for age-dependent attenuation of its effect. 
 
@@ -294,20 +294,22 @@ table_1 %>%
     kable()
 ```
 
-::: {#suppfig-comp}
-
-![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
-
-Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** illustrate the incidence rates for PCa (any stage) in the HUSK and NFCS cohorts, respectively, whereas panels **(C)** and **(D)** show the incidence rates for metastatic PCa in the same cohorts.
-
-:::
 
 
 ::: {#suppfig-zph}
 
 ![](manuscript/figures_and_tables/zph_tt.pdf){width=85%}
 
-Plot of the Schoenfeld residuals versus time to test the proportional hazards assumption
+Plot of the Schoenfeld residuals versus age to test the proportional hazards assumption. The red line is the model fit from the extended Cox model with the time-transformed PHS with a linear time transform. The blue line is a loess smoothing with 95% confidence bands.
+
+:::
+
+
+::: {#suppfig-comp}
+
+![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
+
+Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** illustrate the incidence rates for PCa (any stage) in the HUSK and NFCS cohorts, respectively, whereas panels **(C)** and **(D)** show the incidence rates for metastatic PCa in the same cohorts.
 
 :::
 

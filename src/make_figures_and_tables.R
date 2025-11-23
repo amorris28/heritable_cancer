@@ -186,6 +186,24 @@ ggsave("figures_and_tables/stratified_incidence.png", stratified,
 ###############################################################
 #Supplementary Figure 1
 ###############################################################
+p212_zph_tt <- readRDS("data/public/p212_zph_tt.rds")
+p2521_zph_tt <- readRDS("data/public/p2521_zph_tt.rds")
+
+zph_tt = 
+    p2521_zph_tt + 
+    p212_zph_tt +
+    plot_annotation(tag_levels = 'A') &
+    theme(aspect.ratio=1)
+
+ggsave("figures_and_tables/zph_tt.pdf", zph_tt,
+       height = 8 * 0.618, width = 8)
+ggsave("figures_and_tables/zph_ttn.png", zph_tt,
+       height = 8 * 0.618, width = 8)
+
+###############################################################
+#Supplementary Figure 2
+###############################################################
+
 # change these to p2521:
 p2521_anypca <- readRDS("data/public/p2521_cumulative_comparison.rds")
 p2521_metastatic <- readRDS("data/public/p2521_cumulative_comparison_metastatic.rds")
@@ -226,19 +244,3 @@ ggsave("figures_and_tables/cumulative_comparison.png", comparison,
 
 #file.copy("data/public/p212_wgs_km_curve.pdf", "figures_and_tables/p212_wgs_km_curve.pdf")
 #file.copy("data/public/p212_wgs_km_curve.png", "figures_and_tables/p212_wgs_km_curve.png")
-
-###############################################################
-#Supplementary Figure 2
-###############################################################
-p212_zph_tt <- readRDS("data/public/p212_zph_tt.rds")
-p2521_zph_tt <- readRDS("data/public/p2521_zph_tt.rds")
-
-zph_tt = 
-    p2521_zph_tt + 
-    p212_zph_tt +
-    plot_annotation(tag_levels = 'A')
-
-ggsave("figures_and_tables/zph_tt.pdf", comparison,
-       height = 8 * 0.618, width = 8)
-ggsave("figures_and_tables/zph_ttn.png", comparison,
-       height = 8 * 0.618, width = 8)
