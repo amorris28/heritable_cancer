@@ -176,7 +176,6 @@ process fit_models {
     path "${params.cluster}_metastatic_performance.tsv"
     path "${params.cluster}_sample_size.tsv"
     path "${params.cluster}_coxph.tsv"
-    path "${params.cluster}_zph_tt.rds"
 
     script:
     """
@@ -199,6 +198,7 @@ process plot_figures {
     output:
     path "${params.cluster}_any_pca_km_curve.rds"
     path "${params.cluster}_metastatic_km_curve.rds"
+    path "${params.cluster}_zph_tt.rds"
 
     script:
     """
