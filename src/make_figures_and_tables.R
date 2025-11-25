@@ -197,7 +197,7 @@ zph_tt =
 
 ggsave("figures_and_tables/zph_tt.pdf", zph_tt,
        height = 8 * 0.618, width = 8)
-ggsave("figures_and_tables/zph_ttn.png", zph_tt,
+ggsave("figures_and_tables/zph_tt.png", zph_tt,
        height = 8 * 0.618, width = 8)
 
 ###############################################################
@@ -217,10 +217,10 @@ p212_anypca = p212_anypca +
     labs(y = "Cumulative incidence,\nany stage, % (NFCS)", title = "") +
     lims(x = c(40, 90), y = c(0, 30))
 p2521_metastatic = p2521_metastatic + 
-    labs(y = "Cumulative incidence,\nmetastatic, % (HUSK)", title = "") +
+    labs(y = "Cumulative incidence,\naggressive, % (HUSK)", title = "") +
     lims(x = c(40, 90), y = c(0, 6))
 p212_metastatic = p212_metastatic + 
-    labs(y = "Cumulative incidence,\nmetastatic, % (NFCS)", title = "") +
+    labs(y = "Cumulative incidence,\naggressive, % (NFCS)", title = "") +
     lims(x = c(40, 90), y = c(0, 6))
 # p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
 # p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
