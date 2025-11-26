@@ -162,13 +162,16 @@ sample_phenotype_map %>%
     mutate(bfile_id = paste0("Eivind_", EID)) ->
     decode_variants
 
+variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
+
 decode_variants %>%
     filter(CPSR_CLASSIFICATION_SOURCE == "ClinVar") %>%
-    filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
-    filter(FINAL_CLASSIFICATION %in% c("Likely_Pathogenic", "Pathogenic")) %>%
+    # filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
+   filter(FINAL_CLASSIFICATION %in% c("Likely_Pathogenic", "Pathogenic")) %>%
+   filter(SYMBOL %in% variants) %>%
+    # select(bfile_id, SYMBOL) ->
     select(bfile_id, SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID) ->
     all_decode_variants
-variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
 
 for(i in variants) {
   new <- if_else(all_decode_variants$SYMBOL == i, 1, NA)
