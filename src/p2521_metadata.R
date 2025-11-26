@@ -235,6 +235,22 @@ phenotype_data %>%
 	filter(huskmentid %in% all_male_huskmentids) ->
 	phenotype_data
 
+# Hoxb13 SNP
+
+rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
+rs138213197[, 10:ncol(rs138213197)] %>%
+ pivot_longer(cols = everything(), names_to = "bfile_id") %>%
+ mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
+ mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
+ rowwise() %>%
+ mutate(hoxb13_snp = sum(pos1, pos2)) %>%
+ select(-value, -pos1, -pos2) ->
+ hoxb13
+
+phenotype_data %>%
+ left_join(hoxb13, by = join_by(bfile_id)) ->
+ phenotype_data
+
 # Add PHS
 phs_data = import_phs_data(model_file, inverse)
 

@@ -313,6 +313,26 @@ process knit_manuscript {
     quarto render ${manuscript_file} --to pdf
     """
 }
+process pull_out_hoxb13 {
+    publishDir params.processed_dir, mode: 'copy'
+
+    input:
+    path bim
+
+    output:
+    path "rs138213197.vcf", emit: vcf
+
+    script:
+    def prefix = bim.baseName
+    """
+    echo rs138213197 >> rs138213197.txt
+    plink \
+        --bfile ${prefix} \
+        --extract rs138213197.txt \
+        --out rs138213197 \
+        --recode vcf
+    """
+}
 workflow get_bim_files {
     take:
     vcf_files
@@ -408,10 +428,17 @@ workflow {
         
         phs_scores = calculate_phs(bfiles, model.csv)
 
+        chr17_bim_file = Channel.fromPath(params.bim_template)
+            .filter { it.name.contains('chr17.') }
+            .first()  // Ensures you get only one file
+        
+        hoxb13 = hoxb13_vcf(chr17_bim_file)
+
         phenotypes = preprocess_metadata(file(params.preprocess_script),
                             phs_scores,
   			                file(params.r_config),
-    			            file(params.r_functions))
+    			            file(params.r_functions),
+                            hoxb13.vcf)
         fit_models(phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),
