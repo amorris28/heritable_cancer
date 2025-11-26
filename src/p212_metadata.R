@@ -165,7 +165,8 @@ sample_phenotype_map %>%
 decode_variants %>%
     filter(CPSR_CLASSIFICATION_SOURCE == "ClinVar") %>%
     filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
-    select(bfile_id, SYMBOL) ->
+    filter(FINAL_CLASSIFICATION %in% c("Likely_Pathogenic", "Pathogenic")) %>%
+    select(bfile_id, SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID) ->
     all_decode_variants
 variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
 
@@ -193,19 +194,19 @@ combined_data %>%
 
 # Hoxb13 SNP
 
-#rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
-#rs138213197[, 10:ncol(rs138213197)] %>%
-#  pivot_longer(cols = everything(), names_to = "bfile_id") %>%
-#  mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
-#  mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
-#  rowwise() %>%
-#  mutate(hoxb13_snp = sum(pos1, pos2)) %>%
-#  select(-value, -pos1, -pos2) ->
-#  hoxb13
-#
-#combined_data %>%
-#  left_join(hoxb13, by = join_by(bfile_id)) ->
-#  combined_data
+rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
+rs138213197[, 10:ncol(rs138213197)] %>%
+ pivot_longer(cols = everything(), names_to = "bfile_id") %>%
+ mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
+ mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
+ rowwise() %>%
+ mutate(hoxb13_snp = sum(pos1, pos2)) %>%
+ select(-value, -pos1, -pos2) ->
+ hoxb13
+
+combined_data %>%
+ left_join(hoxb13, by = join_by(bfile_id)) ->
+ combined_data
 
 # Add PHS
 phs_data = import_phs_data(model_file, inverse)

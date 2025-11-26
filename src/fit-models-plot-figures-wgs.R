@@ -60,8 +60,8 @@ write_tsv(wgs_summary, paste(output_prefix, "wgs_summary.tsv", sep = "_"))
 # 0 subjects with these mutations
 
 #Fisher test
-variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
-#variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any")#, "all")
+#variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
+variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM', "any")#, "all")
 fisher_results = list()
 for (i in 1:length(variants)) {
     variant = paste0(variants[i], "_carrier")
