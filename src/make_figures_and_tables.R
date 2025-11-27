@@ -198,17 +198,21 @@ ggsave("figures_and_tables/stratified_incidence.png", stratified,
 ###############################################################
 p212_zph_tt <- readRDS("data/public/p212_zph_tt.rds")
 p2521_zph_tt <- readRDS("data/public/p2521_zph_tt.rds")
+p212_zph_tt_aggr <- readRDS("data/public/p212_zph_tt_aggr.rds")
+p2521_zph_tt_aggr <- readRDS("data/public/p2521_zph_tt_aggr.rds")
 
 zph_tt = 
     p2521_zph_tt + 
     p212_zph_tt +
+    p2521_zph_tt_aggr +
+    p212_zph_tt_aggr +
     plot_annotation(tag_levels = 'A') &
     theme(aspect.ratio=1)
 
 ggsave("figures_and_tables/zph_tt.pdf", zph_tt,
-       height = 8 * 0.618, width = 8)
+       height = 8, width = 8)
 ggsave("figures_and_tables/zph_tt.png", zph_tt,
-       height = 8 * 0.618, width = 8)
+       height = 8, width = 8)
 
 ###############################################################
 #Supplementary Figure 2
@@ -254,3 +258,25 @@ ggsave("figures_and_tables/cumulative_comparison.png", comparison,
 
 #file.copy("data/public/p212_wgs_km_curve.pdf", "figures_and_tables/p212_wgs_km_curve.pdf")
 #file.copy("data/public/p212_wgs_km_curve.png", "figures_and_tables/p212_wgs_km_curve.png")
+
+###############################################################
+#Supplementary Table - cox xph test
+###############################################################
+
+p212_zph %>%
+    bind_rows(p2521_zph) %>%
+    mutate(cohort = if_else(cohort == "p212", "NFCS", "HUSK")) %>%
+    mutate(PCa = str_to_title(PCa)) %>%
+    mutate(chisq = round(chisq, 2)) %>%
+    mutate(p = round(p, 4)) %>%
+    arrange(desc(PCa), cohort) %>%
+    select(PCa, Cohort = cohort, ChiSq = chisq, df, `P-value` = p) ->
+    table_s1
+
+write_tsv(table_s1, "figures_and_tables/table_s1.tsv")
+
+table_s1_caption = "Test of the proportional hazards assumption of the Cox regression models. A small P value indicates that there may be time-dependent coefficients in the Cox model.\n\n"
+
+
+writeLines(knitr::kable(table_s1, format = "pipe"), 
+           "figures_and_tables/table_s1.md")

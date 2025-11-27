@@ -72,6 +72,13 @@ crossref:
       reference-prefix: Figure S
       space-before-numbering: false
       latex-list-of-description: Supplementary Figure
+    - kind: float
+      key: supptab
+      latex-env: supptab
+      reference-prefix: Table S
+      space-before-numbering: false
+      latex-list-of-description: Supplementary Table
+      caption-location: top
 ---
 
 ```{r initialize, echo = FALSE, warning = FALSE, message = FALSE}
@@ -192,7 +199,7 @@ In addition to testing the performance of PHS, we also compared PHS to screening
 
 Even though the combined model of PHS and HOXB13 was not significant, clinical interventions may differ between individuals whose phenotype arises from rare deleterious mutations versus those whose phenotype arises from the interaction of environment with the normal array of segregating genes of minor effect. For example, individuals with BRCA mutations may benefit from PARP inhibitors [@turk2018]. Furthermore, RPVs and PHSes have different implications for genetic counseling, particularly regarding the risk to offspring in the case of RPVs. Therefore, there remains value in screening for these rare variants in appropriate clinical contexts.
 
-While the time-varying effect of PHS was weak, we observed a significant negative trend in the HR of PHS with age in two independent cohorts such that the strongest effect of genetic risk was at the youngest ages (@suppfig-zph). This age-dependent attenuation of genetic risk is consistent with observations from other complex diseases and may reflect several biological processes. First, as individuals age, the cumulative burden of environmental exposures, somatic mutations, and stochastic cellular processes may increasingly dominate over germline genetic variation in determing disease risk [@jiang2021; @winkler2024]. Second, competing risks of death from other causes may differentially affect high-risk individuals, leading to a selected survivor population at older ages. Stronger genetic effects at younger ages have been well-documented for BRCA1/2 mutations in breast cancer [@kuchenbaecker2017] and across multiple complex diseases [@jiang2021]. This has important clinical implications for prostate cancer, as it identifies the age range where genetic risk stratification may be most actionable for prevention and early detection.
+We observed a time-dependency for PHS in the any-stage PCa model, though not for aggressive disease. While the time-varying effect of PHS was weak, we observed a significant negative trend in the HR of PHS with age in two independent cohorts such that the strongest effect of genetic risk was at the youngest ages (@suppfig-zph). This age-dependent attenuation of genetic risk is consistent with observations from other complex diseases and may reflect several biological processes. First, as individuals age, the cumulative burden of environmental exposures, somatic mutations, and stochastic cellular processes may increasingly dominate over germline genetic variation in determining disease risk [@jiang2021; @winkler2024]. Second, competing risks of death from other causes may differentially affect high-risk (i.e., high-PHS) individuals, leading to a selected survivor population at older ages. Stronger genetic effects at younger ages have been well-documented for BRCA1/2 mutations in breast cancer [@kuchenbaecker2017] and across multiple complex diseases [@jiang2021]. Although we observed reduced incidence rates of any-stage PCa after age 70, likely due to decreased screening in this age group [@huynh-le2020a], for this to be an explanation of the time-dependency, there would need to be systematic differences in screening by genetic risk status within the older age group. The non-significant trend for aggressive disease may be explained by more complete case ascertainment for clinically-significant disease, as individuals with aggressive PCa are more likely to be captured in registry data [@huynh-le2020a], reducing age-related detection bias. Alternatively, this could reflect low power due to the small number of aggressive disease cases. These findings have important clinical implications for prostate cancer, as they identify the age range where genetic risk stratification may be most actionable for prevention and early detection.
 
 ## Future Directions
 
@@ -282,7 +289,7 @@ table_1 %>%
 
 ![](manuscript/figures_and_tables/zph_tt.pdf){width=85%}
 
-Plot of the Schoenfeld residuals versus age to test the proportional hazards assumption. The red line represents the estimated time-varying log hazard ratio for PHS from the extended Cox model with a linear time transform. The blue line is a loess smoothing with 95% confidence bands. **(A)** HUSK cohort, **(B)** NFCS cohort. 
+Assessment of the proportional hazards assumption for PHS using Schoenfeld residuals plotted against age. The solid blue line represents the estimated time-varying log hazard ratio from the extended Cox model with a linear time transform (95% confidence bands shown). The dashed blue line shows the log hazard ratio from the standard Cox proportional hazards model, and the dashed red line indicates a hazard ratio of 1.0 (log HR = 0). Divergence between the solid and dashed blue lines indicates violation of the proportional hazards assumption and time-dependency of the PHS effect. Panels **(A)** and **(B)** show results for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show results for aggressive PCa in the same cohorts. 
 
 :::
 
@@ -291,7 +298,15 @@ Plot of the Schoenfeld residuals versus age to test the proportional hazards ass
 
 ![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
 
-Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** illustrate the incidence rates for PCa (any stage) in the HUSK and NFCS cohorts, respectively, whereas panels **(C)** and **(D)** show the incidence rates for aggressive PCa in the same cohorts.
+Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
 
 :::
 
+::: {#supptab-zph}
+
+: Test of the proportional hazards assumption of the Cox regression models. A small P value indicates that there may be time-dependent coefficients in the Cox model.
+
+{{< include manuscript/figures_and_tables/table_s1.md >}}
+
+
+:::
