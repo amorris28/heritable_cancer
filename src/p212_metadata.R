@@ -197,7 +197,7 @@ combined_data %>%
 
 # Hoxb13 SNP
 
-rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
+rs138213197 = read_tsv("rs138213197.vcf", skip = 6)
 rs138213197[, 10:ncol(rs138213197)] %>%
  pivot_longer(cols = everything(), names_to = "bfile_id") %>%
  mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%

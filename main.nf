@@ -147,6 +147,7 @@ process preprocess_metadata {
     path model_file
     path 'src/config.R'
     path 'src/functions.R'
+    path vcf
 
     output:
     path "${params.cluster}_phenotypes.tsv"
@@ -313,11 +314,12 @@ process knit_manuscript {
     quarto render ${manuscript_file} --to pdf
     """
 }
-process pull_out_hoxb13 {
+process get_hoxb13 {
     publishDir params.processed_dir, mode: 'copy'
+    container params.gwas_image
 
     input:
-    path bim
+    tuple path(bim), path(bed), path(fam)
 
     output:
     path "rs138213197.vcf", emit: vcf
@@ -428,11 +430,18 @@ workflow {
         
         phs_scores = calculate_phs(bfiles, model.csv)
 
-        chr17_bim_file = Channel.fromPath(params.bim_template)
+        chr17_bim = Channel.fromPath(params.bim_template)
             .filter { it.name.contains('chr17.') }
             .first()  // Ensures you get only one file
-        
-        hoxb13 = hoxb13_vcf(chr17_bim_file)
+        chr17_plink_files = chr17_bim.map { bim ->
+            def prefix = bim.toString().replaceAll(/\.bim$/, '')
+            tuple(
+                file("${prefix}.bim"),
+                file("${prefix}.bed"),
+                file("${prefix}.fam")
+            )
+        }
+        hoxb13 = get_hoxb13(chr17_plink_files)
 
         phenotypes = preprocess_metadata(file(params.preprocess_script),
                             phs_scores,
