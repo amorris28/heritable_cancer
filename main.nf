@@ -200,6 +200,7 @@ process plot_figures {
     path "${params.cluster}_any_pca_km_curve.rds"
     path "${params.cluster}_metastatic_km_curve.rds"
     path "${params.cluster}_zph_tt.rds"
+    path "${params.cluster}_zph_tt_aggr.rds"
 
     script:
     """

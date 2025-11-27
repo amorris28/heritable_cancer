@@ -23,38 +23,180 @@ combined_data %>%
 
 combined_data %>%
   filter(age >= 40) %>%
-  mutate(age_minus_40 = age - 40) ->
+  mutate(age_minus_40 = age - 40) %>%
+  mutate(age_of_metastasis_minus_40 = age_of_metastasis - 40) ->
   combined_data
 
 # ZPH TT
-fit = coxph(Surv(age, status) ~ phs, data = combined_data)
-zph_fit = cox.zph(fit)
+# model
+fit <- coxph(Surv(age, status) ~ phs, data = combined_data)
 
+# Residuals from cox zph fit
+zph_fit <- cox.zph(fit)
+
+# Create data frames for plotting
+resid_data <- data.frame(
+  time = zph_fit$time,
+  beta = zph_fit$y[, "phs"] # Schoenfeld residuals
+)
+
+# Get the coefficient from the original model
+coef_phs <- coef(fit)["phs"]
+
+# Fit the time-transformed model
 phs_fit_tt = coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
                   tt = function(x, t, ...) x * t)
-summary(phs_fit_tt)
-# not significant
-coef(phs_fit_tt)[[1]]
-zph_tbl = tibble(time = zph_fit$time,
-      beta_t = zph_fit$y[, "phs"])
 
-tt_comp_f = function(t) {
-    coef(phs_fit_tt)[[1]] + coef(phs_fit_tt)[[2]] * t
-    # 0.894841 - 0.011519 * t
-}
-zph_tbl$tt_comp = tt_comp_f(zph_tbl$time - 40)
 
-zph_tt = ggplot(zph_tbl, aes(x = time, y = beta_t)) +
-    geom_point() +
-    stat_smooth() +
-    geom_line(aes(y = tt_comp), color = "red") +
-    theme_classic()
+# Extract coefficients and variance-covariance matrix
+coefs <- coef(phs_fit_tt)
+vcov_matrix <- vcov(phs_fit_tt)
+
+# Coefficients
+beta_phs <- coefs[1]        # Main effect
+beta_tt <- coefs[2]         # Time interaction effect
+
+# Standard errors
+se_phs <- sqrt(vcov_matrix[1, 1])
+se_tt <- sqrt(vcov_matrix[2, 2])
+cov_phs_tt <- vcov_matrix[1, 2]  # Covariance between the two
+
+# Create sequence of time points
+time_seq <- seq(min(combined_data$age_minus_40, na.rm = TRUE), 
+                max(combined_data$age_minus_40, na.rm = TRUE), 
+                length.out = 100)
+
+# Calculate time-varying coefficient: β(t) = β_phs + β_tt * t
+beta_t <- beta_phs + beta_tt * time_seq
+
+# Calculate standard error of β(t)
+# SE[β(t)] = sqrt(Var(β_phs) + t^2 * Var(β_tt) + 2*t*Cov(β_phs, β_tt))
+se_beta_t <- sqrt(vcov_matrix[1, 1] + 
+                  time_seq^2 * vcov_matrix[2, 2] + 
+                  2 * time_seq * cov_phs_tt)
+
+# Calculate 95% confidence intervals
+z_value <- qnorm(0.975)  # Cox models use normal distribution
+ci_lower <- beta_t - z_value * se_beta_t
+ci_upper <- beta_t + z_value * se_beta_t
+
+# Create plotting data frame
+plot_data <- data.frame(
+  time = time_seq + 40,
+  beta_t = beta_t,
+  ci_lower = ci_lower,
+  ci_upper = ci_upper
+)
+
+# Create the plot
+zph_tt = ggplot(plot_data, aes(x = time, y = beta_t)) +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper),
+              fill = "steelblue", alpha = 0.3) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +  geom_point(data = resid_data, aes(x = time, y = beta)) +
+  stat_smooth() +
+  geom_hline(yintercept = coef_phs, 
+             linetype = "dashed", 
+             color = "blue") +
+  labs(title = "Schoenfeld Residuals for phs",
+       subtitle = paste0("Test for PH: p = ", 
+                        round(zph_fit$table["phs", "p"], 4)),
+       x = "Time (age)",
+       y = "Beta(t) for phs") +
+  theme_classic()
 saveRDS(zph_tt, paste(output_prefix, "zph_tt.rds", sep = "_"))
 
+#########################################################
 
 # Plot KM Curves
 any_pca_km_curve = plot_km_curves(combined_data)
 any_pca_inc_curve = plot_km_curves(combined_data, style = "risk")
+
+
+######################################################
+# metastatic
+#####################################################
+
+# ZPH TT
+# model
+fit <- coxph(Surv(age_of_metastasis, metastasis) ~ phs, data = combined_data)
+
+# Residuals from cox zph fit
+zph_fit <- cox.zph(fit)
+
+# Create data frames for plotting
+resid_data <- data.frame(
+  time = zph_fit$time,
+  beta = zph_fit$y[, "phs"] # Schoenfeld residuals
+)
+
+# Get the coefficient from the original model
+coef_phs <- coef(fit)["phs"]
+
+# Fit the time-transformed model
+phs_fit_tt = coxph(Surv(age_of_metastasis_minus_40, metastasis) ~ phs + tt(phs), combined_data,
+                  tt = function(x, t, ...) x * t)
+
+
+# Extract coefficients and variance-covariance matrix
+coefs <- coef(phs_fit_tt)
+vcov_matrix <- vcov(phs_fit_tt)
+
+# Coefficients
+beta_phs <- coefs[1]        # Main effect
+beta_tt <- coefs[2]         # Time interaction effect
+
+# Standard errors
+se_phs <- sqrt(vcov_matrix[1, 1])
+se_tt <- sqrt(vcov_matrix[2, 2])
+cov_phs_tt <- vcov_matrix[1, 2]  # Covariance between the two
+
+# Create sequence of time points
+time_seq <- seq(min(combined_data$age_of_metastasis_minus_40, na.rm = TRUE), 
+                max(combined_data$age_of_metastasis_minus_40, na.rm = TRUE), 
+                length.out = 100)
+
+# Calculate time-varying coefficient: β(t) = β_phs + β_tt * t
+beta_t <- beta_phs + beta_tt * time_seq
+
+# Calculate standard error of β(t)
+# SE[β(t)] = sqrt(Var(β_phs) + t^2 * Var(β_tt) + 2*t*Cov(β_phs, β_tt))
+se_beta_t <- sqrt(vcov_matrix[1, 1] + 
+                  time_seq^2 * vcov_matrix[2, 2] + 
+                  2 * time_seq * cov_phs_tt)
+
+# Calculate 95% confidence intervals
+z_value <- qnorm(0.975)  # Cox models use normal distribution
+ci_lower <- beta_t - z_value * se_beta_t
+ci_upper <- beta_t + z_value * se_beta_t
+
+# Create plotting data frame
+plot_data <- data.frame(
+  time = time_seq + 40,
+  beta_t = beta_t,
+  ci_lower = ci_lower,
+  ci_upper = ci_upper
+)
+
+# Create the plot
+zph_tt = ggplot(plot_data, aes(x = time, y = beta_t)) +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper),
+              fill = "steelblue", alpha = 0.3) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +  geom_point(data = resid_data, aes(x = time, y = beta)) +
+  stat_smooth() +
+  geom_hline(yintercept = coef_phs, 
+             linetype = "dashed", 
+             color = "blue") +
+  labs(title = "Schoenfeld Residuals for phs",
+       subtitle = paste0("Test for PH: p = ", 
+                        round(zph_fit$table["phs", "p"], 4)),
+       x = "Time (age)",
+       y = "Beta(t) for phs") +
+  theme_classic()
+saveRDS(zph_tt, paste(output_prefix, "zph_tt_aggr.rds", sep = "_"))
+
+#########################################################
 
 # KM Curves for metastatic disease
 metastatic_km_curve = plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
