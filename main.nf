@@ -323,7 +323,7 @@ process get_hoxb13 {
     tuple path(bim), path(bed), path(fam)
 
     output:
-    path "rs138213197.vcf", emit: vcf
+    path "rs138213197.vcf"
 
     script:
     def prefix = bim.baseName
@@ -431,24 +431,27 @@ workflow {
         
         phs_scores = calculate_phs(bfiles, model.csv)
 
-        chr17_bim = Channel.fromPath(params.bim_template)
-            .filter { it.name.contains('chr17.') }
-            .first()  // Ensures you get only one file
-        chr17_plink_files = chr17_bim.map { bim ->
-            def prefix = bim.toString().replaceAll(/\.bim$/, '')
-            tuple(
-                file("${prefix}.bim"),
-                file("${prefix}.bed"),
-                file("${prefix}.fam")
-            )
+        if ( params.cluster == 'p212' ) {
+            chr17_bim = Channel.fromPath(params.bim_template)
+                .filter { it.name.contains('chr17.') }
+                .first()  // Ensures you get only one file
+            chr17_plink_files = chr17_bim.map { bim ->
+                def prefix = bim.toString().replaceAll(/\.bim$/, '')
+                tuple(
+                    file("${prefix}.bim"),
+                    file("${prefix}.bed"),
+                    file("${prefix}.fam")
+                )
+            }
+            hoxb13 = get_hoxb13(chr17_plink_files)
+        } else {
+            hoxb13 = Channel.of(file("$projectDir/assets/NO_FILE"))
         }
-        hoxb13 = get_hoxb13(chr17_plink_files)
-
         phenotypes = preprocess_metadata(file(params.preprocess_script),
                             phs_scores,
   			                file(params.r_config),
     			            file(params.r_functions),
-                            hoxb13.vcf)
+                            hoxb13)
         fit_models(phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),
