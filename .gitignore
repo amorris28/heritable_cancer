@@ -79,3 +79,9 @@ results/
 # Nextflow
 .nextflow*
 work/*
+
+# credentials
+credentials.py
+tsd_import_example.ipynb
+
+

@@ -55,6 +55,13 @@ if (perform_bool) {
 # Time to metastatic diseaes
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
 metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = TRUE)
+meta_zph_fit = cox.zph(metastasis_fit)
+
+
+meta_zph_fit %>%
+  print() %>%
+  as_tibble ->
+meta_phs_zph_tidy
 
 # Performance metrics
 

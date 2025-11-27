@@ -59,22 +59,32 @@ p2521_perform$PCa = "Any"
 p212_perform$cohort = "NFCS"
 p212_perform$PCa = "Any"
 p2521_meta$cohort = "HUSK"
-p2521_meta$PCa = "Meta"
+p2521_meta$PCa = "Aggr"
 p212_meta$cohort = "NFCS"
-p212_meta$PCa = "Meta"
-
+p212_meta$PCa = "Aggr"
+p212_coxph_results$cohort = "NFCS"
+p2521_coxph_results$cohort = "HUSK"
+(p2521_coxph_results %>%
+    rbind(p212_coxph_results) %>%
+    mutate(PCa = if_else(model == "any_pca", "Any", if_else(model == "metastatic", "Aggr", NA))) %>%
+    filter(model %in% c("any_pca", "metastatic")) %>%
+    select(value = estimate, conf.low, conf.high, PCa, cohort)->
+    coxph_results)
+coxph_results$index = "HR"
 p2521_sample_size %>%
     rbind(p212_sample_size) %>%
-    mutate(PCa = if_else(group == "any_pca", "Any", if_else(group == "metastatic", "Meta", NA))) ->
+    mutate(PCa = if_else(group == "any_pca", "Any", if_else(group == "metastatic", "Aggr", NA))) ->
     sample_size
 
 rbind(p2521_perform, p212_perform, p2521_meta, p212_meta) %>%
-    filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
+    filter(index %in% c("HR80_20", "C_Index")) %>%
+    select(-model) %>%
+    bind_rows(coxph_results) %>%
     mutate(value = sprintf("%.2f (%.2f,%.2f)", value, conf.low, conf.high)) %>%
     select(-conf.low, -conf.high) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     left_join(sample_size, by = join_by(cohort, PCa)) %>%
-    select(PCa, cohort, n = total, cases, HRSD, HR80_20, C_Index) ->
+    select(PCa, Cohort = cohort, n = total, Cases = cases, HR, HR80_20, C_Index) ->
     table_1
 
 write_tsv(table_1, "figures_and_tables/table_1.tsv")
