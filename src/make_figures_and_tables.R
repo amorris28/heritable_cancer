@@ -1,7 +1,6 @@
-library(ggplot2)
 library(tidyverse)
 library(patchwork)
-#library(kableExtra)
+library(kableExtra)
 
 source("src/config.R")
 source("src/functions.R")
@@ -75,15 +74,20 @@ p2521_sample_size %>%
     sample_size
 
 rbind(p2521_perform, p212_perform, p2521_meta, p212_meta) %>%
-    filter(index %in% c("HR80_20", "C_Index")) %>%
+    filter(index %in% c("HR80_20", "HR80_50", "C_Index")) %>%
     select(-model) %>%
     bind_rows(coxph_results) %>%
     mutate(value = sprintf("%.2f (%.2f,%.2f)", value, conf.low, conf.high)) %>%
     select(-conf.low, -conf.high) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     left_join(sample_size, by = join_by(cohort, PCa)) %>%
-    select(PCa, Cohort = cohort, n = total, Cases = cases, HR, HR80_20, C_Index) ->
-    table_1
+    select(PCa, Cohort = cohort, n = total, Cases = cases, HR, HR80_20, HR80_50, C_Index) %>%
+    rename(`HR80/20` = HR80_20, `HR80/50` = HR80_50, `C-Index` = C_Index) %>%
+    select(-n) ->
+table_1
+    # knitr::kable(format = "latex") %>%
+    # kable_styling(font_size = 8) %>%
+    # writeLines("figures_and_tables/table_1.md")
 
 write_tsv(table_1, "figures_and_tables/table_1.tsv")
 

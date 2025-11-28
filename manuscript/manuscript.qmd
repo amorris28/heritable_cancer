@@ -165,9 +165,9 @@ To evaluate how generalizable our results were to the population of Norway, we c
 
 # Results
 
-## PHS601 strongly stratified PCa risk in two Norwegian cohorts
+## PHS601 stratified PCa risk in two Norwegian cohorts
 
-PHS601 strongly stratified PCa risk in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`; @{tbl-1}). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} (round(p2521[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`; @{tbl-1}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
+PHS601 stratified PCa risk in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`; @{tbl-1}). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} (round(p2521[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`; @{tbl-1}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
 
 In both cohorts, proportional hazards tests and plots of weighted residuals revealed a negative trend in hazard ratios with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{suppfig-zph}) indicating that the effect of PHS diminished with age. To model this, we fit an extended Cox model with a linear time-dependent PHS term (intercept at age 40). At age 40, each SD increase in PHS was associated with a `{r} sprintf("%.1f", round(p2521_coxph_results[3, "estimate"], 1))`-fold (HUSK: HR = `{r} sprintf("%.2f", round(p2521_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[3, "p.value"]])`) and `{r} sprintf("%.1f", round(p212_coxph_results[3, "estimate"], 0))`-fold (NFCS: HR = `{r} sprintf("%.2f", round(p212_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[3, "p.value"]])`) higher risk, declining by approximately `r round(1 - p2521_coxph_results[4, "estimate"], 3) * 100`\% and `r round(1 - p212_coxph_results[4, "estimate"], 3) * 100`\% per year, respectively (HUSK: HR = `{r} sprintf("%.3f", round(p2521_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p2521_coxph_results[[4, "p.value"]])`; NFCS: HR = `{r} sprintf("%.3f", round(p212_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p212_coxph_results[[4, "p.value"]])`). However, the time-varying effects were weak and residual plots showed high variability, so we present the simpler proportional hazards models in the main results and figures.
 
@@ -191,7 +191,7 @@ Panel A of @{fig-strat} shows cumulative incidence of any-stage PCa by age and P
 
 # Discussion
 
-We observed strong stratification in both Norwegian cohorts, which demonstrates the potential of PHS601 in a precision screening paradigm in Norway. The strong stratification in the HUSK cohort demonstrates good risk stratification in the general population. In addition, the NFCS cohort was recruited based on self-reported family history of cancer and showed elevated cancer risk relative to the general Norwegian population (@{suppfig-comp}). Therefore, even in a group with a family history of cancer, there is good stratification between low and high risk.
+We observed strong stratification in both Norwegian cohorts, This demonstrates the potential of PHS601 in a precision screening paradigm in Norway. The strong stratification in the HUSK cohort demonstrates good risk stratification in the general population. In addition, the NFCS cohort was recruited based on self-reported family history of cancer and showed elevated cancer risk relative to the general Norwegian population (@{suppfig-comp}). Therefore, even in a group with a family history of cancer, there is good stratification between low and high risk.
 
 For aggressive disease, we also found good stratification between high- and low-risk individuals based on PHS, and we see a similar magnitude effect in both NFCS and HUSK cohorts. This suggests PHS601 could be effective at identifying individuals at greater risk of aggressive disease and therefore with the greatest clinical benefit for further screening via PSA or imaging. Although PHS601 is not specific for aggressive disease, it does appear to stratify for absolute risk of aggressive or metastatic prostate cancer [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023].
 
@@ -272,14 +272,11 @@ Predicted cumulative incidence of PCa in the general population of Norway based 
 :::
 
 
-```{r table-1}
-#| label: tbl-1
+```{r tbl-1}
 #| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. 95% confidence intervals are model-based for HR and bootstrap-based for C-index and HR~80/20~. "Any" = any stage of PCa, "Aggr" = aggressive PCa.
 
 table_1 = read_tsv("manuscript/figures_and_tables/table_1.tsv")
 table_1 %>%
-    rename(`HR80/20` = HR80_20, `C-Index` = C_Index) %>%
-    select(-n) %>%
     kable()
 ```
 
@@ -321,11 +318,3 @@ Comparison of cumulative incidence rates for PCa in two cohorts against national
 
 :::
 
-::: {#supptab-hoxb13}
-
-: Mutations in the HOXB13 gene observed in our dataset, including mutations not classified as "Pathogenic" or "Likely pathogenic" in ClinVar.
-
-{{< include manuscript/figures_and_tables/table_s3.md >}}
-
-
-:::
