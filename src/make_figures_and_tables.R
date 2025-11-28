@@ -32,12 +32,10 @@ wgs_results = readr::read_tsv("data/public/p212_wgs.tsv")
 
 p212 <- readRDS("data/public/p212_any_pca_km_curve.rds")
 p2521 <- readRDS("data/public/p2521_any_pca_km_curve.rds")
-# p212 = p212 + 
-#     labs(y = "Proportion cancer-free, any stage (NFCS)") +
-    #   lims(y = c(0.25, 1))
-# p2521 = p2521 + 
-#     labs(y = "Proportion cancer-free, any stage (HUSK)") +
-    #   lims(y = c(0.25, 1))
+p212 = p212 + 
+    labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
+p2521 = p2521 + 
+    labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)")
 any_pca = p2521 +
     p212 +
     plot_annotation(tag_levels = 'A') +
@@ -94,10 +92,10 @@ write_tsv(table_1, "figures_and_tables/table_1.tsv")
 ###############################################################
 p212 <- readRDS("data/public/p212_metastatic_km_curve.rds")
 p2521 <- readRDS("data/public/p2521_metastatic_km_curve.rds")
-# p212 = p212 + labs(y = "Proportion cancer-free, metastatic (NFCS)") +
-#     lims(y = c(0.80, 1.0))
-# p2521 = p2521 + labs(y = "Proportion cancer-free, metastatic (HUSK)") +
-#     lims(y = c(0.80, 1.0))
+p212 = p212 + 
+    labs(title = "NFCS - Aggressive PCa", y = "Cumulative Incidence (%)")
+p2521 = p2521 + 
+    labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)")
 metastatic = p2521 + 
     p212 +
     plot_annotation(tag_levels = 'A') +
@@ -132,10 +130,9 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 # #   widths = c(5, 1, 5),
 # #   layout_matrix = rbind(c(1, NA, 2))
 # # )
-
 wgs_km <- readRDS("data/public/p212_wgs_km_curve.rds")
 # wgs_km = wgs_km & labs(y = "Proportion cancer-free, any stage (NFCS)")
-wgs_km = wgs_km & labs(y = "Cumulative incidence, %\n(Absolute risk) (NFCS)")
+wgs_km = wgs_km & labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
            height = 8 * 0.618, width = 8)
 ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
@@ -168,13 +165,14 @@ ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
 anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca = anypca + 
-    labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
+    labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)") +
     lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 100))
     # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
+    
 
 metastatic = metastatic + 
-    labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
+    labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)") +
     lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 20))
     # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
@@ -201,6 +199,11 @@ p2521_zph_tt <- readRDS("data/public/p2521_zph_tt.rds")
 p212_zph_tt_aggr <- readRDS("data/public/p212_zph_tt_aggr.rds")
 p2521_zph_tt_aggr <- readRDS("data/public/p2521_zph_tt_aggr.rds")
 
+p2521_zph_tt = p2521_zph_tt + labs(title = "HUSK - Any-stage PCa", x = "Age")
+p212_zph_tt = p212_zph_tt + labs(title = "NFCS - Any-stage PCa", x = "Age")
+p2521_zph_tt_aggr = p2521_zph_tt_aggr + labs(title = "HUSK - Aggressive PCa", x = "Age")
+p212_zph_tt_aggr = p212_zph_tt_aggr + labs(title = "NFCS - Aggressive PCa", x = "Age")
+
 zph_tt = 
     p2521_zph_tt + 
     p212_zph_tt +
@@ -225,16 +228,16 @@ p212_anypca <- readRDS("data/public/p212_cumulative_comparison.rds")
 p212_metastatic <- readRDS("data/public/p212_cumulative_comparison_metastatic.rds")
 
 p2521_anypca = p2521_anypca + 
-    labs(y = "Cumulative incidence,\nany stage, % (HUSK)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "HUSK - Any-stage PCa") +
     lims(x = c(40, 90), y = c(0, 30))
 p212_anypca = p212_anypca + 
-    labs(y = "Cumulative incidence,\nany stage, % (NFCS)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "NFCS - Any-stage PCa") +
     lims(x = c(40, 90), y = c(0, 30))
 p2521_metastatic = p2521_metastatic + 
-    labs(y = "Cumulative incidence,\naggressive, % (HUSK)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "HUSK - Aggressive PCa") +
     lims(x = c(40, 90), y = c(0, 6))
 p212_metastatic = p212_metastatic + 
-    labs(y = "Cumulative incidence,\naggressive, % (NFCS)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "NFCS - Aggressive PCa") +
     lims(x = c(40, 90), y = c(0, 6))
 # p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
 # p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
