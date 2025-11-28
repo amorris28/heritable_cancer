@@ -310,3 +310,22 @@ Comparison of cumulative incidence rates for PCa in two cohorts against national
 
 
 :::
+
+
+::: {#supptab-fisher}
+
+: One-sided Fisher's exact tests of whether the odds of carrying an RPV are greater among cases than controls in the NFCS cohort. P values adjusted using the Benjamini & Hochberg method. OR = Odds ratio, LCB = lower confidence bound.
+
+{{< include manuscript/figures_and_tables/table_s2.md >}}
+
+
+:::
+
+::: {#supptab-hoxb13}
+
+: Mutations in the HOXB13 gene observed in our dataset, including mutations not classified as "Pathogenic" or "Likely pathogenic" in ClinVar.
+
+{{< include manuscript/figures_and_tables/table_s3.md >}}
+
+
+:::

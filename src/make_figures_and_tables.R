@@ -276,10 +276,21 @@ p212_zph %>%
     select(PCa, Cohort = cohort, ChiSq = chisq, df, `P-value` = p) ->
     table_s1
 
-write_tsv(table_s1, "figures_and_tables/table_s1.tsv")
-
-table_s1_caption = "Test of the proportional hazards assumption of the Cox regression models. A small P value indicates that there may be time-dependent coefficients in the Cox model.\n\n"
-
-
 writeLines(knitr::kable(table_s1, format = "pipe"), 
            "figures_and_tables/table_s1.md")
+
+###############################################################
+#Supplementary Table - fishers tests
+###############################################################
+
+fisher %>%
+    mutate(OR = sprintf("%.2f (%.2f)", estimate, conf.low)) %>%
+    select(-conf.low, -conf.high) %>%
+    mutate(gene = str_remove(gene, "_carrier")) %>%
+    mutate(gene = if_else(gene == "any", "Any", gene)) %>%
+    mutate(p.value = round(p.value, 2), p.adjust = round(p.adjust, 2)) %>%
+    select(RPV = gene, `OR (LCB)` = OR, `P-value` = p.value, `Adj. P-value` = p.adjust) ->
+    table_s2
+table_s2 %>%
+    knitr::kable(format = "pipe", align = c('l', 'r', 'r', 'r')) %>%
+    writeLines("figures_and_tables/table_s2.md")

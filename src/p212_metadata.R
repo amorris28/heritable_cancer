@@ -2,7 +2,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
 inverse = args[2]
-output_file = args[3] # output file name
+# output_file = args[3] # output file name
 
 library(tidyverse)
 library(readxl)
@@ -217,4 +217,16 @@ phs_data = import_phs_data(model_file, inverse)
 combined_data = process_combined_data(combined_data, phs_data)
 
 # Save output
-write_tsv(combined_data, output_file)
+write_tsv(combined_data, "phenotypes.tsv")
+# write_tsv(combined_data, output_file)
+
+# List all HOXB13 variants not classified as pathogenic in clinvar
+decode_variants %>%
+  filter(bfile_id %in% combined_data$bfile_id) %>%
+  filter(SYMBOL %in% variants) %>%
+  select(SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID, FINAL_CLASSIFICATION) %>%
+  group_by(SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID, FINAL_CLASSIFICATION) %>%
+  summarize(n = n()) ->
+  all_variants
+
+write_tsv(all_variants, "all_variants.tsv")

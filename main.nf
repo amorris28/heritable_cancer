@@ -139,7 +139,15 @@ process plink_score {
     """
 }
 process preprocess_metadata {
-    publishDir params.processed_dir, mode: 'copy'
+    tag "${params.cluster}"
+
+    publishDir params.processed_dir, 
+               mode: 'copy', 
+               pattern: "phenotypes.tsv"
+    publishDir params.public_dir, 
+               mode: 'copy', 
+               pattern: "all_variants.tsv"
+
     container params.r_image
 
     input:
@@ -150,15 +158,14 @@ process preprocess_metadata {
     path vcf
 
     output:
-    path "${params.cluster}_phenotypes.tsv"
+    path "*.tsv"
 
     script:
     """
     mkdir -p data/processed
     Rscript ${preprocess_script} \
         ${model_file} \
-        FALSE \
-        ${params.cluster}_phenotypes.tsv
+        FALSE
     """
 }
 process fit_models {
