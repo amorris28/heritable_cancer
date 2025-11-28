@@ -28,8 +28,8 @@ huynhle_asis %>%
 # import data
 full_data = read_tsv(metadata_file)
 
-# Compute the various curves in a function that takes arguments for
-# registry data, age column, response column, linear model or polynomial
+# Compute cumulative risk for the first- or second-order polynomial curves
+# Takes registry data, age column, response column, log linear model or polynomial
 return_cum_risk = function(incidence_data, response, order = 1) {
     if (order == 1) {
         fit_reg <- lm(as.formula(sprintf('log(%s)~median_age', response)), data = incidence_data)
