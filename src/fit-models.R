@@ -32,12 +32,14 @@ fit = coxph(Surv(age, status) ~ phs, data = combined_data)
 zph_fit = cox.zph(fit)
 
 #plot(zph_fit)
-summary(fit)
+#summary(fit)
 
 zph_fit %>%
   print() %>%
-  as_tibble ->
+  as_tibble %>%
+  mutate(cohort = output_prefix, PCa = "any") ->
 phs_zph_tidy
+phs_zph_tidy = phs_zph_tidy[1,]
 
 any_pca_coxph = broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE)
 
@@ -55,7 +57,15 @@ if (perform_bool) {
 # Time to metastatic diseaes
 metastasis_fit = coxph(Surv(age_of_metastasis, metastasis) ~ phs, combined_data)
 metastatic_coxph = broom::tidy(metastasis_fit, exponentiate = TRUE, conf.int = TRUE)
+meta_zph_fit = cox.zph(metastasis_fit)
 
+
+meta_zph_fit %>%
+  print() %>%
+  as_tibble %>%
+  mutate(cohort = output_prefix, PCa = "aggr") ->
+meta_phs_zph_tidy
+meta_phs_zph_tidy = meta_phs_zph_tidy[1,]
 # Performance metrics
 
 if (perform_bool) {
@@ -96,6 +106,11 @@ rbind(any_pca_coxph,
       metastatic_coxph, 
       phs_tt_tidy) ->
       coxph_results
+
+# Combine zph results
+phs_zph_tidy %>%
+  bind_rows(meta_phs_zph_tidy) ->
+  phs_zph_tidy
 
 # Save Output
 write_tsv(phs_zph_tidy, paste(output_prefix, "phs_zph_tidy.tsv", sep = "_"))

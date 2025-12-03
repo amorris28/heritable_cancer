@@ -139,7 +139,15 @@ process plink_score {
     """
 }
 process preprocess_metadata {
-    publishDir params.processed_dir, mode: 'copy'
+    tag "${params.cluster}"
+
+    publishDir params.processed_dir, 
+               mode: 'copy', 
+               pattern: "phenotypes.tsv"
+    publishDir params.public_dir, 
+               mode: 'copy', 
+               pattern: "all_variants.tsv"
+
     container params.r_image
 
     input:
@@ -147,17 +155,17 @@ process preprocess_metadata {
     path model_file
     path 'src/config.R'
     path 'src/functions.R'
+    path vcf
 
     output:
-    path "${params.cluster}_phenotypes.tsv"
+    path "*.tsv"
 
     script:
     """
     mkdir -p data/processed
     Rscript ${preprocess_script} \
         ${model_file} \
-        FALSE \
-        ${params.cluster}_phenotypes.tsv
+        FALSE
     """
 }
 process fit_models {
@@ -199,6 +207,7 @@ process plot_figures {
     path "${params.cluster}_any_pca_km_curve.rds"
     path "${params.cluster}_metastatic_km_curve.rds"
     path "${params.cluster}_zph_tt.rds"
+    path "${params.cluster}_zph_tt_aggr.rds"
 
     script:
     """
@@ -290,6 +299,7 @@ process postprocess_figures {
 }
 process knit_manuscript {
     publishDir params.manuscript_dir, mode: 'copy'
+    container params.r_image
 
     input:
     path manuscript_file
@@ -311,6 +321,27 @@ process knit_manuscript {
     """
     quarto render ${manuscript_file} --to docx
     quarto render ${manuscript_file} --to pdf
+    """
+}
+process get_hoxb13 {
+    publishDir params.processed_dir, mode: 'copy'
+    container params.gwas_image
+
+    input:
+    tuple path(bim), path(bed), path(fam)
+
+    output:
+    path "rs138213197.vcf"
+
+    script:
+    def prefix = bim.baseName
+    """
+    echo rs138213197 >> rs138213197.txt
+    plink \
+        --bfile ${prefix} \
+        --extract rs138213197.txt \
+        --out rs138213197 \
+        --recode vcf
     """
 }
 workflow get_bim_files {
@@ -408,10 +439,27 @@ workflow {
         
         phs_scores = calculate_phs(bfiles, model.csv)
 
+        if ( params.cluster == 'p212' ) {
+            chr17_bim = Channel.fromPath(params.bim_template)
+                .filter { it.name.contains('chr17.') }
+                .first()  // Ensures you get only one file
+            chr17_plink_files = chr17_bim.map { bim ->
+                def prefix = bim.toString().replaceAll(/\.bim$/, '')
+                tuple(
+                    file("${prefix}.bim"),
+                    file("${prefix}.bed"),
+                    file("${prefix}.fam")
+                )
+            }
+            hoxb13 = get_hoxb13(chr17_plink_files)
+        } else {
+            hoxb13 = Channel.of(file("$projectDir/assets/NO_FILE"))
+        }
         phenotypes = preprocess_metadata(file(params.preprocess_script),
                             phs_scores,
   			                file(params.r_config),
-    			            file(params.r_functions))
+    			            file(params.r_functions),
+                            hoxb13)
         fit_models(phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),

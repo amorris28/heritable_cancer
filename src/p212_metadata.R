@@ -2,7 +2,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
 inverse = args[2]
-output_file = args[3] # output file name
+# output_file = args[3] # output file name
 
 library(tidyverse)
 library(readxl)
@@ -162,12 +162,16 @@ sample_phenotype_map %>%
     mutate(bfile_id = paste0("Eivind_", EID)) ->
     decode_variants
 
+variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
+
 decode_variants %>%
     filter(CPSR_CLASSIFICATION_SOURCE == "ClinVar") %>%
-    filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
-    select(bfile_id, SYMBOL) ->
+    # filter(FINAL_CLASSIFICATION == "Pathogenic") %>%
+   filter(FINAL_CLASSIFICATION %in% c("Likely_Pathogenic", "Pathogenic")) %>%
+   filter(SYMBOL %in% variants) %>%
+    # select(bfile_id, SYMBOL) ->
+    select(bfile_id, SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID) ->
     all_decode_variants
-variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
 
 for(i in variants) {
   new <- if_else(all_decode_variants$SYMBOL == i, 1, NA)
@@ -193,19 +197,19 @@ combined_data %>%
 
 # Hoxb13 SNP
 
-#rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
-#rs138213197[, 10:ncol(rs138213197)] %>%
-#  pivot_longer(cols = everything(), names_to = "bfile_id") %>%
-#  mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
-#  mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
-#  rowwise() %>%
-#  mutate(hoxb13_snp = sum(pos1, pos2)) %>%
-#  select(-value, -pos1, -pos2) ->
-#  hoxb13
-#
-#combined_data %>%
-#  left_join(hoxb13, by = join_by(bfile_id)) ->
-#  combined_data
+rs138213197 = read_tsv("rs138213197.vcf", skip = 6)
+rs138213197[, 10:ncol(rs138213197)] %>%
+ pivot_longer(cols = everything(), names_to = "bfile_id") %>%
+ mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
+ mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
+ rowwise() %>%
+ mutate(hoxb13_snp = sum(pos1, pos2)) %>%
+ select(-value, -pos1, -pos2) ->
+ hoxb13
+
+combined_data %>%
+ left_join(hoxb13, by = join_by(bfile_id)) ->
+ combined_data
 
 # Add PHS
 phs_data = import_phs_data(model_file, inverse)
@@ -213,4 +217,16 @@ phs_data = import_phs_data(model_file, inverse)
 combined_data = process_combined_data(combined_data, phs_data)
 
 # Save output
-write_tsv(combined_data, output_file)
+write_tsv(combined_data, "phenotypes.tsv")
+# write_tsv(combined_data, output_file)
+
+# List all HOXB13 variants not classified as pathogenic in clinvar
+decode_variants %>%
+  filter(bfile_id %in% combined_data$bfile_id) %>%
+  filter(SYMBOL %in% variants) %>%
+  select(SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID, FINAL_CLASSIFICATION) %>%
+  group_by(SYMBOL, GENOMIC_CHANGE, ALTERATION, DBSNP_RSID, FINAL_CLASSIFICATION) %>%
+  summarize(n = n()) ->
+  all_variants
+
+write_tsv(all_variants, "all_variants.tsv")

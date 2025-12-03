@@ -48,6 +48,7 @@ data/**/bim_files/*
 *.pdf
 *.png
 *.aux
+*.md
 reports/
 scratch/
 
@@ -79,3 +80,9 @@ results/
 # Nextflow
 .nextflow*
 work/*
+
+# credentials
+credentials.py
+tsd_import_example.ipynb
+
+

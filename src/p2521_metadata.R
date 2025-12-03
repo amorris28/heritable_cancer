@@ -2,7 +2,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 model_file = args[1] # PHS file
 inverse = args[2]
-output_file = args[3] # output file name
+# output_file = args[3] # output file name
 
 # initialize packages
 library(tidyverse)
@@ -235,10 +235,26 @@ phenotype_data %>%
 	filter(huskmentid %in% all_male_huskmentids) ->
 	phenotype_data
 
+# Hoxb13 SNP
+
+#rs138213197 = read_tsv("data/processed/rs138213197.vcf", skip = 6)
+#rs138213197[, 10:ncol(rs138213197)] %>%
+# pivot_longer(cols = everything(), names_to = "bfile_id") %>%
+# mutate(pos1 = as.numeric(substr(value, 1, 1))) %>%
+# mutate(pos2 = as.numeric(substr(value, 3, 3))) %>%
+# rowwise() %>%
+# mutate(hoxb13_snp = sum(pos1, pos2)) %>%
+# select(-value, -pos1, -pos2) ->
+# hoxb13
+#
+#phenotype_data %>%
+# left_join(hoxb13, by = join_by(bfile_id)) ->
+# phenotype_data
+
 # Add PHS
 phs_data = import_phs_data(model_file, inverse)
 
 combined_data = process_combined_data(phenotype_data, phs_data)
 
 # Save output
-write_tsv(combined_data, output_file)
+write_tsv(combined_data, "phenotypes.tsv")

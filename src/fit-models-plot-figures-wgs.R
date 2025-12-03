@@ -60,8 +60,8 @@ write_tsv(wgs_summary, paste(output_prefix, "wgs_summary.tsv", sep = "_"))
 # 0 subjects with these mutations
 
 #Fisher test
-variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
-#variants = c("brca2", "hoxb13", "brca1", "mlh1", "atm", "any")#, "all")
+#variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM')
+variants = c('BRCA1', 'BRCA2',  'ATM', 'PALB2', 'CHEK2', 'HOXB13', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'TP53', 'EPCAM', "any")#, "all")
 fisher_results = list()
 for (i in 1:length(variants)) {
     variant = paste0(variants[i], "_carrier")
@@ -315,81 +315,76 @@ ggsave(paste(output_prefix, "wgs_km_curve.png", sep = "_"), wgs_p,
 saveRDS(wgs_p, paste(output_prefix, "wgs_km_curve.rds", sep = "_"))
 
 #####################################################################################
-# HOXB13 SNPs
+# HOXB13 SNPs in full dataset
 #####################################################################################
 
 
-## survival analysis
-#phs_fit = coxph(Surv(age, status) ~ phs, combined_data)
-#summary(phs_fit)
-#
-#
-#hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, combined_data)
-#summary(hoxb13_snp_fit)
-#hoxb13_snp_coxph = broom::tidy(hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
-#cox.zph(hoxb13_snp_fit)
-## hoxb13_snp_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_snp, combined_data)
-## summary(hoxb13_snp_fit)
-#
-#phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, combined_data)
-#summary(phs_hoxb13_snp_fit)
-#phs_hoxb13_snp_coxph = broom::tidy(phs_hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
-#
-#cox.zph_test <- cox.zph(phs_hoxb13_snp_fit)
-#print(cox.zph_test)
-#plot(cox.zph_test)
-#
-#phs_hoxb13_snp_inter = coxph(Surv(age, status) ~ phs * hoxb13_snp, combined_data)
-#summary(phs_hoxb13_wgs_inter)
-#phs_hoxb13_snp_inter_coxph = broom::tidy(phs_hoxb13_snp_inter, exponentiate = TRUE, conf.int = TRUE)
-#
-### Plot of HOXB13 SNPs km curve on entire data
-#
-#fit = coxph(Surv(age, status) ~ hoxb13_snp, data = combined_data)
-#summary(fit)
-#new_data0 = data.frame(hoxb13_snp = c(0))
-#new_data1 = data.frame(hoxb13_snp = c(1))
-#fit_surv0 = survfit(fit, newdata = new_data0)
-#df0 = data.frame(hoxb13_snp = 0, 
-#                surv = fit_surv0$surv, 
-#                time = fit_surv0$time,
-#                lower = fit_surv0$lower, 
-#                upper = fit_surv0$upper)
-#fit_surv1 = survfit(fit, newdata = new_data1)
-#df1 = data.frame(hoxb13_snp = 1, 
-#                surv = fit_surv1$surv, 
-#                time = fit_surv1$time,
-#                lower = fit_surv1$lower, 
-#                upper = fit_surv1$upper)
-#prediction = rbind(df0, df1) %>%
-#    mutate(hoxb13_snp = as.factor(hoxb13_snp))
-#
-#hoxb13_snp_p = ggplot(prediction, aes(x = time, 
-#                    y = surv, 
-#                    ymin = lower,
-#                    ymax = upper,
-#                    color = hoxb13_snp,
-#                    fill = hoxb13_snp)) +
-#    geom_ribbon(alpha = 0.1,
-#                color = 0) +
-#    geom_step() +
-#    theme_classic() +
-#    xlim(40, 100) + 
-#    ylim(0, 1) +
-#    labs(x = "Age", y = "Disease-free Survival") +
-#    scale_color_brewer(palette = "Set1",
-#                    name = "HOXB13 Carrier") +
-#    scale_fill_brewer(palette = "Set1",
-#                    name = "HOXB13 Carrier") + 
-#theme(aspect.ratio = 1) +
-#    theme(legend.position = "bottom") 
-#
-#fig_width = 6
-#ggsave(paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.pdf", sep = "_")), hoxb13_snp_p,
-#        height = fig_width * 0.618, width = fig_width)
-#ggsave(paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.png", sep = "_")), hoxb13_snp_p,
-#        height = fig_width * 0.618, width = fig_width)
-#saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.rds", sep = "_")))
+# survival analysis
+phs_fit = coxph(Surv(age, status) ~ phs, combined_data)
+summary(phs_fit)
+
+
+hoxb13_snp_fit = coxph(Surv(age, status) ~ hoxb13_snp, combined_data)
+summary(hoxb13_snp_fit)
+hoxb13_snp_coxph = broom::tidy(hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
+cox.zph(hoxb13_snp_fit)
+hoxb13_snp_fit = coxph(Surv(age_of_metastasis, metastasis) ~ hoxb13_snp, combined_data)
+summary(hoxb13_snp_fit)
+
+phs_hoxb13_snp_fit = coxph(Surv(age, status) ~ phs + hoxb13_snp, combined_data)
+summary(phs_hoxb13_snp_fit)
+phs_hoxb13_snp_coxph = broom::tidy(phs_hoxb13_snp_fit, exponentiate = TRUE, conf.int = TRUE)
+
+cox.zph_test <- cox.zph(phs_hoxb13_snp_fit)
+print(cox.zph_test)
+plot(cox.zph_test)
+
+phs_hoxb13_snp_inter = coxph(Surv(age, status) ~ phs * hoxb13_snp, combined_data)
+summary(phs_hoxb13_wgs_inter)
+phs_hoxb13_snp_inter_coxph = broom::tidy(phs_hoxb13_snp_inter, exponentiate = TRUE, conf.int = TRUE)
+
+## Plot of HOXB13 SNPs km curve on entire data
+
+fit = coxph(Surv(age, status) ~ hoxb13_snp, data = combined_data)
+summary(fit)
+new_data0 = data.frame(hoxb13_snp = c(0))
+new_data1 = data.frame(hoxb13_snp = c(1))
+fit_surv0 = survfit(fit, newdata = new_data0)
+df0 = data.frame(hoxb13_snp = 0, 
+               surv = fit_surv0$surv, 
+               time = fit_surv0$time,
+               lower = fit_surv0$lower, 
+               upper = fit_surv0$upper)
+fit_surv1 = survfit(fit, newdata = new_data1)
+df1 = data.frame(hoxb13_snp = 1, 
+               surv = fit_surv1$surv, 
+               time = fit_surv1$time,
+               lower = fit_surv1$lower, 
+               upper = fit_surv1$upper)
+prediction = rbind(df0, df1) %>%
+   mutate(hoxb13_snp = as.factor(hoxb13_snp))
+
+hoxb13_snp_p = ggplot(prediction, aes(x = time, 
+                   y = surv, 
+                   ymin = lower,
+                   ymax = upper,
+                   color = hoxb13_snp,
+                   fill = hoxb13_snp)) +
+   geom_ribbon(alpha = 0.1,
+               color = 0) +
+   geom_step() +
+   theme_classic() +
+   xlim(40, 100) + 
+   ylim(0, 1) +
+   labs(x = "Age", y = "Disease-free Survival") +
+   scale_color_brewer(palette = "Set1",
+                   name = "HOXB13 Carrier") +
+   scale_fill_brewer(palette = "Set1",
+                   name = "HOXB13 Carrier") + 
+    theme(aspect.ratio = 1) +
+   theme(legend.position = "bottom") 
+
+saveRDS(hoxb13_snp_p, paste0(results, paste(tsd_proj, output_prefix, "hoxb13_snp_km_curve.rds", sep = "_")))
 
 
 

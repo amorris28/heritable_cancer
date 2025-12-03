@@ -1,7 +1,8 @@
-library(ggplot2)
 library(tidyverse)
 library(patchwork)
-#library(kableExtra)
+# library(kableExtra)
+# library(flextable)
+
 
 source("src/config.R")
 source("src/functions.R")
@@ -30,18 +31,18 @@ wgs_results = readr::read_tsv("data/public/p212_wgs.tsv")
 # PHS K-M Curve Figure for Any-PCa
 ###############################################################
 
-p212 <- readRDS("data/public/p212_any_pca_km_curve.rds")
-p2521 <- readRDS("data/public/p2521_any_pca_km_curve.rds")
-# p212 = p212 + 
-#     labs(y = "Proportion cancer-free, any stage (NFCS)") +
-    #   lims(y = c(0.25, 1))
-# p2521 = p2521 + 
-#     labs(y = "Proportion cancer-free, any stage (HUSK)") +
-    #   lims(y = c(0.25, 1))
+p212 <- base::readRDS("data/public/p212_any_pca_km_curve.rds")
+p2521 <- base::readRDS("data/public/p2521_any_pca_km_curve.rds")
+
+p212 = p212 + 
+    ggplot2::labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
+p2521 = p2521 + 
+    ggplot2::labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)")
+
 any_pca = p2521 +
     p212 +
-    plot_annotation(tag_levels = 'A') +
-    plot_layout(guides='collect') &
+    patchwork::plot_annotation(tag_levels = 'A') +
+    patchwork::plot_layout(guides='collect') &
     theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/km_curve.pdf", any_pca,
@@ -59,39 +60,54 @@ p2521_perform$PCa = "Any"
 p212_perform$cohort = "NFCS"
 p212_perform$PCa = "Any"
 p2521_meta$cohort = "HUSK"
-p2521_meta$PCa = "Meta"
+p2521_meta$PCa = "Aggr"
 p212_meta$cohort = "NFCS"
-p212_meta$PCa = "Meta"
-
+p212_meta$PCa = "Aggr"
+p212_coxph_results$cohort = "NFCS"
+p2521_coxph_results$cohort = "HUSK"
+(p2521_coxph_results %>%
+    rbind(p212_coxph_results) %>%
+    mutate(PCa = if_else(model == "any_pca", "Any", if_else(model == "metastatic", "Aggr", NA))) %>%
+    filter(model %in% c("any_pca", "metastatic")) %>%
+    select(value = estimate, conf.low, conf.high, PCa, cohort)->
+    coxph_results)
+coxph_results$index = "HR"
 p2521_sample_size %>%
     rbind(p212_sample_size) %>%
-    mutate(PCa = if_else(group == "any_pca", "Any", if_else(group == "metastatic", "Meta", NA))) ->
+    mutate(PCa = if_else(group == "any_pca", "Any", if_else(group == "metastatic", "Aggr", NA))) ->
     sample_size
 
 rbind(p2521_perform, p212_perform, p2521_meta, p212_meta) %>%
-    filter(index %in% c("HRSD", "HR80_20", "C_Index")) %>%
-    mutate(value = sprintf("%.2f (%.2f,%.2f)", value, conf.low, conf.high)) %>%
+    filter(index %in% c("HR80_20", "HR80_50", "C_Index")) %>%
+    select(-model) %>%
+    bind_rows(coxph_results) %>%
+    mutate(value = sprintf("%.2f (%.2f, %.2f)", value, conf.low, conf.high)) %>%
     select(-conf.low, -conf.high) %>%
     pivot_wider(names_from = "index", values_from = "value") %>%
     left_join(sample_size, by = join_by(cohort, PCa)) %>%
-    select(PCa, cohort, n = total, cases, HRSD, HR80_20, C_Index) ->
-    table_1
+    select(PCa, Cohort = cohort, n = total, Cases = cases, HR, HR80_20, HR80_50, C_Index) %>%
+    rename(`HR80/20` = HR80_20, `HR80/50` = HR80_50, `C-Index` = C_Index) %>%
+    select(-n) ->
+table_coxph
+    # knitr::kable(format = "latex") %>%
+    # kable_styling(font_size = 8) %>%
+    # writeLines("figures_and_tables/table_1.md")
 
-write_tsv(table_1, "figures_and_tables/table_1.tsv")
+write_tsv(table_coxph, "figures_and_tables/table_coxph.tsv")
 
 ###############################################################
 # PHS K-M Curve Figure for Meta-PCa
 ###############################################################
 p212 <- readRDS("data/public/p212_metastatic_km_curve.rds")
 p2521 <- readRDS("data/public/p2521_metastatic_km_curve.rds")
-# p212 = p212 + labs(y = "Proportion cancer-free, metastatic (NFCS)") +
-#     lims(y = c(0.80, 1.0))
-# p2521 = p2521 + labs(y = "Proportion cancer-free, metastatic (HUSK)") +
-#     lims(y = c(0.80, 1.0))
+p212 = p212 + 
+    labs(title = "NFCS - Aggressive PCa", y = "Cumulative Incidence (%)")
+p2521 = p2521 + 
+    labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)")
 metastatic = p2521 + 
     p212 +
-    plot_annotation(tag_levels = 'A') +
-    plot_layout(guides='collect') &
+    patchwork::plot_annotation(tag_levels = 'A') +
+    patchwork::plot_layout(guides='collect') &
     theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/metastatic_km_curve.pdf", metastatic,
@@ -122,10 +138,9 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 # #   widths = c(5, 1, 5),
 # #   layout_matrix = rbind(c(1, NA, 2))
 # # )
-
 wgs_km <- readRDS("data/public/p212_wgs_km_curve.rds")
 # wgs_km = wgs_km & labs(y = "Proportion cancer-free, any stage (NFCS)")
-wgs_km = wgs_km & labs(y = "Cumulative incidence, %\n(Absolute risk) (NFCS)")
+wgs_km = wgs_km & labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
            height = 8 * 0.618, width = 8)
 ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
@@ -158,13 +173,14 @@ ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
 anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca = anypca + 
-    labs(y = "Predicted cumulative incidence,\nany stage, %", title = "") +
+    labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)") +
     lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 100))
     # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
+    
 
 metastatic = metastatic + 
-    labs(y = "Predicted cumulative incidence,\nmetastatic, %", title = "") +
+    labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)") +
     lims(x = c(40, 90)) #+
 #    lims(x = c(40, 90), y = c(0, 20))
     # scale_color_manual(values = c("#E41A1C", "#377EB8", "#4DAF4A"), labels = c("PHS 80-100th", "Population baseline", "PHS 0-20th"))
@@ -172,8 +188,8 @@ metastatic = metastatic +
 stratified = 
     anypca + 
     metastatic +
-    plot_annotation(tag_levels = 'A') +
-    plot_layout(guides='collect') &
+    patchwork::plot_annotation(tag_levels = 'A') +
+    patchwork::plot_layout(guides='collect') &
     theme(legend.position = "bottom") #&
     # theme(aspect.ratio=1)
 
@@ -188,17 +204,26 @@ ggsave("figures_and_tables/stratified_incidence.png", stratified,
 ###############################################################
 p212_zph_tt <- readRDS("data/public/p212_zph_tt.rds")
 p2521_zph_tt <- readRDS("data/public/p2521_zph_tt.rds")
+p212_zph_tt_aggr <- readRDS("data/public/p212_zph_tt_aggr.rds")
+p2521_zph_tt_aggr <- readRDS("data/public/p2521_zph_tt_aggr.rds")
+
+p2521_zph_tt = p2521_zph_tt + labs(title = "HUSK - Any-stage PCa", x = "Age")
+p212_zph_tt = p212_zph_tt + labs(title = "NFCS - Any-stage PCa", x = "Age")
+p2521_zph_tt_aggr = p2521_zph_tt_aggr + labs(title = "HUSK - Aggressive PCa", x = "Age")
+p212_zph_tt_aggr = p212_zph_tt_aggr + labs(title = "NFCS - Aggressive PCa", x = "Age")
 
 zph_tt = 
     p2521_zph_tt + 
     p212_zph_tt +
+    p2521_zph_tt_aggr +
+    p212_zph_tt_aggr +
     plot_annotation(tag_levels = 'A') &
     theme(aspect.ratio=1)
 
 ggsave("figures_and_tables/zph_tt.pdf", zph_tt,
-       height = 8 * 0.618, width = 8)
+       height = 8, width = 8)
 ggsave("figures_and_tables/zph_tt.png", zph_tt,
-       height = 8 * 0.618, width = 8)
+       height = 8, width = 8)
 
 ###############################################################
 #Supplementary Figure 2
@@ -211,16 +236,16 @@ p212_anypca <- readRDS("data/public/p212_cumulative_comparison.rds")
 p212_metastatic <- readRDS("data/public/p212_cumulative_comparison_metastatic.rds")
 
 p2521_anypca = p2521_anypca + 
-    labs(y = "Cumulative incidence,\nany stage, % (HUSK)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "HUSK - Any-stage PCa") +
     lims(x = c(40, 90), y = c(0, 30))
 p212_anypca = p212_anypca + 
-    labs(y = "Cumulative incidence,\nany stage, % (NFCS)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "NFCS - Any-stage PCa") +
     lims(x = c(40, 90), y = c(0, 30))
 p2521_metastatic = p2521_metastatic + 
-    labs(y = "Cumulative incidence,\naggressive, % (HUSK)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "HUSK - Aggressive PCa") +
     lims(x = c(40, 90), y = c(0, 6))
 p212_metastatic = p212_metastatic + 
-    labs(y = "Cumulative incidence,\naggressive, % (NFCS)", title = "") +
+    labs(y = "Cumulative Incidence (%)", title = "NFCS - Aggressive PCa") +
     lims(x = c(40, 90), y = c(0, 6))
 # p2521_anypca = p2521_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (HUSK)")
 # p212_anypca = p212_anypca + lims(y = c(0, 30000)) + labs(y = "Cumulative PCa incidence rate,\nany stage, per 100,000 (NFCS)")
@@ -244,3 +269,91 @@ ggsave("figures_and_tables/cumulative_comparison.png", comparison,
 
 #file.copy("data/public/p212_wgs_km_curve.pdf", "figures_and_tables/p212_wgs_km_curve.pdf")
 #file.copy("data/public/p212_wgs_km_curve.png", "figures_and_tables/p212_wgs_km_curve.png")
+
+###############################################################
+#Supplementary Table - cox zph test
+###############################################################
+
+p212_zph %>%
+    bind_rows(p2521_zph) %>%
+    mutate(cohort = if_else(cohort == "p212", "NFCS", "HUSK")) %>%
+    mutate(PCa = str_to_title(PCa)) %>%
+    mutate(chisq = round(chisq, 2)) %>%
+    mutate(p = pvalr(p)) %>%
+    arrange(desc(PCa), cohort) %>%
+    select(PCa, Cohort = cohort, ChiSq = chisq, df, `P-value` = p) ->
+    table_zph
+
+# writeLines(knitr::kable(table_s1, format = "pipe"), 
+#            "figures_and_tables/table_zph.md")
+
+write_tsv(table_zph, "figures_and_tables/table_zph.tsv")
+
+
+###############################################################
+#Supplementary Table - fishers tests
+###############################################################
+
+fisher %>%
+    mutate(OR = sprintf("%.2f (%.2f)", estimate, conf.low)) %>%
+    select(-conf.low, -conf.high) %>%
+    mutate(gene = str_remove(gene, "_carrier")) %>%
+    mutate(gene = if_else(gene == "any", "Any", gene)) %>%
+    mutate(p.value = pvalr(p.value), p.adjust = pvalr(p.adjust)) %>%
+    # mutate(p.value = round(p.value, 2), p.adjust = round(p.adjust, 2)) %>%
+    select(RPV = gene, `OR (LCB)` = OR, `P-value` = p.value, `Adj. P-value` = p.adjust) ->
+    table_fisher
+table_fisher %>%
+    knitr::kable(format = "pipe", align = c('l', 'r', 'r', 'r')) %>%
+    writeLines("figures_and_tables/table_fisher.md")
+
+write_tsv(table_fisher, "figures_and_tables/table_fisher.tsv")
+
+
+###############################################################
+#Supplementary Table - time-transform
+###############################################################
+
+(p2521_coxph_results %>%
+    rbind(p212_coxph_results) %>%
+    filter(model %in% c("phs_tt")) %>%
+    select(term, value = estimate, conf.low, conf.high, cohort)->
+    coxph_results)
+coxph_results$index = "HR"
+p2521_sample_size %>%
+    rbind(p212_sample_size) %>%
+    filter(group == "any_pca") %>%
+    select(cohort, cases) ->
+    sample_size
+
+coxph_results %>% 
+    pivot_wider(values_from = c(value, conf.low, conf.high), names_from = "term") %>%
+    mutate(value_phs = sprintf("%.2f (%.2f, %.2f)", value_phs, conf.low_phs, conf.high_phs)) %>%
+    mutate(`value_tt(phs)` = sprintf("%.3f (%.3f, %.3f)", `value_tt(phs)`, `conf.low_tt(phs)`, `conf.high_tt(phs)`)) %>%
+    select(-conf.low_phs, -`conf.low_tt(phs)`, -conf.high_phs, -`conf.high_tt(phs)`) %>%
+    pivot_longer(starts_with("value_")) %>%
+    mutate(name = str_remove(name, "value_")) %>%
+    mutate(name = if_else(name == 'phs', 'PHS', 'tt(PHS)')) %>%
+    left_join(sample_size, by = join_by(cohort)) %>%
+    select(Cohort = cohort, Cases = cases, Term = name, `HR (95% CI)` = value) ->
+    table_tt
+
+write_tsv(table_tt, "figures_and_tables/table_tt.tsv")
+
+###############################################################
+#Supplementary Table - wgs subset
+###############################################################
+
+wgs_results$model = c('PHS', 'HOXB13', 'PHS + HOXB13', 'PHS + HOXB13', 'PHS x HOXB13', 'PHS x HOXB13', 'PHS x HOXB13')
+
+wgs_results$term = c('PHS', 'HOXB13', 'PHS', 'HOXB13', 'PHS', 'HOXB13', 'PHS:HOXB13')
+
+wgs_results %>%
+    mutate(HR = sprintf("%.2f (%.2f, %.2f)", estimate, conf.low, conf.high)) %>%
+    mutate(p.value = pvalr(p.value)) %>%
+    select(-estimate, -conf.low, -conf.high) %>%
+    select(Model = model, Term = term, `HR (95% CI)` = HR, `P-value` = p.value) ->
+table_gws
+
+write_tsv(table_gws, "figures_and_tables/table_wgs.tsv")
+
