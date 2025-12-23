@@ -322,8 +322,8 @@ process knit_manuscript {
 
     script:
     """
-    quarto render ${manuscript_file} --to docx -P bootstrap_iters:${params.bootstraps_iters}
-    quarto render ${manuscript_file} --to pdf -P bootstrap_iters:${params.bootstraps_iters}
+    quarto render ${manuscript_file} --to docx
+    quarto render ${manuscript_file} --to pdf
     """
 }
 process get_hoxb13 {
