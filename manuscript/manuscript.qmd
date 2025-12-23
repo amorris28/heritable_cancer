@@ -5,36 +5,52 @@ author:
     - name: Andrew H. Morris
       email: andrewmorris@mailbox.org
       affiliations:
-          - ref: uio
+          - ref: fai
           - ref: ous
       attributes:
         corresponding: false
     - name: Bayram Cevdet Akdeniz
+      affiliations:
+          - ref: fai
+          - ref: rad
     - name: Sigve Nakken
+      affiliations:
+          - ref: rad
+          - ref: ccr
     - name: Alexey Shadrin
+      affiliations:
+          - ref: ous
     - name: Anders Dale
+      affiliations:
+          - ref: jcvi
     - name: Ole A. Andreassen
       affiliations:
           - ref: ous
     - name: Eivind Hovig
       affiliations:
-          - ref: ous
+          - ref: rad
     - name: Tyler M. Seibert
       affiliations:
           - ref: ous
           - ref: ucsd
     - name: Oleksandr Frei
       affiliations:
-          - ref: uio
+          - ref: fai
           - ref: ous
 
 affiliations:
-    - id: uio
+    - id: fai
       name: Department of Pharmacy, University of Oslo, Oslo, Norway
     - id: ous
       name: Centre for Precision Psychiatry, Centre for Mental Disorders Research, Division of Mental Health and Addiction, Oslo University Hospital, and Institute of Clinical Medicine, University of Oslo, Oslo, Norway
+    - id: rad
+      name: Department of Tumor Biology, Institute of Cancer Research, Oslo University Hospital, Oslo, Norway
+    - id: ccr
+      name: Centre for Cancer Cell Reprogramming, Institute of Clinical Medicine, Faculty of Medicine, University of Oslo, Oslo, Norway
     - id: ucsd
       name: Departments of Radiation Medicine and Applied Sciences, Urology, Radiology, and Bioengineering, University of California San Diego, La Jolla, California
+    - id: jcvi
+      name: Center for Multimodal Imaging and Genetics, J Craig Venter Institute, La Jolla, California
 
 filters:
     - authors-block
@@ -86,115 +102,122 @@ knitr:
 ---
 
 ```{r initialize, echo = FALSE, warning = FALSE, message = FALSE}
-#knitr::opts_knit$set(root.dir = '..')
-#knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 options(flextable.bookdown = TRUE)
 ```
 
 ```{r load}
 library(ggplot2)
 library(tidyverse)
-#library(patchwork)
-#library(kableExtra)
-#library(here)
 library(knitr)
 library(flextable)
 
 source("src/config.R")
 source("src/functions.R")
-model = "PHS601"
+model <- "PHS601"
 ```
 
 
 ```{r import}
 
-p2521 = readr::read_tsv("data/public/p2521_any_pca_performance.tsv")
-p212 = readr::read_tsv("data/public/p212_any_pca_performance.tsv")
-p2521_meta = readr::read_tsv("data/public/p2521_metastatic_performance.tsv")
-p212_meta = readr::read_tsv("data/public/p212_metastatic_performance.tsv")
+p2521 <- readr::read_tsv("data/public/p2521_any_pca_performance.tsv")
+p212 <- readr::read_tsv("data/public/p212_any_pca_performance.tsv")
+p2521_meta <- readr::read_tsv("data/public/p2521_metastatic_performance.tsv")
+p212_meta <- readr::read_tsv("data/public/p212_metastatic_performance.tsv")
 
-p212_zph = readr::read_tsv("data/public/p212_phs_zph_tidy.tsv")
-p2521_zph = readr::read_tsv("data/public/p2521_phs_zph_tidy.tsv")
-p2521_sample_size = readr::read_tsv("data/public/p2521_sample_size.tsv")
-p212_sample_size = readr::read_tsv("data/public/p212_sample_size.tsv")
+p212_zph <- readr::read_tsv("data/public/p212_phs_zph_tidy.tsv")
+p2521_zph <- readr::read_tsv("data/public/p2521_phs_zph_tidy.tsv")
+p2521_sample_size <- readr::read_tsv("data/public/p2521_sample_size.tsv")
+p212_sample_size <- readr::read_tsv("data/public/p212_sample_size.tsv")
 
-p212_coxph_results = readr::read_tsv("data/public/p212_coxph.tsv")
-p2521_coxph_results = readr::read_tsv("data/public/p2521_coxph.tsv")
-wgs_summary = readr::read_tsv("data/public/p212_wgs_summary.tsv")
-fisher = readr::read_tsv("data/public/p212_fisher.tsv")
+p212_coxph_results <- readr::read_tsv("data/public/p212_coxph.tsv")
+p2521_coxph_results <- readr::read_tsv("data/public/p2521_coxph.tsv")
+wgs_summary <- readr::read_tsv("data/public/p212_wgs_summary.tsv")
+fisher <- readr::read_tsv("data/public/p212_fisher.tsv")
 
-wgs_phs = readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
-wgs_phs_95 = readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
-#wgs_hoxb13 = readr::read_tsv("data/public/p212_wgs_hoxb13_performance.tsv")
-binomial_phs_hoxb13 = readr::read_tsv("data/public/p212_binomial_phs_hoxb13.tsv")
+wgs_phs <- readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
+wgs_phs_95 <- readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
+binomial_phs_hoxb13 <- readr::read_tsv("data/public/p212_binomial_phs_hoxb13.tsv")
+wgs_results <- readr::read_tsv("data/public/p212_wgs.tsv")
 
-wgs_results = readr::read_tsv("data/public/p212_wgs.tsv")
+wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 
 ```
 
 # Abstract  {.unnumbered}
 
-More accurate risk prediction is needed for prostate cancer (PCa) to identify individuals at greatest risk of early diagnosis and clinically significant disease. Current screening paradigms, such as prostate-specific antigen screening, pose risks due to over-diagnosis and over-treatment of indolent disease. Predicting age-at-diagnosis using genetic risk scores, termed polygenic hazard scores (PHS), is now possible for PCa and is being tested in prospective clinical screening trials. We evaluated the performance of the latest PHS model for PCa (PHS601) in two Norwegian cohorts (N = `{r} format(p2521_sample_size[[1, 2]], big.mark = ",", scientific = FALSE)` and N = `{r} format(p212_sample_size[[1, 2]], big.mark = ",", scientific = FALSE)`) in predicting age-at-diagnosis of PCa and aggressive PCa and compared its performance to screening for rare pathogenic variants, such as HOXB13, through whole-genome sequencing. PHS601 effectively stratified participants by risk in both cohorts (HR per SD = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))` [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`] and `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))` [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`]). Among individuals with whole-genome sequencing (N = `{r} format(wgs_summary[[1, 2]], big.mark = ",", scientific = FALSE)`), the top 1.7\% of PHS values conferred `{r} round(wgs_phs_95[[1, "value"]], 1)`-fold higher risk than the median (HR = `{r} sprintf("%.2f", round(wgs_phs_95[[1, "value"]], 2))` [`{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.low"]], 2))`, `{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.high"]], 2))`]), exceeding the risk associated with HOXB13 pathogenic variants (HR = `{r} sprintf("%.2f", round(wgs_results[2, "estimate"], 2))` [`{r} sprintf("%.2f", round(wgs_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[2, "conf.high"], 2))`]; 1.7\% carrier frequency). These findings support the potential utility of PHS601 in a precision screening paradigm for PCa in Norway.
+More accurate risk prediction is needed for prostate cancer (PCa) to identify individuals at greatest risk of early-onset and clinically-significant disease. Current screening paradigms, such as prostate-specific antigen screening, pose risks due to over-diagnosis and over-treatment of indolent disease. Predicting age-at-diagnosis using genetic risk scores, termed polygenic hazard scores (PHS), is now possible for PCa and is being tested in prospective clinical screening trials. We evaluated the performance of the latest PHS model for PCa (PHS601) in two Norwegian cohorts (N = `{r} format(p2521_sample_size[[1, 2]], big.mark = ",", scientific = FALSE)` and N = `{r} format(p212_sample_size[[1, 2]], big.mark = ",", scientific = FALSE)`) in predicting age-at-diagnosis of PCa and aggressive PCa and compared its performance to screening for rare pathogenic variants, such as HOXB13, through whole-genome sequencing. PHS601 effectively stratified participants by risk in both cohorts (HR per SD = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))` [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`] and `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))` [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`]). Among individuals with whole-genome sequencing (N = `{r} format(wgs_summary[[1, 2]], big.mark = ",", scientific = FALSE)`), the top 1.7\% of PHS values conferred `{r} round(wgs_phs_95[[1, "value"]], 1)`-fold higher risk than the median (HR = `{r} sprintf("%.2f", round(wgs_phs_95[[1, "value"]], 2))` [`{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.low"]], 2))`, `{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.high"]], 2))`]), exceeding the risk associated with HOXB13 pathogenic variants (HR = `{r} sprintf("%.2f", round(wgs_results[2, "estimate"], 2))` [`{r} sprintf("%.2f", round(wgs_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[2, "conf.high"], 2))`]; 1.7\% carrier frequency). These findings support the potential utility of PHS601 in a precision screening paradigm for PCa.
 
 # Introduction
 
 Prostate cancer (PCa) is the second most commonly diagnosed cancer among men worldwide and a leading cause of cancer-related mortality [@bray2024]. Although early detection can reduce deaths from PCa, population screening with prostate-specific antigen (PSA) is limited by false positives, overdiagnosis, and overtreatment, particularly of indolent disease [@ilic2013; @roobol2025]. Therefore, there is a clinical need to identify men at elevated risk of clinically significant or metastatic PCa to focus early screening and downstream diagnostics (e.g., MRI), while minimizing harms.
 
-PCa is highly heritable [~42%; @lichtenstein2000] with risk influenced by rare pathogenic variants (RPVs) as well as common variants. RPVs, such as BRCA1, BRCA2, and HOXB13, confer large increases in risk but occur at low frequencies in the general population [@seibert2023]. Polygenic models combine many variants with small effects to estimate inherited risk. Furthermore, polygenic hazard scores (PHS) use time-to-event modeling to predict age at diagnosis, enabling prioritization of early-onset disease which is at greater risk of clinical significance [@desikan2017; @seibert2018; @huynh-le2021]. These models are beginning to be implemented in a clinical trial of precision prostate cancer screening in the United States Department of Veterans Affairs healthcare system (Clinicaltrials.gov NCT05926102).
+PCa is highly heritable (~42%) [@lichtenstein2000] with risk influenced by rare pathogenic variants (RPVs) as well as common variants. RPVs, such as in BRCA1, BRCA2, and HOXB13, confer large increases in risk, but occur at low frequencies in the general population [@seibert2023]. Polygenic models combine many common variants with small effects to estimate inherited risk. Furthermore, polygenic hazard scores (PHS) use time-to-event modeling, which allows for prediction of age at diagnosis [@desikan2017; @seibert2018; @huynh-le2021]. The latest age-of-onset model for PCa, PHS601 [@vassy2024], is being implemented in a clinical trial of precision prostate cancer screening in the United States Department of Veterans Affairs healthcare system (Clinicaltrials.gov NCT05926102).
 
-Recent PCa PHS models were developed in large, multi-ethnic cohorts and show robust stratification, but external validation in Nordic populations is limited. Here, we perform external validation of the latest age-of-onset model, PHS601 [@vassy2024], in two Norwegian cohorts: a population study (Hordaland Health Studies; HUSK) and a clinical cohort enriched for family history of cancer (Norwegian Familial Cancer Study; NFCS) [@mattingsdal2021]. We evaluate whether PHS601 stratifies risk of PCa and aggressive PCa. We also leverage whole-genome sequencing to compare PHS-based risk stratification with RPV carrier status, including HOXB13. Our aim is to establish the performance of PHS601 for age-specific risk prediction in Norwegian men as a step toward local implementation in a prospective clinical trial of genomically-informed cancer screening. 
+Recent PCa PHS models were developed in large, multi-ethnic cohorts and show robust stratification, but external validation in Nordic populations is limited. Here, we performed external validation of PHS601 in two Norwegian cohorts: a population study (Hordaland Health Studies; HUSK) and a clinical cohort enriched for family history of cancer (Norwegian Familial Cancer Study; NFCS). We evaluated whether PHS601 stratifies risk of PCa and aggressive PCa. We also leveraged whole-genome sequencing to compare PHS-based risk stratification with RPV carrier status, including HOXB13. Our aim was to establish the performance of PHS601 for age-specific risk prediction in Norwegian men as a step toward local implementation in a prospective clinical trial of genomically-informed cancer screening. 
 
 # Methods
 
 ## Study Population
 
-Two Norwegian cohorts were included in this study. The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK). This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992/1993 and the second wave was in 1997/1999. HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2 [@purcell2007]. QC steps for variants included removal of indels, non-ATGC, strand-ambiguous, poorly-genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 76,413,521 autosomal variants and 35,476 individuals.
-
-The second cohort was the Norwegian Familial Cancer Study (NFCS) [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland). The genotyped dataset consisted of 15,769 participants with 713,014 SNPs. Genotype data were imputed using the HRC v1.1 reference panel following the same imputation protocol as The Norwegian Mother, Father and Child Cohort [@corfield2024]. After imputation, the dataset consisted of 39,111,193 autosomal SNPs. 
+Two Norwegian cohorts were included in this study. The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with 35,476 participants. This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} format(p2521_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with 15,769 participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} format(p212_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in NFCS.
 
 ## Characterization of PCa Cases
 
-PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Controls were limited to males (excluding those censored before age 40, since no diagnoses were observed before that age) and censored at age of last observation. We did not remove individuals with other cancer diagnoses. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. 
+In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Controls were limited to males (excluding those censored before age 40, since no diagnoses were observed before that age) and censored at age of last observation. We did not remove individuals with other cancer diagnoses, who were therefore included in controls. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. 
 
-## Harmonize alleles and calculate PHSes
+## Genotyping and PHS calculation
 
- The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors [@vassy2024]. Chromosome X imputation was not available in our genotype data so the 21 SNPs in the original model on chromosome X were removed leaving 580 SNPs. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in 519 variants (in HUSK) and 557 variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink -score` [@purcell2007].
+### Genotyping
 
-## Sequencing and variant calling
+HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2 [@purcell2007]. QC steps for variants included removal of indels, non-ATGC, strand-ambiguous, poorly-genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 76,413,521 autosomal variants.
 
-Variant calling was performed using the CPSR package [@nakken2021]. We identified individuals with genetic variants from ClinVar that were classified as "pathogenic" in at least one copy of RPVs known to be associated with increased risk of PCa, including mutations within the genes BRCA1, BRCA2, ATM, PALB2, CHEK2, HOXB13, MLH1, MSH2, MSH6, PMS2, TP53, and EPCAM. The HOXB13 G84E variant was included in PHS601 and all individuals with this SNP imputed also have the mutation in the WGS data.
+For the NFCS cohort, genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland). The genotyped dataset consisted of 713,014 SNPs. Genotype data were imputed using the HRC v1.1 reference panel following the same imputation protocol as The Norwegian Mother, Father and Child Cohort [@corfield2024]. After imputation, the dataset consisted of 39,111,193 autosomal variants.
+
+### Harmonization of alleles and calculation of PHS
+
+The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors [@vassy2024]. Chromosome X imputation was not available in our genotype data so the 21 SNPs in the original model on chromosome X were removed leaving 580 SNPs. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in 519 variants (in HUSK) and 557 variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink --score` [@purcell2007].
+
+## Whole-genome sequencing
+
+### Sequencing
+
+The whole-genome sequencing data were generated at deCODE Genetics on samples from 2,576 participants from the NFCS cohort as described in @ivarsdottir2024. The samples were sequenced using Illumina HiSeqX and NovaSeq sequencing platforms with a total of 8,034 lanes, and all samples were prepared without PCR. Duplicated samples were discarded based on sequencing yield and only samples with a genome-wide average coverage of 20× and higher were included. `read_haps` was used to detect and remove contaminated samples [@eggertsson2021]. The average genome-wide sequencing coverage was 37.2X (SD = 6.3; minimum = 20.1X; maximum = 98.5X) and joint variant calling was performed using GraphTyper (v.2.7.5) [@eggertsson2017].
+
+### Variant calling and classification of RPVs
+
+Identification of RPVs in the WGS dataset was performed using the Cancer Predisposition Sequencing Reporter – CPSR v2.2.0 [@nakken2021]. Specifically, we used CPSR to screen WGS variant calls for heterozygous and homozygous SNVs/InDels in high-penetrance prostate cancer genes, including BRCA1, BRCA2, ATM, PALB2, CHEK2, HOXB13, MLH1, MSH2, MSH6, PMS2, TP53, and EPCAM. Coding variants in these genes classified as pathogenic according to ClinVar (release 2025_03) were considered RPVs. Of note, the HOXB13 G84E variant (rs138213197) was included in PHS601 and was also identified among the RPVs in whole-genome sequenced participants. All participants carrying the G84E mutation in WGS data also carried rs138213197 in the imputed genotype data.
 
 ## Statistical Analysis
 
 ### Polygenic hazard score performance evaluation
 
-Polygenic hazard scores were evaluated in both cohorts using Cox proportional hazards models using the `coxph` function from the `survival` package in `R` [@survival-package]. For the any-stage PCa model, events were defined as age of first PCa diagnosis, and controls were censored at age of last observation. For the aggressive PCa model, events were defined as age of first aggressive disease diagnosis. Polygenic hazard scores were centered and scaled prior to model fit. Performance of each model is reported as HR, which represents the increase in risk for a one-SD increase in PHS, with 95% confidence intervals (CI) and p-values. In addition, we used the metrics of HR~80/20~, which is the hazard ratio between the top 20% and the bottom 20% of PHS, HR~80/50~, which is the hazard ratio between the top 20% and the median PHS, as well as Harrell's concordance index (C-index). For these three metrics, 95% confidence intervals were generated using `{r} bootstrap_iters` bootstrap iterations. For plotting of incidence curves, participants were separated by centile range of PHS into the top 20%, the bottom 20%, and the middle 60%. All Cox models were evaluated for the proportional hazards assumption using `cox.zph` and by inspecting plots of the Schoenfeld residuals versus time [@grambsch1994]. For models that did not meet these assumptions, we performed sensitivity analysis with time-dependent covariates and a linear time transform (i.e., PHS $\cdot$ age) for the time-dependent PHS with the `tt` function. 
+Polygenic hazard scores were evaluated in both cohorts using Cox proportional hazards models using the `coxph` function from the `survival` package in `R` [@survival-package]. For the any-stage PCa model, events were defined as age of first PCa diagnosis, and controls were censored at age of last observation. For the aggressive PCa model, events were defined as age of first aggressive disease diagnosis. Polygenic hazard scores were centered and scaled prior to model fit. Performance of each model is reported as HR, which represents the increase in risk for a one-SD increase in PHS, with 95% confidence intervals (CI), p-values, and Harrell's concordance index (C-index). In addition, we used the metrics of HR~80/20~, which is the hazard ratio between the top 20% and the bottom 20% of PHS, and HR~80/50~, which is the hazard ratio between the top 20% and the median PHS. For these metrics, 95% confidence intervals were generated using `{r} params$bootstrap_iters` bootstrap iterations. For plotting of incidence curves, participants were separated by centile ranges of PHS into three groups: 0-20%, 20-80%, and 80-100%. All Cox models were evaluated for the proportional hazards assumption using `cox.zph` and by inspecting plots of the Schoenfeld residuals versus time [@grambsch1994]. For models that did not meet these assumptions, we performed sensitivity analysis with time-dependent covariates and a linear time transform (i.e., PHS $\cdot$ age) for the time-dependent PHS with the `tt` function. 
 
 ### HOXB13 variant effects and comparison to polygenic risk
 
-Next, we assessed the effect of RPVs on risk prediction, using WGS data from the NFCS cohort. To test whether RPVs were at higher frequency in cases than in controls, we used the one-sided Fisher's exact test. We tested this for each of the twelve RPVs and for a separate variable indicating if participants carried any of the RPVs for a total of 13 tests. The p-values from the Fisher's tests were adjusted using the Benjamini & Hochberg correction. The one gene at elevated frequency in the cases (HOXB13) was then used in a Cox survival analysis to estimate the risk of PCa associated with carrying this pathogenic variant. This model was evaluated based on the HR between carriers and non-carriers as well as the C-index. To compare the HOXB13 carriers to PHS, we subgrouped the dataset for individuals with both WGS and genotyping, refit the Cox model of PHS with this smaller sample, and calculated the HR for a similar proportion of individuals as were HOXB13 carriers. In this case, 1.7% of participants carried a HOXB13 mutation so we calculated the HR between the top 1.7% of PHS and the median subject. 
+Next, we assessed the effect of RPVs on risk prediction, using WGS data from the whole-genome sequenced subset of the NFCS cohort. First, we tested whether RPVs in any of the twelve genes were at higher frequency among cases than controls using the one-sided Fisher's exact test. We tested this for each of the twelve RPV-containing genes and for an additional variable indicating if participants carried an RPV in any of the twelve genes for a total of thirteen tests. The p-values from the Fisher's tests were adjusted using the Benjamini & Hochberg correction. Among these tests, we found only one gene in which RPVs were at elevated frequency among the cases than the controls, which was HOXB13. This gene was then used in a Cox survival analysis to estimate the risk of PCa associated with carrying this pathogenic variant. This model was evaluated based on the HR between carriers and non-carriers as well as the C-index. To compare the HOXB13 carriers to PHS, we subgrouped the dataset for individuals with both WGS and genotyping, refit the Cox model of PHS with this smaller sample, and calculated the HR for a similar proportion of individuals as were HOXB13 carriers. In this case, 1.7% of participants carried a HOXB13 mutation so we calculated the HR between the top 1.7% of PHS and the remaining 98.3% of subjects. 
 
 ### Comparison with Norwegian Cancer Registry data
 
-To evaluate how generalizable our results were to the population of Norway, we compared the cumulative incidence in each cohort for both PCa (any stage) and for aggressive PCa to the cumulative incidence from the Cancer Registry of Norway (using the same ICD10 code and metastasis codes as before). We used cancer registry data for PCa cases in Norway for the years 2014-2017 as reported by @huynh-le2020a as annualized age-specific incidence rate binned by 5-year age groups. To convert 5-year incidence rate into cumulative incidence, we fit a log-linear model to the average incidence for each 5-year age group. For PCa, the best fit was a log-quadratic model and for aggressive PCa the best fit was a log-linear model. We then predicted the annualized incidence from this model and calculated the cumulative incidence from the cumulative sum of cases. We compared these to the cumulative incidence derived from the Cox proportional hazards model for each phenotype (PCa or aggressive PCa) in each cohort. We then stratified the cumulative incidence curves by the HRs corresponding to the top 20% and bottom 20% of PHS from the Cox proportional hazards model fit to the HUSK data.
+To evaluate how generalizable our results were to the population of Norway, we compared the cumulative incidence in each cohort for both PCa (any stage) and for aggressive PCa to the cumulative incidence from the Cancer Registry of Norway (using the same ICD10 code and metastasis codes as before). We used cancer registry data for PCa cases in Norway for the years 2014-2017 as reported by @huynh-le2020a as annualized age-specific incidence rate binned by 5-year age groups. To convert the 5-year incidence rate into cumulative incidence, we fit a log-linear model to the average incidence for each 5-year age group. For PCa, the best fit was a log-quadratic model and for aggressive PCa the best fit was a log-linear model. We then predicted the annualized incidence from this model and calculated the cumulative incidence from the cumulative sum of cases. We compared these to the cumulative incidence derived from the Cox proportional hazards model for each phenotype (PCa or aggressive PCa) in each cohort. We then stratified the cumulative incidence curves by the HRs corresponding to the top 20% and bottom 20% of PHS from the Cox proportional hazards model fit to the HUSK data.
 
 # Results
 
 ## PHS601 stratified PCa risk in two Norwegian cohorts
 
-Participants with higher genetic risk scores in PHS601 showed greater risk of early diagnosis in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`; @{tbl-coxph}). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} (round(p2521[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
+Participants with higher genetic risk scores in PHS601 showed greater risk of early diagnosis in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521_coxph_results[1, "estimate"], 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[1, "p.value"]])`; @{tbl-coxph}). Individuals in the top quintile of PHS had over `{r} floor(p2521[2, 3])` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521[2, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521[2, 5], 2))`\]) and `{r} round(p2521[4, 3], 1)` times the risk of the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521[4, 3], 2))`, 95\% CI \[`{r} sprintf("%.2f", round(p2521[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521[4, 5], 2))`\]; @{fig-phs}A). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212_coxph_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[1, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[1, "p.value"]])`; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212[2, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[2, 4], 2))`, `{r} sprintf("%.2f", round(p212[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212[4, 3], 2))` (95\% CI \[`{r} sprintf("%.2f", round(p212[4, 4], 2))`, `{r} sprintf("%.2f", round(p212[4, 5], 2))`\]; @{fig-phs}B).
 
 In both cohorts, proportional hazards tests and plots of weighted residuals revealed a negative trend in hazard ratios with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{supptab-zph}; @{suppfig-zph}) indicating that the effect of PHS diminished with age. To model this, we fit an extended Cox model with a linear time-dependent PHS term (intercept at age 40). At age 40, each SD increase in PHS was associated with a `{r} sprintf("%.1f", round(p2521_coxph_results[3, "estimate"], 1))`-fold (HUSK: HR = `{r} sprintf("%.2f", round(p2521_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[3, "p.value"]])`; @{supptab-tt}) and `{r} sprintf("%.1f", round(p212_coxph_results[3, "estimate"], 0))`-fold (NFCS: HR = `{r} sprintf("%.2f", round(p212_coxph_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[3, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[3, "p.value"]])`) higher risk, declining by approximately `r round(1 - p2521_coxph_results[4, "estimate"], 3) * 100`\% and `r round(1 - p212_coxph_results[4, "estimate"], 3) * 100`\% per year, respectively (HUSK: HR = `{r} sprintf("%.3f", round(p2521_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p2521_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p2521_coxph_results[[4, "p.value"]])`; NFCS: HR = `{r} sprintf("%.3f", round(p212_coxph_results[4, "estimate"], 3))`, 95% CI [`{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.low"], 3))`, `{r} sprintf("%.3f", round(p212_coxph_results[4, "conf.high"], 3))`], p `{r} pvalr(p212_coxph_results[[4, "p.value"]])`). However, the time-varying effects were weak and residual plots showed high variability, so we present the simpler proportional hazards models in the main results and figures.
 
 ## PHS601 was associated with aggressive PCa in Norwegian cohorts
 
-In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[2, "p.value"]])`; @{tbl-coxph}). Individuals in the top quintile of PHS had `{r} floor(p2521_meta[2, 3])`-fold greater risk of aggressive disease than individuals in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[2, 5], 2))`\]) and `{r} (round(p2521_meta[4, 3], 2) * 100) - 100`\% greater risk than the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521_meta[4, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[4, 5], 2))`\]; @{fig-meta}A). Similarily, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p212_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[2, "p.value"]])`; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212_meta[2, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212_meta[4, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[4, 5], 2))`\]; @{fig-meta}B). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{supptab-zph}; @{suppfig-zph}).
+In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p2521_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p2521_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p2521_coxph_results[[2, "p.value"]])`; @{tbl-coxph}). Individuals in the top quintile of PHS had `{r} floor(p2521_meta[2, 3])`-fold the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", round(p2521_meta[2, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[2, 5], 2))`\]) and twice the risk of the median individual (HR~80/50~ = `{r} sprintf("%.2f", round(p2521_meta[4, 3], 2))`, 95% CI \[`{r} sprintf("%.2f", round(p2521_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p2521_meta[4, 5], 2))`\]; @{fig-meta}A). Similarily, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_coxph_results[2, "estimate"], 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p212_coxph_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(p212_coxph_results[2, "conf.high"], 2))`], p `{r} pvalr(p212_coxph_results[[2, "p.value"]])`; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", round(p212_meta[2, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[2, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[2, 5], 2))`\]) and HR~80/50~ = `{r} sprintf("%.2f", round(p212_meta[4, 3], 2))` (95% CI \[`{r} sprintf("%.2f", round(p212_meta[4, 4], 2))`, `{r} sprintf("%.2f", round(p212_meta[4, 5], 2))`\]; @{fig-meta}B). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{supptab-zph}; @{suppfig-zph}).
 
-## HOXB13 effect on PCa risk was not independent of PHS in the NFCS cohort
+## WGS did not reveal any population-specific effect of HOXB13 on PCa risk in the NFCS cohort
 
-We compared RPVs and PHS in predicting PCa risk in the NFCS cohort (as the HUSK cohort does not include WGS data). Analyses were restricted to `{r} wgs_summary$wgs_1` participants with both WGS and genotyping (`{r} wgs_summary$status_1` cases and `{r} wgs_summary$wgs_1 - wgs_summary$status_1` controls) of whom `{r} wgs_summary$any_carrier_1` carried a predisposing mutation in one of the target genes. As only HOXB13 mutations were enriched among cases (OR = `r sprintf("%.2f", round(fisher[fisher$gene == "HOXB13_carrier", "estimate"], 2))`, 95% LCB = `r sprintf("%.2f", round(fisher[fisher$gene == "HOXB13_carrier", "conf.low"], 2))`, adj. p = `{r} pvalr(fisher[fisher$gene == "HOXB13_carrier", "p.adjust"], digits = 2)`; @{supptab-fisher}); the subsequent models focus on this gene. 
+We compared RPVs and PHS in predicting PCa risk in the NFCS cohort (as the HUSK cohort did not include WGS data). Analyses were restricted to `{r} wgs_summary$wgs_1` participants with both WGS and genotyping (`{r} wgs_summary$status_1` cases and `{r} wgs_summary$wgs_1 - wgs_summary$status_1` controls) of whom `{r} wgs_summary$any_carrier_1` carried a predisposing mutation in one of the twelve target genes. Of the twelve potentially predisposing genes, only HOXB13 had an enrichment in the number of pathogenic variants among PCa cases compared to controls (OR = `r sprintf("%.2f", round(fisher[fisher$gene == "HOXB13_carrier", "estimate"], 2))`, 95% LCB = `r sprintf("%.2f", round(fisher[fisher$gene == "HOXB13_carrier", "conf.low"], 2))`, adj. p = `{r} pvalr(fisher[fisher$gene == "HOXB13_carrier", "p.adjust"], digits = 2)`; @{supptab-fisher}); the subsequent models focus on this gene. 
 
-In independent Cox models, a one-SD increase in PHS predicted a `{r} (round(wgs_results[1, "estimate"], 2) * 100) - 100`\% higher risk of PCa (HR = `{r} sprintf("%.2f", round(wgs_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[1, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[1, "p.value"]])`; @{fig-hoxb13}; @{supptab-wgs}), while HOXB13 carriers had a `{r} round(wgs_results[2, "estimate"], 1)`-fold greater risk than non-carriers (HR = `{r} sprintf("%.2f", round(wgs_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[2, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[2, "p.value"]])`). When both predictors were included, only PHS remained significant (HR = `{r} sprintf("%.2f", round(wgs_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[3, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[3, "p.value"]])`) whereas the HOXB13 effect was attenuated (HR = `{r} sprintf("%.2f", round(wgs_results[4, "estimate"], 2))`, p = `{r} pvalr(wgs_results[[4, "p.value"]])`). The interaction term was not significant. HOXB13 pathogenic variants occurred in `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of participants. To enable direct comparison with this risk stratum, we evaluated individuals in the top 1.7\% of the PHS distribution against the median. This high-risk PHS stratum demonstrated `{r} round(wgs_phs_95[[1, "value"]], 1)`-fold higher risk (HR~98.3/50~ = `{r} sprintf("%.2f", round(wgs_phs_95[[1, "value"]], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.low"]], 2))`, `{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.high"]], 2))`]), exceeding the risk conferred by HOXB13 pathogenic variants. 
+In independent Cox models, a one-SD increase in PHS predicted a `{r} (round(wgs_results[1, "estimate"], 2) * 100) - 100`\% higher risk of PCa (HR = `{r} sprintf("%.2f", round(wgs_results[1, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[1, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[1, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[1, "p.value"]])`; @{fig-hoxb13}; @{supptab-wgs}), while HOXB13 carriers had a `{r} round(wgs_results[2, "estimate"], 1)`-fold greater risk than non-carriers (HR = `{r} sprintf("%.2f", round(wgs_results[2, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[2, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[2, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[2, "p.value"]])`). When both predictors were included, only PHS remained significant (HR = `{r} sprintf("%.2f", round(wgs_results[3, "estimate"], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_results[3, "conf.low"], 2))`, `{r} sprintf("%.2f", round(wgs_results[3, "conf.high"], 2))`], p `{r} pvalr(wgs_results[[3, "p.value"]])`) whereas the HOXB13 effect was attenuated (HR = `{r} sprintf("%.2f", round(wgs_results[4, "estimate"], 2))`, p = `{r} pvalr(wgs_results[[4, "p.value"]])`). The interaction term was not significant. Similarily, the PHS-only model had a C-index of `{r} round(wgs_cindex[[1, 1]], 3)` (SE = `{r} round(wgs_cindex[[1, 2]], 3)`) and adding HOXB13 to the model did not appear to improve discrimination (C-index: `{r} round(wgs_cindex[[3, 1]], 3)`, SE = `{r} round(wgs_cindex[[3, 2]], 3)`; @{supptab-wgs}). HOXB13 pathogenic variants occurred in `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of participants. To enable direct comparison with this risk stratum, we evaluated individuals in the top 1.7\% of the PHS distribution against the median. This high-risk PHS stratum demonstrated `{r} round(wgs_phs_95[[1, "value"]], 1)`-fold higher risk (HR~98.3/50~ = `{r} sprintf("%.2f", round(wgs_phs_95[[1, "value"]], 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.low"]], 2))`, `{r} sprintf("%.2f", round(wgs_phs_95[[1, "conf.high"]], 2))`]), exceeding the risk conferred by HOXB13 pathogenic variants. 
 
 ## Predicting population risk of prostate cancer onset based on HR from the HUSK cohort
 
@@ -206,9 +229,9 @@ Panel A of @{fig-strat} shows cumulative incidence of any-stage PCa by age and P
 
 PHS601 demonstrated substantial stratification of age at PCa diagnosis in two Norwegian cohorts. The HR per standard deviation increase in genetic risk, as well as HR~80/20~ and HR~80/50~, were comparable in magnitude to the performance of PHS601 in the original development and replication datasets [@vassy2024] and generally exceeded those of other polygenic hazard scores in Nordic populations, such as for Alzheimer's disease [@motazedi2022]. Robust stratification was observed in both the population-based HUSK cohort and the family history-enriched NFCS cohort. Despite the NFCS cohort being recruited based on self-reported family history of cancer and showing elevated cancer risk relative to the general Norwegian population (@{suppfig-comp}), PHS601 still effectively differentiated between lower and higher genetic risk individuals. These findings support the potential utility of PHS601 in a precision screening paradigm for PCa in Norway, both in the general population and among individuals with family history. 
 
-For aggressive disease, we also found good stratification between high- and low-risk individuals based on PHS, and we see a similar magnitude effect in both NFCS and HUSK cohorts as in the original development set [@vassy2024]. This suggests PHS601 could be effective at identifying individuals at greater risk of aggressive disease and therefore with the greatest clinical benefit for further screening via PSA or imaging. Although PHS601 is not specific for aggressive disease, it does appear to stratify for absolute risk of aggressive or metastatic prostate cancer [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023].
+For aggressive disease, we also found good stratification between high- and low-risk individuals based on PHS, and we see a similar magnitude effect in both NFCS and HUSK cohorts as in the original development set [@vassy2024]. This suggests PHS601 could be effective at identifying individuals at greater risk of aggressive disease and therefore with the greatest clinical benefit for further screening via PSA or imaging. Although PHS601 was not developed specifically for aggressive disease, it does appear to stratify for absolute risk of both aggressive and metastatic prostate cancer [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023].
 
-In addition to testing the performance of PHS, we also compared PHS to screening for RPVs such as HOXB13. Even in the case of low sample sizes---for example, in the NFCS cohort we had only `{r} p212_sample_size[1, 3]` cases of prostatic cancer and `{r} p212_sample_size[2, 3]` cases of aggressive disease---the polygenic score was more informative than RPVs. A much larger percentage of the population are affected by a high risk score than are affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level.
+In addition to testing the performance of PHS, we also compared PHS to screening for RPVs such as HOXB13. Even in the case of low sample sizes---for example, in the NFCS cohort we had only `{r} p212_sample_size[1, 3]` cases of prostatic cancer and `{r} p212_sample_size[2, 3]` cases of aggressive disease---the polygenic score was more informative than RPVs. A much larger percentage of the population is affected by a high risk score than is affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level. Lastly, our combined PHS and HOXB13 model did not reveal any additional population-specific effect of this high-effect-size variant.
 
 Even though HOXB13 was not significant in the combined model of PHS and HOXB13, clinical interventions may differ between individuals whose phenotype arises from rare deleterious mutations versus those whose phenotype arises from the interaction of environment with the normal array of segregating genes of minor effect. For example, individuals with BRCA mutations may benefit from PARP inhibitors [@turk2018]. Furthermore, RPVs and PHSes have different implications for genetic counseling, particularly regarding the risk to offspring in the case of RPVs. Therefore, there remains value in screening for these rare variants in appropriate clinical contexts.
 
@@ -295,7 +318,7 @@ library(officer)
 
 # Create table
 ft <- flextable(table_coxph) %>%
-  fontsize(size = 7, part = "all") %>%
+  fontsize(size = 6, part = "all") %>%
   border_outer(border = fp_border(width = 1)) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
@@ -374,7 +397,7 @@ ft <- flextable(table_tt) %>%
 ft
 ```
 
-Hazard ratios and 95% confidence intervals from the extended Cox model for PHS with time-varying effects. The baseline PHS term represents the hazard ratio at age 40; the tt(PHS) term represents the multiplicative change in hazard ratio per additional year of age (linear time transform). Outcomes is age at diagnosis of any-stage PCa.
+Hazard ratios and 95% confidence intervals from the extended Cox model for PHS with time-varying effects. The baseline PHS term represents the hazard ratio at age 40; the tt(PHS) term represents the multiplicative change in hazard ratio per additional year of age (linear time transform). Outcome is age at diagnosis of any-stage PCa.
 
 :::
 
@@ -410,16 +433,40 @@ table_wgs = read_tsv("manuscript/figures_and_tables/table_wgs.tsv")
 
 # Create table
 ft <- flextable(table_wgs) %>%
-  fontsize(size = 10, part = "all") %>%
+  fontsize(size = 9, part = "all") %>%
   border_outer(border = fp_border(width = 1)) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
-  merge_v(j = c("Model", "Cases")) %>%
+  merge_v(j = c("Model", "C-index (SE)")) %>%
   autofit()
 
 ft
 ```
 
 Hazard ratios and 95% confidence intervals from the Cox proportional hazards models for the WGS subset of the NFCS cohort. The HR for the PHS term represents the increase in HR for a one-standard-deviation increase in PHS; the HOXB13 term represents the increase in PCa risk for HOXB13 carriers relative to non-carriers. Outcomes is age at diagnosis of any-stage PCa. N = `{r} wgs_summary$wgs_1`, PCa cases = `{r} wgs_summary$status_1`
+
+:::
+
+
+
+::: {#supptab-variants}
+
+
+```{r}
+table_wgs = read_tsv("manuscript/figures_and_tables/table_variants.tsv")
+
+# Create table
+ft <- flextable(table_wgs) %>%
+  fontsize(size = 6, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  # merge_v(j = c("Model", "Cases")) %>%
+  autofit()
+
+ft
+```
+
+All variants from genes that we investigated classified as "Pathogenic" in ClinVar. N is the number of participants carrying this mutation.
 
 :::

@@ -158,7 +158,8 @@ process preprocess_metadata {
     path vcf
 
     output:
-    path "*.tsv"
+    path "phenotypes.tsv", emit: phenotypes
+    path "all_variants.tsv", optional: true, emit: all_variants
 
     script:
     """
@@ -190,7 +191,8 @@ process fit_models {
     Rscript ${analysis_script} \
         ${metadata_file} \
         TRUE \
-        ${params.cluster}
+        ${params.cluster} \
+        ${params.bootstrap_iters}
     """
 }
 process plot_figures {
@@ -260,16 +262,18 @@ process run_analysis_wgs {
     //path "${params.cluster}_wgs_hoxb13_performance.tsv"
     path "${params.cluster}_binomial_phs_hoxb13.tsv"
     path "${params.cluster}_wgs.tsv"
+    path "${params.cluster}_wgs_cindex.tsv"
     path "${params.cluster}_wgs_km_curve.rds"
-    path "${params.cluster}_wgs_km_curve.png"
-    path "${params.cluster}_wgs_km_curve.pdf"
+    // path "${params.cluster}_wgs_km_curve.png"
+    // path "${params.cluster}_wgs_km_curve.pdf"
 
     script:
     """
     Rscript ${wgs_script} \
         ${metadata_file} \
         TRUE \
-        ${params.cluster}
+        ${params.cluster} \
+        ${params.bootstrap_iters}
     """
 }
 process postprocess_figures {
@@ -312,15 +316,14 @@ process knit_manuscript {
     path 'data/public'
     path 'manuscript/figures_and_tables'
 
-
     output:
     path "manuscript.pdf"
     path "manuscript.docx"
 
     script:
     """
-    quarto render ${manuscript_file} --to docx
-    quarto render ${manuscript_file} --to pdf
+    quarto render ${manuscript_file} --to docx -P bootstrap_iters:${params.bootstraps_iters}
+    quarto render ${manuscript_file} --to pdf -P bootstrap_iters:${params.bootstraps_iters}
     """
 }
 process get_hoxb13 {
@@ -328,21 +331,30 @@ process get_hoxb13 {
     container params.gwas_image
 
     input:
-    tuple path(bim), path(bed), path(fam)
+    tuple path(bed), path(bim), path(fam)
+    // tuple path(bim), path(bed), path(fam)
 
     output:
-    path "rs138213197.vcf"
+    path "tmp_rs138213197.raw"
 
     script:
     def prefix = bim.baseName
     """
-    echo rs138213197 >> rs138213197.txt
-    plink \
-        --bfile ${prefix} \
-        --extract rs138213197.txt \
-        --out rs138213197 \
-        --recode vcf
+    plink --bfile ${prefix} \
+      --snp rs138213197 \
+      --recode A \
+      --out tmp_rs138213197
     """
+    // echo rs138213197 >> rs138213197.txt
+    // echo "rs138213197 C" > ref_allele.txt
+    // plink2 \
+    //     --bfile ${prefix} \
+    //     ${params.psam_flag} \
+    //     --extract rs138213197.txt \
+    //     --ref-allele ref_allele.txt \
+    //     --out rs138213197 \
+    //     --recode vcf
+
 }
 workflow get_bim_files {
     take:
@@ -451,31 +463,32 @@ workflow {
                     file("${prefix}.fam")
                 )
             }
-            hoxb13 = get_hoxb13(chr17_plink_files)
+            // hoxb13 = get_hoxb13(chr17_plink_files)
+            hoxb13 = get_hoxb13(bfiles)
         } else {
             hoxb13 = Channel.of(file("$projectDir/assets/NO_FILE"))
         }
-        phenotypes = preprocess_metadata(file(params.preprocess_script),
+        preprocess = preprocess_metadata(file(params.preprocess_script),
                             phs_scores,
   			                file(params.r_config),
     			            file(params.r_functions),
                             hoxb13)
-        fit_models(phenotypes,
+        fit_models(preprocess.phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),
                      file(params.fit_models_script))
-        plot_figures(phenotypes,
+        plot_figures(preprocess.phenotypes,
   			         file(params.r_config),
     			     file(params.r_functions),
                      file(params.plot_figures_script))
-        run_analysis_incidence(phenotypes,
+        run_analysis_incidence(preprocess.phenotypes,
   			                   file(params.r_config),
     			               file(params.r_functions),
                                file(params.incidence_script),
                                file(params.asir_file))
         if ( params.cluster == 'p212' ) {
             run_analysis_wgs(file(params.wgs_script),
-                             phenotypes,
+                             preprocess.phenotypes,
   	    		             file(params.r_config),
         			         file(params.r_functions))
         }
