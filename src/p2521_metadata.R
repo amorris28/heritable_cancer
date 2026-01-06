@@ -68,8 +68,8 @@ sum(!unique(birth_month_husk2$HUSKMentID) %in% id_key$huskmentid)
 
 ## Step 2: male IDs
 # It looks like only cancer registry has gender data
-kreft_male_huskmentids
-kreft_data %>%
+kreft_male_huskmentids <-
+  kreft_data %>%
   select(huskmentid, kjoenn = KJOENN) %>%
   filter(kjoenn == "M") %>%
   pull(huskmentid)

@@ -12,6 +12,7 @@ perform_bool <- args[2]
 output_prefix <- args[3]
 bootstrap_iters <- args[4]
 
+
 #########################################
 # Import PHS data and metadata
 combined_data <- read_tsv(metadata_file)
@@ -45,10 +46,9 @@ phs_fit_tt <- coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
 phs_tt_tidy <- broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
 
 # Performance metrics
-
 if (perform_bool) {
   any_pca_perform <-
-    get_performance_metrics(combined_data, bootstrap_iters, output_prefix)
+    performance_metrics(combined_data, output_prefix)
 }
 
 # Time to metastatic diseaes
@@ -72,12 +72,11 @@ meta_phs_zph_tidy <- meta_phs_zph_tidy[1, ]
 # Performance metrics
 if (perform_bool) {
   metastatic_perform <-
-    get_performance_metrics(combined_data,
-      bootstrap_iters,
-      output_prefix,
-      age = "age_of_metastasis",
-      status = "metastasis"
-    )
+      performance_metrics(
+        combined_data,
+        output_prefix,
+        age = "age_of_metastasis",
+        status = "metastasis")
 }
 
 # Gather sample sizes

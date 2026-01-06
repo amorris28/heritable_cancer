@@ -257,15 +257,11 @@ process run_analysis_wgs {
     output:
     path "${params.cluster}_wgs_summary.tsv"
     path "${params.cluster}_fisher.tsv"
-    path "${params.cluster}_wgs_phs_performance.tsv"
     path "${params.cluster}_wgs_phs_performance_95.tsv"
-    //path "${params.cluster}_wgs_hoxb13_performance.tsv"
     path "${params.cluster}_binomial_phs_hoxb13.tsv"
     path "${params.cluster}_wgs.tsv"
     path "${params.cluster}_wgs_cindex.tsv"
     path "${params.cluster}_wgs_km_curve.rds"
-    // path "${params.cluster}_wgs_km_curve.png"
-    // path "${params.cluster}_wgs_km_curve.pdf"
 
     script:
     """
@@ -311,7 +307,7 @@ process knit_manuscript {
     path 'src/functions.R'
     path 'reference.docx'
     path 'references.bib'
-    path 'apa.csl'
+    path 'journal-of-clinical-oncology.csl'
     path '_extensions'
     path 'data/public'
     path 'manuscript/figures_and_tables'

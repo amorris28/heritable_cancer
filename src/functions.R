@@ -1,3 +1,4 @@
+library(boot)
 # Function definitons
 ##  Data processing
 import_phs_data <- function(model_file, inverse = FALSE) {
@@ -45,74 +46,54 @@ pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
 }
 
 ## Performance and Plotting
-return_hrsd <- function(combined_data, phs = "phs", age = "age", status = "status") {
-  response <- paste0("Surv(", age, ", ", status, ")")
-  summary(coxph(as.formula(sprintf("%s~%s", response, phs)), data = combined_data))$coefficients[2]
-}
 
-get_hrsd <- function(combined_data, phs = "phs", age = "age", status = "status", bootstrap_iterations = 999) {
-  HR <- return_hrsd(combined_data, phs, age, status)
-  boot_out <- boot_conf(combined_data, bootstrap_iterations, return_hrsd, phs, age, status)
-  return(list(
-    index = "HRSD",
-    value = HR,
-    conf.low = boot_out$quantiles[[1]],
-    conf.high = boot_out$quantiles[[2]],
-    iters = boot_out$iters
-  ))
-}
-get_performance_metrics <- function(combined_data, bootstrap_iters, model, age = "age", status = "status") {
-  HRSD <- get_hrsd(combined_data,
-    age = age,
-    status = status,
-    bootstrap_iterations = bootstrap_iters
+performance_metrics <- function(data, model, age = "age", status = "status") {
+  df <- data.frame(phs = data$phs, 
+                   age = data[[age]], 
+                   status = data[[status]])
+  print(head(df))
+  # HR80_50
+  boot_hr8050 <- function(data, indices) {
+    boot_sample <- data[indices, ]
+    calc_hr(boot_sample, upper_interval = c(0.80, 1.0), lower_interval = c(0.2, 0.80))
+  }
+  boot_results <- boot(df, boot_hr8050, R = 999)
+  ci_results <- boot.ci(boot_results, type = "perc")
+  HR80_50 <- list(
+    index = "HR80_50",
+    value = boot_results$t0,
+    conf.low = ci_results$percent[4],
+    conf.high = ci_results$percent[5]
   )
 
-  HR80_20 <- get_hr(combined_data,
-    age = age,
-    status = status,
-    CI = TRUE,
-    bootstrap_iterations = bootstrap_iters
+  # HR80_20
+  boot_hr8020 <- function(data, indices) {
+    boot_sample <- data[indices, ]
+    calc_hr(boot_sample, upper_interval = c(0.80, 1.0), lower_interval = c(0.0, 0.20))
+  }
+  boot_results <- boot(df, boot_hr8020, R = 999)
+  ci_results <- boot.ci(boot_results, type = "perc")
+  HR80_20 <- list(
+    index = "HR80_20",
+    value = boot_results$t0,
+    conf.low = ci_results$percent[4],
+    conf.high = ci_results$percent[5]
   )
-
-  HR20_50 <- get_hr(combined_data,
-    age = age,
-    status = status,
-    lower_interval = c(0.2, 0.80), # 50
-    upper_interval = c(0.0, 0.2), # 20
-    CI = TRUE,
-    bootstrap_iterations = bootstrap_iters
+  # C_Index
+  boot_cindex <- function(data, indices) {
+    boot_sample <- data[indices, ]
+    calc_cindex(boot_sample)
+  }
+  boot_results <- boot(df, boot_cindex, R = 999)
+  ci_results <- boot.ci(boot_results, type = "perc")
+  C_Index <- list(
+    index = "C_Index",
+    value = boot_results$t0,
+    conf.low = ci_results$percent[4],
+    conf.high = ci_results$percent[5]
   )
-
-  HR80_50 <- get_hr(combined_data,
-    age = age,
-    status = status,
-    lower_interval = c(0.2, 0.80), # 50
-    upper_interval = c(0.8, 1.0), # 80
-    CI = TRUE,
-    bootstrap_iterations = bootstrap_iters
-  )
-
-  HR95_50 <- get_hr(combined_data,
-    age = age,
-    status = status,
-    lower_interval = c(0.2, 0.80), # 50
-    upper_interval = c(0.95, 1.0), # 95
-    CI = TRUE,
-    bootstrap_iterations = bootstrap_iters
-  )
-  c_index <- get_cindex(combined_data,
-    age = age,
-    status = status,
-    CI = TRUE,
-    bootstrap_iterations = bootstrap_iters
-  )
-  HR80_20$index <- "HR80_20"
-  HR20_50$index <- "HR20_50"
-  HR80_50$index <- "HR80_50"
-  HR95_50$index <- "HR95_50"
-
-  indices <- list(HRSD, HR80_20, HR20_50, HR80_50, HR95_50, c_index)
+  
+  indices <- list(HR80_20, HR80_50, C_Index)
 
   perform <- do.call(rbind.data.frame, lapply(indices, function(x) {
     data.frame(
@@ -123,8 +104,6 @@ get_performance_metrics <- function(combined_data, bootstrap_iters, model, age =
     )
   }))
   perform <- cbind(model, perform)
-
-  return(perform)
 }
 
 plot_km_curves <-

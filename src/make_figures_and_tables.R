@@ -19,8 +19,8 @@ p2521_coxph_results <- readr::read_tsv("data/public/p2521_coxph.tsv")
 wgs_summary <- readr::read_tsv("data/public/p212_wgs_summary.tsv")
 fisher <- readr::read_tsv("data/public/p212_fisher.tsv")
 
-wgs_phs <- readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
-wgs_phs_95 <- readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
+# wgs_phs <- readr::read_tsv("data/public/p212_wgs_phs_performance.tsv")
+# wgs_phs_95 <- readr::read_tsv("data/public/p212_wgs_phs_performance_95.tsv")
 binomial_phs_hoxb13 <- readr::read_tsv("data/public/p212_binomial_phs_hoxb13.tsv")
 wgs_results <- readr::read_tsv("data/public/p212_wgs.tsv")
 

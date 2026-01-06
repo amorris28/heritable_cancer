@@ -51,7 +51,6 @@ wgs_summary <-
   select(status, wgs, ends_with("_carrier")) %>%
   summarize(across(everything(), list(sum)))
 
-write_tsv(wgs_summary, paste(output_prefix, "wgs_summary.tsv", sep = "_"))
 
 # Fisher test
 variants <- c("BRCA1", "BRCA2", "ATM", "PALB2", "CHEK2", "HOXB13", "MLH1", "MSH2", "MSH6", "PMS2", "TP53", "EPCAM", "any") # , "all")
@@ -78,7 +77,6 @@ fisher_tibble <-
   fisher_tibble %>%
   mutate(p.adjust = p.adjust(p.value, method = "fdr"))
 
-write_tsv(fisher_tibble, paste(output_prefix, "fisher.tsv", sep = "_"))
 
 # survival analysis
 ## PHS
@@ -126,32 +124,37 @@ phs_hoxb13_inter_cindex <-
   broom::glance() %>%
   select(concordance, std.error.concordance)
 
-############################################################################
-# Performance metrics, PHS
-
-if (perform_bool) {
-  perform <- get_performance_metrics(wgs, bootstrap_iters, output_prefix)
-  write_tsv(perform, paste(output_prefix, "wgs_phs_performance.tsv", sep = "_"))
-}
-
 # HOXB13 frequency in each dataset
 sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
 sum(combined_data$hoxb13_snp) / nrow(combined_data) # 0.5%
 
-#
-HR95_50 <- get_hr(wgs,
-  lower_interval = c(0.2, 0.80), # median
-  upper_interval = c(1.00 - .017, 1), # top 1.7%
-  CI = TRUE,
-  bootstrap_iterations = bootstrap_iters
+# HR95_50
+boot_hr9550 <- function(data, indices) {
+  boot_sample <- data[indices, ]
+  calc_hr(boot_sample, upper_interval = c(1.00 - .017, 1.0), lower_interval = c(0.2, 0.80))
+}
+boot_results <- boot(wgs, boot_hr9550, R = 999)
+ci_results <- boot.ci(boot_results, type = "perc")
+HR95_50 <- list(
+  index = "HR95_50",
+  value = boot_results$t0,
+  conf.low = ci_results$percent[4],
+  conf.high = ci_results$percent[5]
 )
-c_index <- get_cindex(wgs,
-  CI = TRUE,
-  bootstrap_iterations = bootstrap_iters
+# C_Index
+boot_cindex <- function(data, indices) {
+  boot_sample <- data[indices, ]
+  calc_cindex(boot_sample)
+}
+boot_results <- boot(wgs, boot_cindex, R = 999)
+ci_results <- boot.ci(boot_results, type = "perc")
+C_Index <- list(
+  index = "C_Index",
+  value = boot_results$t0,
+  conf.low = ci_results$percent[4],
+  conf.high = ci_results$percent[5]
 )
-HR95_50$index <- "HR"
-
-indices <- list(HR95_50, c_index)
+indices <- list(HR95_50, C_Index)
 
 perform <- do.call(rbind.data.frame, lapply(indices, function(x) {
   data.frame(
@@ -285,3 +288,5 @@ cindex_results <-
   )
 
 write_tsv(cindex_results, paste(output_prefix, "wgs_cindex.tsv", sep = "_"))
+write_tsv(fisher_tibble, paste(output_prefix, "fisher.tsv", sep = "_"))
+write_tsv(wgs_summary, paste(output_prefix, "wgs_summary.tsv", sep = "_"))
