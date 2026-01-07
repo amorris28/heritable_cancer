@@ -26,14 +26,14 @@ author:
     - name: Ole A. Andreassen, MD, PhD
       affiliations:
           - ref: ous
-    - name: Eivind Hovig
+    - name: Eivind Hovig, PhD
       affiliations:
           - ref: rad
-    - name: Tyler M. Seibert
+    - name: Tyler M. Seibert, MD, PhD
       affiliations:
           - ref: ous
           - ref: ucsd
-    - name: Oleksandr Frei
+    - name: Oleksandr Frei, PhD
       affiliations:
           - ref: fai
           - ref: ous
@@ -293,7 +293,8 @@ Dr. Oleksandr Frei is a consultant to Precision Health.
 
 This work was supported by a grant from the Research Council of Norway (award #324499). The computations were performed on resources provided by Sigma2---the National Infrastructure for High-Performance Computing and Data Storage in Norway. This work was performed on the Tjenester for Sensitive Data (TSD) facilities, owned by the University of Oslo, operated and developed by the TSD service group at the University of Oslo IT-Department (UiO IT).
 
-# Ethics statement 
+# Ethics statement {.unnumbered}
+
 
 The study protocol was approved by the Norwegian Regional Ethics Committee (REK)  Sør-Øst, IDs 2015/2382 (NFCS cohort) and 270326 (HUSK cohort).
 
