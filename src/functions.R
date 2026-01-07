@@ -48,9 +48,11 @@ pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
 ## Performance and Plotting
 
 performance_metrics <- function(data, model, age = "age", status = "status") {
-  df <- data.frame(phs = data$phs, 
-                   age = data[[age]], 
-                   status = data[[status]])
+  df <- data.frame(
+    phs = data$phs,
+    age = data[[age]],
+    status = data[[status]]
+  )
   print(head(df))
   # HR80_50
   boot_hr8050 <- function(data, indices) {
@@ -92,7 +94,7 @@ performance_metrics <- function(data, model, age = "age", status = "status") {
     conf.low = ci_results$percent[4],
     conf.high = ci_results$percent[5]
   )
-  
+
   indices <- list(HR80_20, HR80_50, C_Index)
 
   perform <- do.call(rbind.data.frame, lapply(indices, function(x) {

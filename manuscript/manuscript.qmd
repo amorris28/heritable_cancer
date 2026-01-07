@@ -2,28 +2,28 @@
 title: "Prostate cancer risk prediction using polygenic hazard scores in Nordic populations"
 
 author:
-    - name: Andrew H. Morris
+    - name: Andrew H. Morris, PhD
       email: andrewmorris@mailbox.org
       affiliations:
           - ref: fai
           - ref: ous
       attributes:
-        corresponding: false
-    - name: Bayram Cevdet Akdeniz
+        corresponding: true
+    - name: Bayram C. Akdeniz, PhD
       affiliations:
           - ref: fai
           - ref: rad
-    - name: Sigve Nakken
+    - name: Sigve Nakken, PhD
       affiliations:
           - ref: rad
           - ref: ccr
-    - name: Alexey Shadrin
+    - name: Alexey Shadrin, PhD
       affiliations:
           - ref: ous
-    - name: Anders Dale
+    - name: Anders M. Dale, PhD
       affiliations:
           - ref: jcvi
-    - name: Ole A. Andreassen
+    - name: Ole A. Andreassen, MD, PhD
       affiliations:
           - ref: ous
     - name: Eivind Hovig
@@ -61,18 +61,16 @@ output:
         extra_dependencies: ["flafter"]
 format:
     pdf:
+        linestretch: 2
         editor: source
         number-sections: true
         papersize: A4
         keep-tex: true
         fig.path: "figures/"
-        csl: journal-of-clinical-oncology.csl
         include-in-header:
-            - text: |
-                \usepackage{lineno}\linenumbers
+          - header.tex
     docx:
         reference-doc: reference.docx
-        csl: journal-of-clinical-oncology.csl
         number-sections: true
 execute:
   echo: false
@@ -141,7 +139,29 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 
 ```
 
-# Abstract  {.unnumbered}
+**Acknowledgments of research support**
+
+Research Council of Norway award #324499
+
+**Running head**
+
+Prostate cancer risk prediction using polygenic hazard scores
+
+**Presented elsewhere**
+
+A preprint version of this manuscript was posted on bioRxiv on [date].
+
+**Disclaimer**
+
+None
+
+# Context Summary {.unnumbered}
+
+**Key Objective** Can polygenic hazard scores accurately predict prostate cancer disease risk and age at diagnosis in Nordic populations?
+
+**Knowledge Generated** Polygenic hazard score PHS601 stratified prostate cancer risk with a towfold increase per standard deviation increase in two Norwegian populations (N = 17,538). The top 1.7% of scores conferred 8.7-fold higher risk compared with median risk, exceeding the risk associated with pathogenic HOXB13 variants.
+
+# Abstract {.unnumbered}
 
 PURPOSE
 
@@ -272,6 +292,10 @@ Dr. Oleksandr Frei is a consultant to Precision Health.
 # Acknowledgements {.unnumbered}
 
 This work was supported by a grant from the Research Council of Norway (award #324499). The computations were performed on resources provided by Sigma2---the National Infrastructure for High-Performance Computing and Data Storage in Norway. This work was performed on the Tjenester for Sensitive Data (TSD) facilities, owned by the University of Oslo, operated and developed by the TSD service group at the University of Oslo IT-Department (UiO IT).
+
+# Ethics statement 
+
+The study protocol was approved by the Norwegian Regional Ethics Committee (REK)  Sør-Øst, IDs 2015/2382 (NFCS cohort) and 270326 (HUSK cohort).
 
 # References {.unnumbered}
 

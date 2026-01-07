@@ -307,10 +307,11 @@ process knit_manuscript {
     path 'src/functions.R'
     path 'reference.docx'
     path 'references.bib'
-    path 'journal-of-clinical-oncology.csl'
+    path csl
     path '_extensions'
     path 'data/public'
     path 'manuscript/figures_and_tables'
+    path 'header.tex'
 
     output:
     path "manuscript.pdf"
@@ -318,8 +319,8 @@ process knit_manuscript {
 
     script:
     """
-    quarto render ${manuscript_file} --to docx
-    quarto render ${manuscript_file} --to pdf
+    quarto render ${manuscript_file} --to docx --metadata csl=${csl}
+    quarto render ${manuscript_file} --to pdf --metadata csl=${csl}
     """
 }
 process get_hoxb13 {
@@ -503,6 +504,7 @@ workflow {
                         file(params.csl_file),
                         file(params.extensions_dir),
                         file(params.public_dir),
-                        postprocess_figures.out)
+                        postprocess_figures.out,
+                        file(params.header_tex))
     }
 } 
