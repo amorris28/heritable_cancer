@@ -139,21 +139,13 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 
 ```
 
-**Acknowledgments of research support**
+**Acknowledgments of research support**: Research Council of Norway award #324499
 
-Research Council of Norway award #324499
+**Running head**: Prostate cancer risk prediction using polygenic hazard scores
 
-**Running head**
+**Presented elsewhere**: None
 
-Prostate cancer risk prediction using polygenic hazard scores
-
-**Presented elsewhere**
-
-A preprint version of this manuscript was posted on bioRxiv on [date].
-
-**Disclaimer**
-
-None
+**Disclaimer**: None
 
 # Context Summary {.unnumbered}
 
