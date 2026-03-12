@@ -253,6 +253,22 @@ phenotype_data <-
   ) %>%
   mutate(conversion_to_metastasis_years = age_of_metastasis - age_diagnosis)
 
+
+#########################################################################
+## Step 5: recruitment date
+recruitment_date <-
+  avt_data %>%
+  select(huskmentid = lopenr, inndato) %>%
+  rbind(som_data %>% select(huskmentid = lopenr, inndato)) %>%
+  rbind(phv_data %>% select(huskmentid = lopenr, inndato)) %>%
+  group_by(huskmentid) %>%
+  summarize(recruitment_date = min(inndato, na.rm = TRUE))
+
+phenotype_data <-
+  phenotype_data %>%
+  full_join(recruitment_date, by = "huskmentid")
+
+
 # Filter for male subjects
 phenotype_data <-
   phenotype_data %>%
