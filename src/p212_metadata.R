@@ -250,3 +250,36 @@ all_variants <-
   summarize(n = n())
 
 write_tsv(all_variants, "all_variants.tsv")
+
+#########################################################################
+## Summary statistics: median and IQR
+birth_year_p212 <-
+  cancer_reg %>%
+  filter(ICD10_gr == "C61") %>%
+  select(pid = regnr, birth_year = FOEDT_AAR) %>%
+  mutate(pid = as.character(pid)) %>%
+  distinct()
+
+age_summary <- combined_data %>%
+  left_join(birth_year_p212, by = "pid") %>%
+  mutate(age_recruitment = NA_real_) %>%
+  summarize(
+    across(
+      c(birth_year, age_recruitment, age_diagnosis, age_of_metastasis),
+      list(
+        median = ~ median(.x, na.rm = TRUE),
+        q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
+        q75    = ~ quantile(.x, 0.75, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to  = c("variable", ".value"),
+    names_sep = "_(?=median|q25|q75)"
+  ) %>%
+  mutate(iqr = q75 - q25) %>%
+  select(variable, median, q25, q75, iqr)
+
+write_tsv(age_summary, "age_summary.tsv")

@@ -147,6 +147,9 @@ process preprocess_metadata {
     publishDir params.public_dir, 
                mode: 'copy', 
                pattern: "all_variants.tsv"
+    publishDir params.public_dir,
+               mode: 'copy',
+               pattern: "${params.cluster}_age_summary.tsv"
 
     container params.r_image
 
@@ -160,6 +163,7 @@ process preprocess_metadata {
     output:
     path "phenotypes.tsv", emit: phenotypes
     path "all_variants.tsv", optional: true, emit: all_variants
+    path "${params.cluster}_age_summary.tsv", optional: true, emit: age_summary
 
     script:
     """
@@ -167,6 +171,7 @@ process preprocess_metadata {
     Rscript ${preprocess_script} \
         ${model_file} \
         FALSE
+    mv age_summary.tsv ${params.cluster}_age_summary.tsv
     """
 }
 process fit_models {
