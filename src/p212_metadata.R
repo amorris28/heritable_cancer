@@ -262,10 +262,13 @@ birth_year_p212 <-
 
 age_summary <- combined_data %>%
   left_join(birth_year_p212, by = "pid") %>%
-  mutate(age_recruitment = NA_real_) %>%
+  mutate(
+    age_first_follow_up = NA_real_,
+    age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_)
+  ) %>%
   summarize(
     across(
-      c(birth_year, age_recruitment, age_diagnosis, age_of_metastasis),
+      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis),
       list(
         median = ~ median(.x, na.rm = TRUE),
         q25    = ~ quantile(.x, 0.25, na.rm = TRUE),

@@ -187,7 +187,7 @@ Two Norwegian cohorts were included in this study. The first cohort was the Hord
 
 ## Characterization of PCa Cases
 
-In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Controls were limited to males and censored at age of last observation. We did not remove individuals with other cancer diagnoses, who were therefore included in controls. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. 
+In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Age was used as the time scale, with follow-up from birth to age at diagnosis (event) or age at last follow-up (censoring). Deaths prior to prostate cancer diagnosis were treated as censoring events. We did not remove individuals with other cancer diagnoses, who were therefore included in controls. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. 
 
 ## Genotyping and PHS calculation
 
@@ -251,11 +251,50 @@ Panel A of @{fig-strat} shows cumulative incidence of any-stage PCa by age and P
 
 # Discussion
 
-PHS601 demonstrated substantial stratification of age at PCa diagnosis in two Norwegian cohorts. The HR per-SD increase in genetic risk, as well as HR~80/20~ and HR~80/50~, were comparable in magnitude to the performance of PHS601 in the original development and replication datasets [@vassy2024] and generally exceeded those of other polygenic hazard scores in Nordic populations, such as for Alzheimer's disease [@motazedi2022]. Robust stratification was observed in both the population-based HUSK cohort and the family history-enriched NFCS cohort. Despite the NFCS cohort being recruited based on self-reported family history of cancer and showing elevated cancer risk relative to the general Norwegian population (@{suppfig-comp}), PHS601 still effectively differentiated between lower and higher genetic risk individuals. These findings support the potential utility of PHS601 in a precision screening paradigm for PCa, both in the general population and among individuals with family history. 
+PHS601 was developed and validated within the MVP, a US veterans cohort with a specific clinical infrastructure and demographic profile. We provide the first replication of PHS601 in an independent European population-based setting, demonstrating that the time-to-event genetic risk stratification paradigm generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. This is a necessary step toward international clinical implementation in a precision medicine screening paradigm.
+
+High-PHS individuals were enriched for aggressive and metastatic cases, 
+demonstrating that PHS601 captures clinically meaningful risk despite being 
+trained on any-stage PCa [@dornisch2025; @seibert2018; @seibert2023; 
+@pagadala2023]. This is best evaluated through population-based birth-to-event 
+analysis, as we performed here, rather than case-only comparison of aggressive 
+versus indolent disease. Case-only analysis conditions on PCa diagnosis, which 
+acts as a collider between germline genetic risk and the environmental and 
+somatic factors that independently cause PCa, inducing a spurious negative 
+association between PHS and aggressive disease within the diagnosed population 
+and biasing the analysis toward the null. Furthermore, a PHS would never be 
+applied to individuals already diagnosed — superior tools exist for that 
+purpose, including PSA trajectory, Gleason grade, MRI staging, and somatic 
+genomic classifiers. Even setting aside these concerns, the substantial genetic 
+overlap between any-stage and aggressive PCa means a case-only analysis would 
+be severely underpowered to detect differential PHS between indolent and 
+aggressive cases [@dornisch2025]. That a significant association was nonetheless 
+recovered in a case-conditioned design — HR₈₀/₂₀ = 1.41 [1.31, 1.51] for 
+progression from localized to metastatic disease [@dornisch2025] — should 
+therefore be interpreted as conservative evidence that the true unconditional 
+association between PHS and aggressive disease is stronger still. A null result 
+from a smaller case-only analysis would be uninterpretable, indistinguishable 
+from collider-induced attenuation or insufficient power, and cannot be taken as 
+evidence against the utility of PHS in the pre-screening context.
+
+The clinical utility of PHS is in the pre-screening context in which diagnosis is unknown. Once we have a diagnosis, there are better tools for evaluating risk, such as, PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers. 
+
+Early diagnosis itself confers elevated lifetime metastatic risk regardless of initial grade (cite Clark et al.). In this case, the any-PCa PHS captures both high-grade prostate cancers that are aggressive at diagnosis and low-grade prostate cancers that are indolent at diagnosis but have elevated risk of progression to aggressive disease. This means that high-PHS individuals warrant earlier and more frequent surveillance regardless of whether PHS can distinguish aggressive from indolent at diagnosis, because they are at elevated risk of early diagnosis and therefore elevated lifetime metastatic risk. The residual limitation — that high-PHS individuals include both future aggressive and future indolent cases — is not a failure of PHS but a ceiling imposed by the partial genetic overlap between indolent and aggressive PCa architecture, and represents a target for future work combining germline PRS with PSA-adjusted genetic scores
+
+The clinical utility is in the screening decision, not the treatment decision — PHS routes high-risk men into surveillance where downstream tools handle indolent/aggressive discrimination (PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers). Low-PHS men benefit from reduced screening, which addresses overscreening harms even if PHS cannot discriminate indolent from aggressive among high-PHS men (your point 4's defense). People with low PHS are at decreased risk of any PCa and metastatic PCa and are therefore candidates for reduced screening (later or less frequent PSA) or "baseline" screening whatever that is. Even if PHS cannot distinguish between aggressive and non-aggressive cases among high-PHS individuals, it still achieves the goal of reducing the harms from overscreening low risk individuals.
+
+
+
+
 
 For aggressive disease, we also found good stratification between high- and low-risk individuals based on PHS, and we see a similar magnitude effect in both NFCS and HUSK cohorts as in the original development set [@vassy2024]. This suggests PHS601 could be effective at identifying individuals at greater risk of aggressive disease and therefore with the greatest clinical benefit for further screening via PSA or imaging. Although PHS601 was not developed specifically for aggressive disease, it does appear to stratify for absolute risk of both aggressive and metastatic prostate cancer [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023].
 
-In addition to testing the performance of PHS, we screened twelve known PCa predisposition genes and found that genotyping-based PHS outperformed WGS-based RPV screening. Only HOXB13 showed enrichment among cases, and even this variant performed substantially worse than PHS. A much larger percentage of the population is affected by a high risk score than is affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level. From a practical perspective, genotyping displayed comparable or better performance than WGS, at a fraction of the cost, at population scale. Notably, genotyping with imputation successfully identified all HOXB13 carriers subsequently confirmed by WGS, suggesting that population-scale PHS genotyping can simultaneously capture clinically relevant RPV carrier status without the added cost of sequencing.
+
+## Compare to other models with specific numbahs
+PHS601 demonstrated substantial stratification of age at PCa diagnosis in two Norwegian cohorts. The HR per-SD increase in genetic risk, as well as HR~80/20~ and HR~80/50~, were comparable in magnitude to the performance of PHS601 in the original development and replication datasets [@vassy2024] and generally exceeded those of other polygenic hazard scores in Nordic populations, such as for Alzheimer's disease [@motazedi2022].
+
+
+In addition to testing the performance of PHS, we screened twelve known PCa predisposition genes and found that genotyping-based PHS outperformed WGS-based RPV screening. Only HOXB13 showed enrichment among cases, and even this variant performed substantially worse than PHS. A much larger percentage of the population is affected by a high risk score than is affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level. Notably, genotyping with imputation successfully identified all HOXB13 carriers subsequently confirmed by WGS, suggesting that for population-scale PCa screening, a single genotyping array simultaneously generates PHS and captures the only known high-penetrance PCa variant, making WGS unnecessary for this specific application.
 
 Even though HOXB13 did not discriminate as well as the PHS model, clinical interventions may differ between individuals whose phenotype arises from rare deleterious mutations versus those whose phenotype arises from the interaction of environment with the normal array of segregating genes of minor effect. For example, individuals with BRCA mutations may benefit from PARP inhibitors [@turk2018]. Furthermore, RPVs and PHSes have different implications for genetic counseling, particularly regarding the risk to offspring in the case of RPVs. Therefore, there remains value in screening for these rare variants in appropriate clinical contexts. 
 
@@ -493,5 +532,28 @@ ft
 ```
 
 All variants from genes that we investigated classified as "Pathogenic" in ClinVar. N is the number of participants carrying this mutation.
+
+:::
+
+
+::: {#supptab-age-summary}
+
+
+```{r}
+table_age_summary = read_tsv("manuscript/figures_and_tables/table_age_summary.tsv")
+
+# Create table
+ft <- flextable(table_age_summary) %>%
+  set_header_labels(Variable = "") %>%
+  fontsize(size = 9, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  autofit()
+
+ft
+```
+
+Median and interquartile range (Q1, Q3) of key age and demographic variables for each cohort. Age at first follow-up is not available for the NFCS cohort. Age at metastatic diagnosis is restricted to metastatic cases. HUSK = HUSKMent cohort (recruited 1992–1999); NFCS = Norwegian Familial Cancer Study (recruited 1980–1995).
 
 :::

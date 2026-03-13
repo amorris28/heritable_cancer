@@ -360,3 +360,34 @@ table_hoxb13 <-
   )
 
 write_tsv(table_hoxb13, "figures_and_tables/table_hoxb13.tsv")
+
+###############################################################
+# Supplementary Table - age summary
+###############################################################
+p212_age_summary <- read_tsv("data/public/p212_age_summary.tsv")
+p2521_age_summary <- read_tsv("data/public/p2521_age_summary.tsv")
+
+p212_age_summary$cohort <- "NFCS"
+p2521_age_summary$cohort <- "HUSK"
+
+table_age_summary <-
+  p2521_age_summary %>%
+  rbind(p212_age_summary) %>%
+  mutate(variable = case_match(
+    variable,
+    "birth_year"        ~ "Birth Year",
+    "age_first_follow_up" ~ "Age at First Follow-up",
+    "age_diagnosis"     ~ "Age at Diagnosis",
+    "age_of_metastasis" ~ "Age at Metastatic Diagnosis"
+  )) %>%
+  mutate(value = if_else(
+    variable == "Birth Year",
+    sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
+    sprintf("%.1f (%.1f, %.1f)", median, q25, q75)
+  )) %>%
+  select(cohort, Variable = variable, `Median (Q1, Q3)` = value) %>%
+  pivot_wider(names_from = cohort, values_from = `Median (Q1, Q3)`) %>%
+  mutate(across(where(is.character), ~ if_else(str_detect(.x, "^NA"), "\u2014", .x))) %>%
+  add_row(Variable = "Recruitment Period", HUSK = "1992\u20131999", NFCS = "1980\u20131995", .after = 1)
+
+write_tsv(table_age_summary, "figures_and_tables/table_age_summary.tsv")

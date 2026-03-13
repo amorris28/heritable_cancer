@@ -255,18 +255,18 @@ phenotype_data <-
 
 
 #########################################################################
-## Step 5: recruitment date
-recruitment_date <-
+## Step 5: date of first follow-up
+date_first_follow_up <-
   avt_data %>%
   select(huskmentid = lopenr, inndato) %>%
   rbind(som_data %>% select(huskmentid = lopenr, inndato)) %>%
   rbind(phv_data %>% select(huskmentid = lopenr, inndato)) %>%
   group_by(huskmentid) %>%
-  summarize(recruitment_date = min(inndato, na.rm = TRUE))
+  summarize(date_first_follow_up = min(inndato, na.rm = TRUE))
 
 phenotype_data <-
   phenotype_data %>%
-  full_join(recruitment_date, by = "huskmentid")
+  full_join(date_first_follow_up, by = "huskmentid")
 
 
 # Filter for male subjects
@@ -288,11 +288,12 @@ write_tsv(combined_data, "phenotypes.tsv")
 age_summary <- phenotype_data %>%
   mutate(
     birth_year = year(fdato),
-    age_recruitment = interval(fdato, recruitment_date) / years(1)
+    age_first_follow_up = interval(fdato, date_first_follow_up) / years(1),
+    age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_)
   ) %>%
   summarize(
     across(
-      c(birth_year, age_recruitment, age_diagnosis, age_of_metastasis),
+      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis),
       list(
         median = ~ median(.x, na.rm = TRUE),
         q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
