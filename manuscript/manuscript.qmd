@@ -1,5 +1,5 @@
 ---
-title: "Prostate cancer risk prediction using polygenic hazard scores in Nordic populations"
+title: "Polygenic hazard scores surpass rare pathogenic variant screening for population-scale prostate cancer risk stratification"
 
 author:
     - name: Andrew H. Morris, PhD
@@ -253,46 +253,9 @@ Panel A of @{fig-strat} shows cumulative incidence of any-stage PCa by age and P
 
 PHS601 was developed and validated within the MVP, a US veterans cohort with a specific clinical infrastructure and demographic profile. We provide the first replication of PHS601 in an independent European population-based setting, demonstrating that the time-to-event genetic risk stratification paradigm generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. This is a necessary step toward international clinical implementation in a precision medicine screening paradigm.
 
-High-PHS individuals were enriched for aggressive and metastatic cases, 
-demonstrating that PHS601 captures clinically meaningful risk despite being 
-trained on any-stage PCa [@dornisch2025; @seibert2018; @seibert2023; 
-@pagadala2023]. This is best evaluated through population-based birth-to-event 
-analysis, as we performed here, rather than case-only comparison of aggressive 
-versus indolent disease. Case-only analysis conditions on PCa diagnosis, which 
-acts as a collider between germline genetic risk and the environmental and 
-somatic factors that independently cause PCa, inducing a spurious negative 
-association between PHS and aggressive disease within the diagnosed population 
-and biasing the analysis toward the null. Furthermore, a PHS would never be 
-applied to individuals already diagnosed — superior tools exist for that 
-purpose, including PSA trajectory, Gleason grade, MRI staging, and somatic 
-genomic classifiers. Even setting aside these concerns, the substantial genetic 
-overlap between any-stage and aggressive PCa means a case-only analysis would 
-be severely underpowered to detect differential PHS between indolent and 
-aggressive cases [@dornisch2025]. That a significant association was nonetheless 
-recovered in a case-conditioned design — HR₈₀/₂₀ = 1.41 [1.31, 1.51] for 
-progression from localized to metastatic disease [@dornisch2025] — should 
-therefore be interpreted as conservative evidence that the true unconditional 
-association between PHS and aggressive disease is stronger still. A null result 
-from a smaller case-only analysis would be uninterpretable, indistinguishable 
-from collider-induced attenuation or insufficient power, and cannot be taken as 
-evidence against the utility of PHS in the pre-screening context.
+PHS601 stratified absolute risk of aggressive and metastatic PCa in both cohorts, despite being trained on any-stage disease [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023]. The appropriate framework for evaluating this association is population-based birth-to-event analysis, as we performed here, rather than case-only comparison of aggressive versus indolent disease — conditioning on diagnosis introduces collider bias that attenuates the observed association with disease severity [@paternoster2017]. The clinical relevance of PHS for aggressive disease is further supported by evidence that earlier PCa diagnosis independently confers elevated lifetime risk of metastatic progression regardless of initial grade [@clark2022]: high-PHS men are enriched for early-onset disease and therefore carry elevated cumulative metastatic risk. Critically, PHS serves the screening decision rather than the treatment decision. High-PHS men benefit from earlier and more intensive surveillance, while low-PHS men are candidates for reduced or deferred screening — directly addressing the overdiagnosis harms that limit current PSA-based screening paradigms. Once a diagnosis is established, germline risk is superseded by superior instruments for predicting progression, including PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers such as Decipher and Oncotype DX.
 
-The clinical utility of PHS is in the pre-screening context in which diagnosis is unknown. Once we have a diagnosis, there are better tools for evaluating risk, such as, PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers. 
-
-Early diagnosis itself confers elevated lifetime metastatic risk regardless of initial grade (cite Clark et al.). In this case, the any-PCa PHS captures both high-grade prostate cancers that are aggressive at diagnosis and low-grade prostate cancers that are indolent at diagnosis but have elevated risk of progression to aggressive disease. This means that high-PHS individuals warrant earlier and more frequent surveillance regardless of whether PHS can distinguish aggressive from indolent at diagnosis, because they are at elevated risk of early diagnosis and therefore elevated lifetime metastatic risk. The residual limitation — that high-PHS individuals include both future aggressive and future indolent cases — is not a failure of PHS but a ceiling imposed by the partial genetic overlap between indolent and aggressive PCa architecture, and represents a target for future work combining germline PRS with PSA-adjusted genetic scores
-
-The clinical utility is in the screening decision, not the treatment decision — PHS routes high-risk men into surveillance where downstream tools handle indolent/aggressive discrimination (PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers). Low-PHS men benefit from reduced screening, which addresses overscreening harms even if PHS cannot discriminate indolent from aggressive among high-PHS men (your point 4's defense). People with low PHS are at decreased risk of any PCa and metastatic PCa and are therefore candidates for reduced screening (later or less frequent PSA) or "baseline" screening whatever that is. Even if PHS cannot distinguish between aggressive and non-aggressive cases among high-PHS individuals, it still achieves the goal of reducing the harms from overscreening low risk individuals.
-
-
-
-
-
-For aggressive disease, we also found good stratification between high- and low-risk individuals based on PHS, and we see a similar magnitude effect in both NFCS and HUSK cohorts as in the original development set [@vassy2024]. This suggests PHS601 could be effective at identifying individuals at greater risk of aggressive disease and therefore with the greatest clinical benefit for further screening via PSA or imaging. Although PHS601 was not developed specifically for aggressive disease, it does appear to stratify for absolute risk of both aggressive and metastatic prostate cancer [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023].
-
-
-## Compare to other models with specific numbahs
 PHS601 demonstrated substantial stratification of age at PCa diagnosis in two Norwegian cohorts. The HR per-SD increase in genetic risk, as well as HR~80/20~ and HR~80/50~, were comparable in magnitude to the performance of PHS601 in the original development and replication datasets [@vassy2024] and generally exceeded those of other polygenic hazard scores in Nordic populations, such as for Alzheimer's disease [@motazedi2022].
-
 
 In addition to testing the performance of PHS, we screened twelve known PCa predisposition genes and found that genotyping-based PHS outperformed WGS-based RPV screening. Only HOXB13 showed enrichment among cases, and even this variant performed substantially worse than PHS. A much larger percentage of the population is affected by a high risk score than is affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level. Notably, genotyping with imputation successfully identified all HOXB13 carriers subsequently confirmed by WGS, suggesting that for population-scale PCa screening, a single genotyping array simultaneously generates PHS and captures the only known high-penetrance PCa variant, making WGS unnecessary for this specific application.
 
@@ -300,17 +263,11 @@ Even though HOXB13 did not discriminate as well as the PHS model, clinical inter
 
 We observed a time-dependency for PHS in the any-stage PCa model, though not for aggressive disease. While the time-varying effect of PHS was weak, we observed a significant negative trend in the HR of PHS with age in two independent cohorts such that the strongest effect of genetic risk was at the youngest ages (@suppfig-zph). This age-dependent attenuation of genetic risk is consistent with observations from other complex diseases and may reflect several biological processes. First, as individuals age, the cumulative burden of environmental exposures, somatic mutations, and stochastic cellular processes may increasingly dominate over germline genetic variation in determining disease risk [@jiang2021; @winkler2024]. Second, competing risks of death from other causes may differentially affect high-risk individuals, leading to a selected survivor population at older ages. Stronger genetic effects at younger ages have been well-documented for BRCA1/2 mutations in breast cancer [@kuchenbaecker2017] and across multiple complex diseases [@jiang2021]. The non-significant trend for aggressive disease may be explained by more complete case ascertainment for clinically-significant disease [@huynh-le2020a] or low power due to the small number of aggressive disease cases. These findings identify the age range where genetic risk stratification may be most actionable for prevention and early detection.
 
-## Future Directions
-
-While PHS captures inherited genetic risk, prostate cancer risk is also influenced by social determinants of health, lifestyle factors, and environmental exposures [@plym2023; @pagadala2024; @pagadala2024a]. Future work should investigate how these modifiable factors interact with genetic risk to refine risk prediction models, particularly in younger individuals with high genetic risk who stand to benefit most from early intervention.
-
-The strong risk stratification observed in these population-based cohorts provides a foundation for prospective trials of risk-stratified screening in Norway. Before implementing population-wide genetic screening, cost-effectiveness analyses are needed to assess the economic value of PHS-based screening in the Norwegian healthcare context and identify optimal screening thresholds and age ranges.
-
-One limitation of this study is that we did not have access to family history data or prostate-specific antigen measurements for all participants. While previous studies suggest family history adds limited information beyond PHS601 [@vassy2024], future work should explore optimal integration strategies for PHS with other clinical risk factors.
+This study has several limitations. We did not have access to family history data or prostate-specific antigen measurements for all participants; while previous studies suggest family history adds limited information beyond PHS601 [@vassy2024], future work should explore integration of PHS with other clinical risk factors and with social determinants of health, lifestyle factors, and environmental exposures [@plym2023; @pagadala2024; @pagadala2024a]. The strong risk stratification observed here provides a foundation for prospective trials of risk-stratified screening in Norway, but cost-effectiveness analyses will be needed before clinical implementation to identify optimal screening thresholds and age ranges.
 
 # Conclusions
 
-We demonstrated that PHS601 performs well in independent, population-based cohorts from Norway, providing strong risk stratification not only for prostate cancer but also for absolute risk of aggressive disease. These findings support the development of prospective trials of risk-stratified screening in Norway. Given that high polygenic risk affects 50x more individiuals than known rare pathogenic variants, PHS-based screening has the potential for substantial population health impact. We recommend that future work focus on: (1) prospective clinical trials to demonstrate real-world effectiveness, (2) health economic evaluations to guide implementation, and (3) integration of genetic risk with modifiable lifestyle factors to maximize opportunities for risk reduction in high-risk individuals.
+We demonstrated that PHS601 performs well in independent, population-based cohorts from Norway, providing strong risk stratification for both prostate cancer and aggressive disease. These findings support the development of prospective trials of risk-stratified PCa screening in Norway. Given that high polygenic risk affects far more individuals than known rare pathogenic variants, a PHS-based screening paradigm has the potential for substantial population health impact.
 
 # Conflit of interest statement {.unnumbered}
 
