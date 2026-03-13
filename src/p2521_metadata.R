@@ -286,25 +286,6 @@ write_tsv(combined_data, "phenotypes.tsv")
 #########################################################################
 ## Summary statistics: median and IQR
 age_summary <- phenotype_data %>%
-  summarize(
-    across(
-      c(age_diagnosis, age_of_metastasis, age_recruitment),
-      list(
-        median = ~ median(.x, na.rm = TRUE),
-        q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
-        q75    = ~ quantile(.x, 0.75, na.rm = TRUE)
-      ),
-      .names = "{.col}_{.fn}"
-    )
-  ) %>%
-  pivot_longer(
-    everything(),
-    names_to  = c("variable", ".value"),
-    names_sep = "_(?=median|q25|q75)"
-  ) %>%
-  mutate(iqr = q75 - q25) %>%
-  select(variable, median, q25, q75, iqr)
-phenotype_data %>%
   mutate(
     birth_year = year(fdato),
     age_recruitment = interval(fdato, recruitment_date) / years(1)
