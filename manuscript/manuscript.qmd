@@ -382,7 +382,7 @@ library(officer)
 
 # Create table
 ft <- flextable(table_coxph) %>%
-  fontsize(size = 6, part = "all") %>%
+  fontsize(size = 9, part = "all") %>%
   border_outer(border = fp_border(width = 1)) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
@@ -400,7 +400,8 @@ ft <- flextable(table_coxph) %>%
     ),
     part = "header"
   ) %>%
-  autofit()
+  autofit() %>%
+  fit_to_width(max_width = 6.26)
 
 ft
 ```
