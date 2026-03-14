@@ -60,6 +60,9 @@ scratch/
 # latex intermediate files
 *.fdb_latexmk
 *.tex
+*.bbl
+*.fls
+*.synctex.gz
 
 # log files
 *.log
