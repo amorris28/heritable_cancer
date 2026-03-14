@@ -111,9 +111,11 @@ zph_tt <- ggplot(plot_data, aes(x = time, y = beta_t)) +
 saveRDS(zph_tt, paste(output_prefix, "zph_tt.rds", sep = "_"))
 
 #########################################################
-# Plot KM Curves
-any_pca_km_curve <- plot_km_curves(combined_data)
-any_pca_inc_curve <- plot_km_curves(combined_data, style = "risk")
+# Plot Cumulative Incidence Curves
+any_pca_km_curve <- phs_abs_risk(
+  combined_data,
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
 
 ######################################################
 # metastatic
@@ -211,11 +213,13 @@ saveRDS(zph_tt, paste(output_prefix, "zph_tt_aggr.rds", sep = "_"))
 #########################################################
 
 # KM Curves for metastatic disease
-metastatic_km_curve <- plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis")
-metastatic_inc_curve <- plot_km_curves(combined_data, age = "age_of_metastasis", status = "metastasis", style = "risk")
+metastatic_km_curve <- phs_abs_risk(
+  combined_data,
+  time      = "age_of_metastasis",
+  event     = "metastasis",
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
 
 # Save Output
 saveRDS(any_pca_km_curve, paste(output_prefix, "any_pca_km_curve.rds", sep = "_"))
 saveRDS(metastatic_km_curve, paste(output_prefix, "metastatic_km_curve.rds", sep = "_"))
-saveRDS(any_pca_inc_curve, paste(output_prefix, "any_pca_km_curve.rds", sep = "_"))
-saveRDS(metastatic_inc_curve, paste(output_prefix, "metastatic_km_curve.rds", sep = "_"))

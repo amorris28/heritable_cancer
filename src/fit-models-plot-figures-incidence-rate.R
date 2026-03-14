@@ -76,16 +76,16 @@ cox_fit_meta <- coxph(Surv(age_of_metastasis, metastasis) ~ phs,
 # cohort data, pca_risk data
 stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   # output must be "hazard" or "cum_risk"
-  HR80_50 <- get_hr(full_data,
-    upper_interval = c(0.8, 1.0), # 80
-    lower_interval = c(0.2, 0.80), # 50
-    CI = FALSE
-  )$value
-  HR20_50 <- get_hr(full_data,
-    upper_interval = c(0.0, 0.2), # 80
-    lower_interval = c(0.2, 0.80), # 50
-    CI = FALSE
-  )$value
+  HR80_50 <- phs_metrics(
+    full_data,
+    metrics  = "HR",
+    hr_pairs = list(list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)))
+  )$estimate
+  HR20_50 <- phs_metrics(
+    full_data,
+    metrics  = "HR",
+    hr_pairs = list(list(numerator = c(0.00, 0.20), denominator = c(0.30, 0.70)))
+  )$estimate
 
   # stratify registry data (hazard) by high and low HR
   pca_risk <-

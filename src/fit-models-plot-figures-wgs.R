@@ -128,49 +128,27 @@ phs_hoxb13_inter_cindex <-
 sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
 sum(combined_data$hoxb13_snp) / nrow(combined_data) # 0.5%
 
-# HR95_50
-boot_hr9550 <- function(data, indices) {
-  boot_sample <- data[indices, ]
-  calc_hr(boot_sample, upper_interval = c(1.00 - .017, 1.0), lower_interval = c(0.2, 0.80))
-}
-boot_results <- boot(wgs, boot_hr9550, R = 999)
-ci_results <- boot.ci(boot_results, type = "perc")
-HR95_50 <- list(
-  index = "HR95_50",
-  value = boot_results$t0,
-  conf.low = ci_results$percent[4],
-  conf.high = ci_results$percent[5]
+# Performance metrics
+perform <- phs_metrics(
+  wgs,
+  metrics  = c("HR", "C_index"),
+  hr_pairs = list(
+    list(numerator = c(100 - 0.017, 1.00), denominator = c(0.30, 0.70))
+  ),
+  bootstrap = TRUE,
+  n_boot    = 999,
+  seed      = 42
 )
-# C_Index
-boot_cindex <- function(data, indices) {
-  boot_sample <- data[indices, ]
-  calc_cindex(boot_sample)
-}
-boot_results <- boot(wgs, boot_cindex, R = 999)
-ci_results <- boot.ci(boot_results, type = "perc")
-C_Index <- list(
-  index = "C_Index",
-  value = boot_results$t0,
-  conf.low = ci_results$percent[4],
-  conf.high = ci_results$percent[5]
-)
-indices <- list(HR95_50, C_Index)
-
-perform <- do.call(rbind.data.frame, lapply(indices, function(x) {
-  data.frame(
-    index = x$index,
-    value = x$value,
-    conf.low = x$conf.low,
-    conf.high = x$conf.high
-  )
-}))
-perform <- cbind(output_prefix, perform)
+perform <- dplyr::mutate(perform, model = output_prefix)
 write_tsv(perform, paste(output_prefix, "wgs_phs_performance_95.tsv",
   sep = "_"
 ))
 
-# KM Curves for PHS
-wgs_inc <- plot_km_curves(wgs, style = "risk")
+# Cumulative incidence curve for PHS
+wgs_inc <- phs_abs_risk(
+  wgs,
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
 
 # KM Curves for HOXB13
 km_curves <- data.frame()

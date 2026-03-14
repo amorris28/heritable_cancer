@@ -47,8 +47,18 @@ phs_tt_tidy <- broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
 
 # Performance metrics
 if (perform_bool) {
-  any_pca_perform <-
-    performance_metrics(combined_data, output_prefix)
+  any_pca_perform <- phs_metrics(
+    combined_data,
+    metrics  = c("HR", "C_index", "HR_SD"),
+    hr_pairs = list(
+      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
+      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
+      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
+    ),
+    bootstrap = TRUE,
+    n_boot    = 999,
+    seed      = 42
+  )
 }
 
 # Time to metastatic diseaes
@@ -71,12 +81,20 @@ meta_phs_zph_tidy <- meta_phs_zph_tidy[1, ]
 
 # Performance metrics
 if (perform_bool) {
-  metastatic_perform <-
-      performance_metrics(
-        combined_data,
-        output_prefix,
-        age = "age_of_metastasis",
-        status = "metastasis")
+  metastatic_perform <- phs_metrics(
+    combined_data,
+    time     = "age_of_metastasis",
+    event    = "metastasis",
+    metrics  = c("HR", "C_index", "HR_SD"),
+    hr_pairs = list(
+      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
+      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
+      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
+    ),
+    bootstrap = TRUE,
+    n_boot    = 999,
+    seed      = 42
+  )
 }
 
 # Gather sample sizes
