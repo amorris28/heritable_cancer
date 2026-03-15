@@ -133,7 +133,7 @@ perform <- phs_metrics(
   wgs,
   metrics  = c("HR", "C_index"),
   hr_pairs = list(
-    list(numerator = c(100 - 0.017, 1.00), denominator = c(0.30, 0.70))
+    list(numerator = c(1.00 - 0.017, 1.00), denominator = c(0.30, 0.70))
   ),
   bootstrap = TRUE,
   n_boot    = 999,

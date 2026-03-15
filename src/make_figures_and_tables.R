@@ -76,7 +76,7 @@ coxph_results <-
   filter(model %in% c("any_pca", "metastatic")) %>%
   select(estimate, conf_low = conf.low, conf_high = conf.high, PCa, cohort)
 
-coxph_results$metric <- "HR_cox"
+coxph_results$metric <- "HR_cox_pval"
 
 sample_size <-
   p2521_sample_size %>%
@@ -91,20 +91,26 @@ table_coxph <-
     "HR[80-100]_[0-20]"  = "HR80_20",
     "HR[80-100]_[30-70]" = "HR80_50",
     "HR[95-100]_[30-70]" = "HR95_50",
-    "C_index"            = "C_Index"
+    "C_index"            = "C_Index",
+    "HR_SD"              = "HR_SD"
   )) %>%
-  filter(metric %in% c("HR80_20", "HR80_50", "C_Index")) %>%
+  filter(metric %in% c("HR_SD", "HR80_20", "HR80_50", "HR95_50", "C_Index")) %>%
   select(metric, estimate, conf_low, conf_high, PCa, cohort) %>%
-  bind_rows(coxph_results) %>%
   mutate(value = sprintf("%.2f (%.2f, %.2f)", estimate, conf_low, conf_high)) %>%
   select(metric, value, PCa, cohort) %>%
   pivot_wider(names_from = "metric", values_from = "value") %>%
   left_join(sample_size, by = join_by(cohort, PCa)) %>%
   select(PCa,
-    Cohort = cohort, n = total, Cases = cases, HR = HR_cox,
-    HR80_20, HR80_50, C_Index
+    Cohort = cohort, n = total, Cases = cases,
+    HR_SD, HR80_20, HR80_50, HR95_50, C_Index
   ) %>%
-  rename(`HR80/20` = HR80_20, `HR80/50` = HR80_50, `C-Index` = C_Index) %>%
+  rename(
+    `HR_SD`   = HR_SD,
+    `HR80/20` = HR80_20,
+    `HR80/50` = HR80_50,
+    `HR95/50` = HR95_50,
+    `C-Index` = C_Index
+  ) %>%
   select(-n)
 
 write_tsv(table_coxph, "figures_and_tables/table_coxph.tsv")
