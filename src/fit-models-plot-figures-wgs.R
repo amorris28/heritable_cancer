@@ -269,22 +269,17 @@ hoxb13_rt <- ggplot(
     plot.margin  = margin(0, 5.5, 5.5, 5.5)
   )
 
-# Attach risk tables and assemble composite
-wgs_inc_with_rt <- attach_risk_table(
-  wgs_inc, wgs,
+# Build PHS numbers-at-risk table
+wgs_phs_risk_table <- phs_risk_table(
+  wgs,
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
-hoxb13_with_rt <- patchwork::wrap_plots(
-  hoxb13_p, hoxb13_rt, ncol = 1, heights = c(3, 1)
-)
 
-wgs_p <-
-  wgs_inc_with_rt +
-    hoxb13_with_rt +
-    plot_annotation(tag_levels = "A") &
-    theme(legend.position = "bottom")
-
-saveRDS(wgs_p, paste(output_prefix, "wgs_km_curve.rds", sep = "_"))
+# Save plots and risk tables as separate objects
+saveRDS(wgs_inc,             paste(output_prefix, "wgs_phs_abs_risk.rds",      sep = "_"))
+saveRDS(wgs_phs_risk_table,  paste(output_prefix, "wgs_phs_risk_table.rds",    sep = "_"))
+saveRDS(hoxb13_p,            paste(output_prefix, "wgs_hoxb13_abs_risk.rds",   sep = "_"))
+saveRDS(hoxb13_rt,           paste(output_prefix, "wgs_hoxb13_risk_table.rds", sep = "_"))
 
 
 #################################################################################

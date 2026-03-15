@@ -1,5 +1,6 @@
 library(tidyverse)
 library(patchwork)
+library(hazrd)
 
 source("src/functions.R")
 
@@ -30,13 +31,18 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 # PHS K-M Curve Figure for Any-PCa
 ###############################################################
 
-p212 <- base::readRDS("data/public/p212_any_pca_km_curve.rds")
-p2521 <- base::readRDS("data/public/p2521_any_pca_km_curve.rds")
+p212_ar <- base::readRDS("data/public/p212_any_pca_abs_risk.rds")
+p212_rt <- base::readRDS("data/public/p212_any_pca_risk_table.rds")
+p2521_ar <- base::readRDS("data/public/p2521_any_pca_abs_risk.rds")
+p2521_rt <- base::readRDS("data/public/p2521_any_pca_risk_table.rds")
 
-p212[[1]] <- p212[[1]] +
+p212_ar <- p212_ar +
   ggplot2::labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
-p2521[[1]] <- p2521[[1]] +
+p2521_ar <- p2521_ar +
   ggplot2::labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)")
+
+p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
+p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
 
 any_pca <- p2521 +
   p212 +
@@ -118,12 +124,16 @@ write_tsv(table_coxph, "figures_and_tables/table_coxph.tsv")
 ###############################################################
 # PHS K-M Curve Figure for Meta-PCa
 ###############################################################
-p212 <- readRDS("data/public/p212_metastatic_km_curve.rds")
-p2521 <- readRDS("data/public/p2521_metastatic_km_curve.rds")
-p212[[1]] <- p212[[1]] +
+p212_ar <- readRDS("data/public/p212_metastatic_abs_risk.rds")
+p212_rt <- readRDS("data/public/p212_metastatic_risk_table.rds")
+p2521_ar <- readRDS("data/public/p2521_metastatic_abs_risk.rds")
+p2521_rt <- readRDS("data/public/p2521_metastatic_risk_table.rds")
+p212_ar <- p212_ar +
   labs(title = "NFCS - Aggressive PCa", y = "Cumulative Incidence (%)")
-p2521[[1]] <- p2521[[1]] +
+p2521_ar <- p2521_ar +
   labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)")
+p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
+p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
 metastatic <- p2521 +
   p212 +
   patchwork::plot_annotation(tag_levels = "A") +
@@ -140,11 +150,19 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 ###############################################################
 # WGS HOXB13 K-M Curve figure
 ###############################################################
-wgs_km <- readRDS("data/public/p212_wgs_km_curve.rds")
-wgs_km[[1]][[1]] <- wgs_km[[1]][[1]] +
+wgs_phs_ar <- readRDS("data/public/p212_wgs_phs_abs_risk.rds")
+wgs_phs_rt <- readRDS("data/public/p212_wgs_phs_risk_table.rds")
+wgs_hxb_ar <- readRDS("data/public/p212_wgs_hoxb13_abs_risk.rds")
+wgs_hxb_rt <- readRDS("data/public/p212_wgs_hoxb13_risk_table.rds")
+wgs_phs_ar <- wgs_phs_ar +
   labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
-wgs_km[[2]][[1]] <- wgs_km[[2]][[1]] +
+wgs_hxb_ar <- wgs_hxb_ar +
   labs(y = "Cumulative Incidence (%)")
+wgs_km <-
+  hazrd::attach_risk_table(wgs_phs_ar, wgs_phs_rt) +
+  hazrd::attach_risk_table(wgs_hxb_ar, wgs_hxb_rt) +
+  plot_annotation(tag_levels = "A") &
+  theme(legend.position = "bottom")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
   height = 8 * 0.618, width = 8
 )

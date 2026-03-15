@@ -211,8 +211,10 @@ process plot_figures {
     path analysis_script
 
     output:
-    path "${params.cluster}_any_pca_km_curve.rds"
-    path "${params.cluster}_metastatic_km_curve.rds"
+    path "${params.cluster}_any_pca_abs_risk.rds"
+    path "${params.cluster}_any_pca_risk_table.rds"
+    path "${params.cluster}_metastatic_abs_risk.rds"
+    path "${params.cluster}_metastatic_risk_table.rds"
     path "${params.cluster}_zph_tt.rds"
     path "${params.cluster}_zph_tt_aggr.rds"
 
@@ -266,7 +268,10 @@ process run_analysis_wgs {
     path "${params.cluster}_binomial_phs_hoxb13.tsv"
     path "${params.cluster}_wgs.tsv"
     path "${params.cluster}_wgs_cindex.tsv"
-    path "${params.cluster}_wgs_km_curve.rds"
+    path "${params.cluster}_wgs_phs_abs_risk.rds"
+    path "${params.cluster}_wgs_phs_risk_table.rds"
+    path "${params.cluster}_wgs_hoxb13_abs_risk.rds"
+    path "${params.cluster}_wgs_hoxb13_risk_table.rds"
 
     script:
     """
