@@ -203,11 +203,11 @@ hoxb13_p <- ggplot(km_curves, aes(
   fill = label
 )) +
   geom_ribbon(
-    alpha = 0.1,
-    color = 0
+    alpha = 0.15,
+    color = NA
   ) +
-  geom_step() +
-  theme_classic() +
+  geom_step(linewidth = 0.8) +
+  theme_minimal() +
   lims(x = c(40, 100), y = ylims) +
   labs(x = "Age", y = yaxis) +
   scale_color_manual(
@@ -218,12 +218,69 @@ hoxb13_p <- ggplot(km_curves, aes(
     values = c(color_set[5], color_set[2]),
     name = "HOXB13 Carrier"
   ) +
-  theme(aspect.ratio = 1) +
-  theme(legend.position = "bottom")
+  theme(aspect.ratio = 1, legend.position = "bottom")
+
+# Build HOXB13 numbers-at-risk table
+hoxb13_risk_times <- pretty(c(40, 100), n = 5)
+hoxb13_risk_times <- hoxb13_risk_times[
+  hoxb13_risk_times >= min(wgs$age, na.rm = TRUE) &
+  hoxb13_risk_times <= max(wgs$age, na.rm = TRUE)
+]
+
+hoxb13_rt_df <- dplyr::bind_rows(lapply(
+  list(list(grp = "noncarrier", data = noncarrier_data),
+       list(grp = "carrier",    data = carrier_data)),
+  function(x) {
+    fit <- survfit(Surv(age, status) ~ 1, data = x$data)
+    n_at_t <- vapply(hoxb13_risk_times, function(t) {
+      prior <- which(fit$time <= t)
+      if (length(prior) == 0L) max(fit$n.risk) else fit$n.risk[max(prior)]
+    }, numeric(1L))
+    data.frame(
+      time    = hoxb13_risk_times,
+      n_risk  = as.integer(round(n_at_t)),
+      stratum = x$grp,
+      stringsAsFactors = FALSE
+    )
+  }
+))
+hoxb13_rt_df$stratum <- factor(
+  hoxb13_rt_df$stratum, levels = c("noncarrier", "carrier")
+)
+
+hoxb13_rt <- ggplot(
+    hoxb13_rt_df,
+    aes(x = time, y = stratum, label = n_risk, color = stratum)
+  ) +
+  geom_text(size = 3.2, show.legend = FALSE) +
+  scale_x_continuous(limits = c(40, 100)) +
+  scale_y_discrete(limits = rev(c("noncarrier", "carrier"))) +
+  scale_color_manual(values = c(
+    "carrier"    = color_set[5],
+    "noncarrier" = color_set[2]
+  )) +
+  labs(x = "Age", y = NULL, title = "Number at risk") +
+  theme_minimal() +
+  theme(
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid   = element_blank(),
+    plot.title   = element_text(size = 9, face = "plain"),
+    plot.margin  = margin(0, 5.5, 5.5, 5.5)
+  )
+
+# Attach risk tables and assemble composite
+wgs_inc_with_rt <- attach_risk_table(
+  wgs_inc, wgs,
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
+hoxb13_with_rt <- patchwork::wrap_plots(
+  hoxb13_p, hoxb13_rt, ncol = 1, heights = c(3, 1)
+)
 
 wgs_p <-
-  wgs_inc +
-    hoxb13_p +
+  wgs_inc_with_rt +
+    hoxb13_with_rt +
     plot_annotation(tag_levels = "A") &
     theme(legend.position = "bottom")
 

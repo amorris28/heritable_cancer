@@ -33,9 +33,9 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 p212 <- base::readRDS("data/public/p212_any_pca_km_curve.rds")
 p2521 <- base::readRDS("data/public/p2521_any_pca_km_curve.rds")
 
-p212 <- p212 +
+p212[[1]] <- p212[[1]] +
   ggplot2::labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
-p2521 <- p2521 +
+p2521[[1]] <- p2521[[1]] +
   ggplot2::labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)")
 
 any_pca <- p2521 +
@@ -120,9 +120,9 @@ write_tsv(table_coxph, "figures_and_tables/table_coxph.tsv")
 ###############################################################
 p212 <- readRDS("data/public/p212_metastatic_km_curve.rds")
 p2521 <- readRDS("data/public/p2521_metastatic_km_curve.rds")
-p212 <- p212 +
+p212[[1]] <- p212[[1]] +
   labs(title = "NFCS - Aggressive PCa", y = "Cumulative Incidence (%)")
-p2521 <- p2521 +
+p2521[[1]] <- p2521[[1]] +
   labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)")
 metastatic <- p2521 +
   p212 +
@@ -141,8 +141,10 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 # WGS HOXB13 K-M Curve figure
 ###############################################################
 wgs_km <- readRDS("data/public/p212_wgs_km_curve.rds")
-wgs_km <- wgs_km &
+wgs_km[[1]][[1]] <- wgs_km[[1]][[1]] +
   labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
+wgs_km[[2]][[1]] <- wgs_km[[2]][[1]] +
+  labs(y = "Cumulative Incidence (%)")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
   height = 8 * 0.618, width = 8
 )

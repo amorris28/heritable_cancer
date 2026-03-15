@@ -220,6 +220,18 @@ metastatic_km_curve <- phs_abs_risk(
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
 
+# Attach numbers-at-risk tables
+any_pca_km_curve <- attach_risk_table(
+  any_pca_km_curve, combined_data,
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
+metastatic_km_curve <- attach_risk_table(
+  metastatic_km_curve, combined_data,
+  time  = "age_of_metastasis",
+  event = "metastasis",
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
+
 # Save Output
 saveRDS(any_pca_km_curve, paste(output_prefix, "any_pca_km_curve.rds", sep = "_"))
 saveRDS(metastatic_km_curve, paste(output_prefix, "metastatic_km_curve.rds", sep = "_"))
