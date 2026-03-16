@@ -151,8 +151,6 @@ process preprocess_metadata {
                mode: 'copy',
                pattern: "${params.cluster}_age_summary.tsv"
 
-    container params.r_image
-
     input:
     path preprocess_script
     path model_file
@@ -176,7 +174,6 @@ process preprocess_metadata {
 }
 process fit_models {
     publishDir params.public_dir, mode: 'copy'
-    container params.r_image
 
     input:
     path metadata_file
@@ -202,7 +199,6 @@ process fit_models {
 }
 process plot_figures {
     publishDir params.public_dir, mode: 'copy'
-    container params.r_image
 
     input:
     path metadata_file
@@ -229,7 +225,6 @@ process plot_figures {
 
 process run_analysis_incidence {
     publishDir params.public_dir, mode: 'copy'
-    container params.r_image
 
     input:
     path metadata_file
@@ -253,7 +248,6 @@ process run_analysis_incidence {
 }
 process run_analysis_wgs {
     publishDir params.public_dir, mode: 'copy'
-    container params.r_image
 
     input:
     path wgs_script
@@ -363,6 +357,7 @@ process get_hoxb13 {
     //     --recode vcf
 
 }
+
 workflow get_bim_files {
     take:
     vcf_files
@@ -481,8 +476,8 @@ workflow {
     			            file(params.r_functions),
                             hoxb13)
         fit_models(preprocess.phenotypes,
-  			         file(params.r_config),
-    			     file(params.r_functions),
+  		         file(params.r_config),
+    		     file(params.r_functions),
                      file(params.fit_models_script))
         plot_figures(preprocess.phenotypes,
   			         file(params.r_config),

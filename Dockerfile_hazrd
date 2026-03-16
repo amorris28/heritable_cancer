@@ -1,0 +1,3 @@
+FROM my-r-image
+COPY hazrd_latest.tar.gz .
+RUN R -e "install.packages('./hazrd_latest.tar.gz', repos = NULL, type='source')"
