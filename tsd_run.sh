@@ -18,6 +18,10 @@ cd "$PIPELINE_DIR"
 echo "[$PROJECT] Unzipping pipeline..."
 unzip -o "$IMPORT_DIR/pipeline.zip"
 
+echo "[$PROJECT] Installing hazrd..."
+module load R/4.4.2-gfbf-2024a
+Rscript -e 'install.packages("hazrd_latest.tar.gz", repos=NULL, type="source", dependencies=FALSE)'
+
 echo "[$PROJECT] Running Nextflow with profile: $PROFILE"
 module load Nextflow/24.04.2
 export NXF_HOME="$PIPELINE_DIR/.nextflow"

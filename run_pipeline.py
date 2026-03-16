@@ -58,9 +58,16 @@ JOB_SCRIPT_TEMPLATE = Path(__file__).parent / "tsd_run.sh"
 # =============================================================================
 
 def build_zip() -> None:
-    """Create pipeline.zip containing main.nf, nextflow.config, and src/."""
+    """Create pipeline.zip containing main.nf, nextflow.config, src/, and hazrd_latest.tar.gz if present."""
     Path(PIPELINE_ZIP).unlink(missing_ok=True)
-    cmd = ["zip", "-r", PIPELINE_ZIP, "main.nf", "nextflow.config", "src/"]
+    files = ["main.nf", "nextflow.config", "src/"]
+    tarball = Path("hazrd_latest.tar.gz")
+    if tarball.exists():
+        files.append(str(tarball))
+        print(f"Including {tarball} in {PIPELINE_ZIP}")
+    else:
+        print(f"WARNING: {tarball} not found — hazrd will not be updated on TSD")
+    cmd = ["zip", "-r", PIPELINE_ZIP] + files
     print(f"Building {PIPELINE_ZIP}...")
     subprocess.run(cmd, check=True)
     print(f"Created {PIPELINE_ZIP}")
