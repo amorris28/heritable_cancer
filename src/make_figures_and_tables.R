@@ -37,16 +37,31 @@ p2521_ar <- base::readRDS("data/public/p2521_any_pca_abs_risk.rds")
 p2521_rt <- base::readRDS("data/public/p2521_any_pca_risk_table.rds")
 
 p212_ar <- p212_ar +
-  ggplot2::labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
+  labs(title = "NFCS - Any-stage PCa",
+      y = "Cumulative Incidence (%)",
+      x = "Age",
+      color = "PHS percentile",
+      fill = "PHS percentile") +
+      lims(x = c(45, 90)) +
+      theme_classic()
+p212_rt <- p212_rt + labs(x = NULL) +
+      lims(x = c(45, 90))
 p2521_ar <- p2521_ar +
-  ggplot2::labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)")
+  labs(title = "HUSK - Any-stage PCa",
+      y = "Cumulative Incidence (%)",
+      x = "Age",
+      color = "PHS percentile",
+      fill = "PHS percentile") +
+      lims(x = c(45, 90)) +
+      theme_classic()
+p2521_rt <- p2521_rt + labs(x = NULL) +
+      lims(x = c(45, 90))
 
 p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
 p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
 
-any_pca <- p2521 +
-  p212 +
-  patchwork::plot_annotation(tag_levels = "A") +
+any_pca <- (p2521 | p212) +
+  # patchwork::plot_annotation(tag_levels = "A") +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 
@@ -129,14 +144,29 @@ p212_rt <- readRDS("data/public/p212_metastatic_risk_table.rds")
 p2521_ar <- readRDS("data/public/p2521_metastatic_abs_risk.rds")
 p2521_rt <- readRDS("data/public/p2521_metastatic_risk_table.rds")
 p212_ar <- p212_ar +
-  labs(title = "NFCS - Aggressive PCa", y = "Cumulative Incidence (%)")
+  labs(title = "NFCS - Aggressive PCa",
+  y = "Cumulative Incidence (%)",
+  x = "Age",
+      color = "PHS percentile",
+      fill = "PHS percentile") +
+  lims(x = c(45, 90)) +
+  theme_classic()
+p212_rt <- p212_rt + labs(x = NULL) +
+  lims(x = c(45, 90))
 p2521_ar <- p2521_ar +
-  labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)")
+  labs(title = "HUSK - Aggressive PCa",
+  y = "Cumulative Incidence (%)",
+  x = "Age",
+      color = "PHS percentile",
+      fill = "PHS percentile") +
+  lims(x = c(45, 90)) +
+  theme_classic()
+p2521_rt <- p2521_rt + labs(x = NULL) +
+  lims(x = c(45, 90))
 p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
 p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
-metastatic <- p2521 +
-  p212 +
-  patchwork::plot_annotation(tag_levels = "A") +
+metastatic <- (p2521 | p212) +
+  # patchwork::plot_annotation(tag_levels = "A") +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 
@@ -154,14 +184,43 @@ wgs_phs_ar <- readRDS("data/public/p212_wgs_phs_abs_risk.rds")
 wgs_phs_rt <- readRDS("data/public/p212_wgs_phs_risk_table.rds")
 wgs_hxb_ar <- readRDS("data/public/p212_wgs_hoxb13_abs_risk.rds")
 wgs_hxb_rt <- readRDS("data/public/p212_wgs_hoxb13_risk_table.rds")
+
+wgs_phs_ar <-
+  wgs_phs_ar +
+  labs(x = "Age",
+      color = "PHS percentile",
+      fill = "PHS percentile") +
+  lims(x = c(45, 90)) +
+  theme_classic()
+wgs_phs_rt <- wgs_phs_rt + labs(x = NULL) +
+  lims(x = c(45, 90))
+wgs_hxb_ar <-
+  wgs_hxb_ar +
+  labs(x = "Age") +
+  lims(x = c(45, 90)) +
+  labs(title = "NFCS - Any-stage PCa") +
+  theme_classic()
+wgs_hxb_rt <- wgs_hxb_rt + labs(x = NULL) +
+  lims(x = c(45, 90))
+
+p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
+p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
+
+any_pca <- (p2521 | p212) +
+  # patchwork::plot_annotation(tag_levels = "A") +
+  patchwork::plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+
 wgs_phs_ar <- wgs_phs_ar +
   labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
 wgs_hxb_ar <- wgs_hxb_ar +
   labs(y = "Cumulative Incidence (%)")
 wgs_km <-
-  hazrd::attach_risk_table(wgs_phs_ar, wgs_phs_rt) +
-  hazrd::attach_risk_table(wgs_hxb_ar, wgs_hxb_rt) +
-  plot_annotation(tag_levels = "A") &
+  (hazrd::attach_risk_table(wgs_phs_ar, wgs_phs_rt) |
+   hazrd::attach_risk_table(wgs_hxb_ar, wgs_hxb_rt)) +
+  # plot_annotation(tag_levels = "A") +
+  patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
   height = 8 * 0.618, width = 8
@@ -177,24 +236,26 @@ anypca <- readRDS("data/public/p2521_stratified_incidence.rds")
 metastatic <- readRDS("data/public/p2521_stratified_incidence_metastatic.rds")
 anypca <- anypca +
   labs(title = "HUSK - Any-stage PCa", y = "Cumulative Incidence (%)") +
-  lims(x = c(40, 90))
+  # lims(x = c(45, 90)) +
+  theme_classic()
 
 metastatic <- metastatic +
   labs(title = "HUSK - Aggressive PCa", y = "Cumulative Incidence (%)") +
-  lims(x = c(40, 90))
+  # lims(x = c(45, 90)) +
+  theme_classic()
 
 stratified <-
   anypca +
     metastatic +
-    patchwork::plot_annotation(tag_levels = "A") +
+    # patchwork::plot_annotation(tag_levels = "A") +
     patchwork::plot_layout(guides = "collect") &
     theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/stratified_incidence.pdf", stratified,
-  height = 8 * 0.618, width = 8
+  height = 6 * 0.618, width = 8
 )
 ggsave("figures_and_tables/stratified_incidence.png", stratified,
-  height = 8 * 0.618, width = 8
+  height = 6 * 0.618, width = 8
 )
 
 ###############################################################
@@ -239,16 +300,16 @@ p212_metastatic <-
 
 p2521_anypca <- p2521_anypca +
   labs(y = "Cumulative Incidence (%)", title = "HUSK - Any-stage PCa") +
-  lims(x = c(40, 90), y = c(0, 30))
+  lims(x = c(45, 90), y = c(0, 30))
 p212_anypca <- p212_anypca +
   labs(y = "Cumulative Incidence (%)", title = "NFCS - Any-stage PCa") +
-  lims(x = c(40, 90), y = c(0, 30))
+  lims(x = c(45, 90), y = c(0, 30))
 p2521_metastatic <- p2521_metastatic +
   labs(y = "Cumulative Incidence (%)", title = "HUSK - Aggressive PCa") +
-  lims(x = c(40, 90), y = c(0, 6))
+  lims(x = c(45, 90), y = c(0, 6))
 p212_metastatic <- p212_metastatic +
   labs(y = "Cumulative Incidence (%)", title = "NFCS - Aggressive PCa") +
-  lims(x = c(40, 90), y = c(0, 6))
+  lims(x = c(45, 90), y = c(0, 6))
 
 comparison <-
   p2521_anypca +

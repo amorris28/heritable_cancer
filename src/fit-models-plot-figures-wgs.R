@@ -35,6 +35,7 @@ combined_data <- read_tsv(metadata_file)
 
 carriers <-
   combined_data %>%
+  filter(age >= 40) %>%
   select(
     status, age, phs, age_of_metastasis, metastasis, wgs, ends_with("_carrier")
   ) %>%
@@ -217,11 +218,11 @@ hoxb13_p <- ggplot(km_curves, aes(
   scale_fill_manual(
     values = c(color_set[5], color_set[2]),
     name = "HOXB13 Carrier"
-  ) +
-  theme(aspect.ratio = 1, legend.position = "bottom")
+  )
 
 # Build HOXB13 numbers-at-risk table
 hoxb13_risk_times <- pretty(c(40, 100), n = 5)
+hoxb13_risk_times <- c(50, 60, 70, 80, 90)
 hoxb13_risk_times <- hoxb13_risk_times[
   hoxb13_risk_times >= min(wgs$age, na.rm = TRUE) &
   hoxb13_risk_times <= max(wgs$age, na.rm = TRUE)
@@ -272,7 +273,8 @@ hoxb13_rt <- ggplot(
 # Build PHS numbers-at-risk table
 wgs_phs_risk_table <- phs_risk_table(
   wgs,
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
+  time_points = c(50, 60, 70, 80, 90)
 )
 
 # Save plots and risk tables as separate objects

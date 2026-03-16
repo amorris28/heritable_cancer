@@ -223,13 +223,15 @@ metastatic_km_curve <- phs_abs_risk(
 # Build numbers-at-risk tables
 any_pca_risk_table <- phs_risk_table(
   combined_data,
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
+  time_points = c(50, 60, 70, 80, 90)
 )
 metastatic_risk_table <- phs_risk_table(
   combined_data,
   time  = "age_of_metastasis",
   event = "metastasis",
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
+  time_points = c(50, 60, 70, 80, 90)
 )
 
 # Save Output

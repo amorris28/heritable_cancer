@@ -76,6 +76,11 @@ cox_fit_meta <- coxph(Surv(age_of_metastasis, metastasis) ~ phs,
 # cohort data, pca_risk data
 stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   # output must be "hazard" or "cum_risk"
+  HR95_50 <- phs_metrics(
+    full_data,
+    metrics  = "HR",
+    hr_pairs = list(list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70)))
+  )$estimate  
   HR80_50 <- phs_metrics(
     full_data,
     metrics  = "HR",
@@ -91,6 +96,11 @@ stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   pca_risk <-
     pca_risk %>%
     mutate(
+      hazard_95 = hazard * HR95_50,
+      annual_risk_95 = 1 - exp(-hazard_95),
+      cum_risk_95 = 1 - exp(-cumsum(hazard_95))
+    )  %>%
+    mutate(
       hazard_80 = hazard * HR80_50,
       annual_risk_80 = 1 - exp(-hazard_80),
       cum_risk_80 = 1 - exp(-cumsum(hazard_80))
@@ -104,7 +114,7 @@ stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   pca_risk %>%
     select(age, starts_with(output)) %>%
     pivot_longer(starts_with(output), names_to = "curve", values_to = output) %>%
-    mutate(curve = factor(curve, levels = paste0(output, c("_20", "", "_80")))) ->
+    mutate(curve = factor(curve, levels = paste0(output, c("_95", "_80", "", "_20")))) ->
   stratified_df_long
   return(stratified_df_long)
 }
@@ -115,9 +125,10 @@ stratified_risk_pca <- stratify_curve(full_data, pca_risk, cox_fit_pca, output =
 stratified_risk_meta <- stratify_curve(full_data, meta_risk, cox_fit_meta, output = "cum_risk")
 
 group_labels <- c(
-  "PHS 0-20th",
+  "PHS 95-100th",
+  "PHS 80-100th",
   "Population baseline",
-  "PHS 80-100th"
+  "PHS 0-20th"
 )
 plot_stratified <- function(stratified_df, group_labels, y_var = "hazard") {
   # y_var must be "cum_risk" or "hazard"
@@ -131,7 +142,8 @@ plot_stratified <- function(stratified_df, group_labels, y_var = "hazard") {
   y_var <- sym(y_var)
   ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve)) +
     geom_line(linewidth = 1) +
-    scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C"), labels = group_labels) +
+    ggplot2::scale_color_brewer(palette = "Set1", labels = group_labels) +
+    # scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C"), labels = group_labels) +
     labs(x = "Age", y = y_label, color = "") +
     theme_classic(base_size = 12) +
     theme(aspect.ratio = 1)
@@ -177,8 +189,8 @@ plot_comparison <- function(pca_risk, cohort_ci, y_var = "hazard") {
     geom_line(aes(age, !!y_var), pca_risk, color = "black", linewidth = 1) +
     geom_step(aes(age, !!y_cohort), cohort_ci, color = "red", linewidth = 1) +
     labs(x = "Age", y = y_label, color = "") +
-    theme_classic(base_size = 12) +
-    theme(aspect.ratio = 1)
+    theme_classic(base_size = 12) #+
+    # theme(aspect.ratio = 1)
 }
 p_cumulative_comparison_pca <- plot_comparison(pca_risk, cohort_ci_pca, "cum_risk")
 p_cumulative_comparison_metastatic <- plot_comparison(meta_risk, cohort_ci_meta, "cum_risk")
