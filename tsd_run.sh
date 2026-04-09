@@ -12,6 +12,10 @@
 #   EXPORT_DIR    e.g. /tsd/p212/data/durable/file-export
 set -euo pipefail
 
+# Remove this uploaded job script from the import directory now that it has
+# started. Safe on Linux — bash has already loaded it; the inode persists.
+rm -f "$0"
+
 mkdir -p "$PIPELINE_DIR"
 cd "$PIPELINE_DIR"
 

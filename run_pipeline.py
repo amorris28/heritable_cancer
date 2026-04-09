@@ -6,19 +6,25 @@ Upload pipeline code to TSD, submit the Nextflow job, wait for completion,
 and download the results.
 
 Usage:
-    python run_pipeline.py --project p212
-    python run_pipeline.py --project p2521
-    python run_pipeline.py --project all   # submits both in parallel
+    python run_pipeline.py                 # run all configured projects sequentially
+    python run_pipeline.py --project p212  # run a single project
 
-Requires TACL to be installed and registered for the project.
-Must be run from a whitelisted IP.
+Credential prompts (tacl token, HPC password + OTP) appear inline as each
+step runs. Since execution is sequential you can monitor and respond to them
+one at a time.
+
+Requires TACL to be installed and registered for the project (one-time setup:
+  tacl --register p212
+  tacl --register p2521
+).
+Must be run while connected to the TSD VPN.
 """
 
 import argparse
 import subprocess
 import sys
 import tempfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import zipfile
 from pathlib import Path
 
 # tsd_api lives in the sibling tsd_hpc_api directory
@@ -106,6 +112,15 @@ def make_job_script(project: str, cfg: dict) -> str:
     return tmp.name
 
 
+def unzip_results(zip_path: str) -> None:
+    """Extract a results zip in-place next to the zip file."""
+    dest = Path(zip_path).parent
+    print(f"Extracting {zip_path} -> {dest}/...")
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(dest)
+    print(f"Extracted {zip_path}")
+
+
 def run_project(project: str) -> str:
     """Run the full upload-submit-wait-download pipeline for one project."""
     cfg = PROJECTS[project]
@@ -139,7 +154,8 @@ def run_project(project: str) -> str:
 
         print(f"[{project}] Downloading {result_file}...")
         tsd_api.download_file(project, result_file)
-        print(f"[{project}] Done. Results saved to {result_file}")
+        unzip_results(result_file)
+        print(f"[{project}] Done. Results extracted from {result_file}")
         return result_file
 
     finally:
@@ -151,32 +167,29 @@ def run_project(project: str) -> str:
 # =============================================================================
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run heritable_cancer pipeline on TSD.")
+    parser = argparse.ArgumentParser(
+        description="Run heritable_cancer pipeline on TSD.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
+Examples:
+  python run_pipeline.py              # run all projects sequentially
+  python run_pipeline.py --project p212
+""",
+    )
     parser.add_argument(
         "--project",
-        choices=["p212", "p2521", "all"],
-        default="p212",
-        help="TSD project to run on (default: p212). Use 'all' to submit both in parallel.",
+        choices=list(PROJECTS.keys()),
+        default=None,
+        help="TSD project to run (default: all configured projects).",
     )
     args = parser.parse_args()
 
+    targets = list(PROJECTS.keys()) if args.project is None else [args.project]
+
     build_zip()
 
-    targets = list(PROJECTS.keys()) if args.project == "all" else [args.project]
-
-    if len(targets) == 1:
-        run_project(targets[0])
-    else:
-        print(f"Submitting to {targets} in parallel...")
-        with ThreadPoolExecutor(max_workers=len(targets)) as pool:
-            futures = {pool.submit(run_project, p): p for p in targets}
-            for future in as_completed(futures):
-                project = futures[future]
-                try:
-                    result = future.result()
-                    print(f"[{project}] Finished: {result}")
-                except Exception as exc:
-                    print(f"[{project}] FAILED: {exc}")
+    for project in targets:
+        run_project(project)
 
 
 if __name__ == "__main__":
