@@ -126,7 +126,7 @@ phs_hoxb13_inter_cindex <-
   select(concordance, std.error.concordance)
 
 # HOXB13 frequency in each dataset
-sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
+hoxb13_freq <- sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
 sum(combined_data$hoxb13_snp) / nrow(combined_data) # 0.5%
 
 # Performance metrics
@@ -134,7 +134,7 @@ perform <- phs_metrics(
   wgs,
   metrics  = c("HR", "C_index"),
   hr_pairs = list(
-    list(numerator = c(1.00 - 0.017, 1.00), denominator = c(0.30, 0.70))
+    list(numerator = c(1.00 - hoxb13_freq, 1.00), denominator = c(0.30, 0.70))
   ),
   bootstrap = TRUE,
   n_boot    = 999,
