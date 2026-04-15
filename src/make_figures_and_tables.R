@@ -471,7 +471,7 @@ table_age_summary <-
     "birth_year"        ~ "Birth Year",
     "age_first_follow_up" ~ "Age at First Follow-up",
     "age_diagnosis"     ~ "Age at Diagnosis",
-    "age_of_metastasis" ~ "Age at Metastatic Diagnosis"
+    "age_of_metastasis" ~ "Age at Aggressive Diagnosis"
   )) %>%
   mutate(value = if_else(
     variable == "Birth Year",

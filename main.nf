@@ -319,11 +319,11 @@ process knit_manuscript {
 
     output:
     path "manuscript.pdf"
-    path "manuscript.docx"
+    // path "manuscript.docx"
 
     script:
     """
-    quarto render ${manuscript_file} --to docx --metadata csl=${csl}
+    # quarto render ${manuscript_file} --to docx --metadata csl=${csl}
     quarto render ${manuscript_file} --to pdf --metadata csl=${csl}
     """
 }

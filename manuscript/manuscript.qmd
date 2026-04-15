@@ -91,10 +91,10 @@ crossref:
       space-before-numbering: false
       latex-list-of-description: Supplementary Table
       caption-location: top
-knitr:
-  opts_chunk:
-    ft.align: "center"
-    ft.keepnext: false
+# knitr:
+#   opts_chunk:
+#     ft.align: "center"
+#     ft.keepnext: false
 ---
 
 ```{r initialize, echo = FALSE, warning = FALSE, message = FALSE}
@@ -149,7 +149,7 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 
 # Context Summary {.unnumbered}
 
-**Key Objective** Can polygenic hazard scores accurately predict prostate cancer disease risk and age at diagnosis in Nordic populations?
+**Key Objective** Can PHS601 stratify prostate cancer risk in independent population-based cohorts, and does it outperform rare pathogenic variant screening?
 
 **Knowledge Generated** Polygenic hazard score PHS601 stratified prostate cancer risk with a towfold increase per standard deviation increase in two Norwegian populations (N = 17,538). The top 1.8% of scores conferred 8.7-fold higher risk compared with median risk, exceeding the risk associated with pathogenic HOXB13 variants.
 
@@ -157,7 +157,7 @@ wgs_cindex <- readr::read_tsv("data/public/p212_wgs_cindex.tsv")
 
 PURPOSE
 
-More accurate risk prediction is needed for prostate cancer (PCa) to identify individuals at greatest risk of early-onset and clinically-significant disease. Current screening paradigms, such as prostate-specific antigen screening, pose risks due to over-diagnosis and over-treatment of indolent disease. Polygenic hazard scores (PHS) can predict age-at-diagnosis of PCa and are being tested in prospective clinical screening trials. We evaluated whether PHS601 stratifies risk of PCa and aggressive PCa.
+More accurate risk prediction is needed for prostate cancer (PCa) to identify individuals at greatest risk of early-onset and clinically significant disease. Current screening paradigms, such as prostate-specific antigen screening, pose risks due to over-diagnosis and over-treatment of indolent disease. Polygenic hazard scores (PHS) can predict age-at-diagnosis of PCa and are being tested in prospective clinical screening trials. We evaluated whether PHS601 stratifies risk of PCa and aggressive PCa.
 
 MATERIALS AND METHODS
 
@@ -175,19 +175,19 @@ This study demonstrated the utility of PHS601 by outperforming WGS-based rare va
 
 Prostate cancer (PCa) is the second most commonly diagnosed cancer among men worldwide and a leading cause of cancer-related mortality [@bray2024]. Although early detection can reduce deaths from PCa, population screening with prostate-specific antigen (PSA) is limited by false positives, overdiagnosis, and overtreatment, particularly of indolent disease [@ilic2013; @roobol2025]. Therefore, there is a clinical need to identify men at elevated risk of clinically significant or metastatic PCa to focus early screening and downstream diagnostics (e.g., MRI), while minimizing harms.
 
-PCa is highly heritable (~42%) [@lichtenstein2000] with risk influenced by rare pathogenic variants (RPVs) as well as common variants. RPVs, such as in BRCA1, BRCA2, and HOXB13, confer large increases in risk, but occur at low frequencies in the general population [@seibert2023]. Polygenic models combine many common variants with small effects to estimate inherited risk. Furthermore, polygenic hazard scores (PHS) use time-to-event modeling, which allows for prediction of age at diagnosis [@desikan2017; @seibert2018; @huynh-le2021]. The latest age-of-onset model for PCa, PHS601 [@vassy2024], is being implemented in a clinical trial of precision prostate cancer screening in the United States Department of Veterans Affairs healthcare system (Clinicaltrials.gov NCT05926102).
+PCa is highly heritable (~42%) [@lichtenstein2000] with risk influenced by rare pathogenic variants (RPVs) as well as common variants. RPVs, such as in BRCA1, BRCA2, and HOXB13, confer large increases in risk, but occur at low frequencies in the general population [@seibert2023]. Polygenic models combine many common variants with small effects to estimate inherited risk. Furthermore, polygenic hazard scores (PHS) use time-to-event modeling, which allows for prediction of age at diagnosis [@desikan2017; @seibert2018; @huynh-le2021]. The latest age-of-onset polygenic hazard score, PHS601, has been integrated with family history and genetic ancestry to form P-CARE (Prostate CAncer integrated Risk Evaluation) [@vassy2026], which is being implemented in a clinical trial of precision prostate cancer screening in the United States Department of Veterans Affairs healthcare system (Clinicaltrials.gov NCT05926102).
 
-Recent PCa PHS models were developed in large, multi-ethnic cohorts and show robust stratification in MVP and PRACTICAL, but independent validation in population-based cohorts are lacking. Here, we performed external validation of PHS601 in two Norwegian cohorts: a population study (Hordaland Health Studies; HUSK) and a clinical cohort enriched for family history of cancer (Norwegian Familial Cancer Study; NFCS). We evaluated whether PHS601 stratifies risk of PCa and aggressive PCa. We also leveraged whole-genome sequencing to compare PHS-based risk stratification with RPV carrier status, including HOXB13. Our aim was to establish the performance of PHS601 for age-specific risk prediction in Norwegian men as a step toward local implementation in a prospective clinical trial of genomically-informed cancer screening. 
+PHS601 was developed in the US Million Veterans Program, a large, multi-ethnic cohort, and showed robust replication in the PRACTICAL consortium, but independent validation in population-based cohorts is lacking [@vassy2026]. Here, we performed external validation of PHS601 in two Norwegian cohorts: a population study (Hordaland Health Studies; HUSK) and a clinical cohort enriched for family history of cancer (Norwegian Familial Cancer Study; NFCS). We evaluated whether PHS601 stratifies risk of PCa and aggressive PCa. We also leveraged whole-genome sequencing to compare PHS-based risk stratification with RPV carrier status, including HOXB13. Our aim was to establish the performance of PHS601 for age-specific risk prediction in Norwegian men as a step toward local implementation in a prospective clinical trial of genomically-informed cancer screening. 
 
 # Methods
 
 ## Study Population
 
-This study evaluated two Norwegian cohorts that have not been included in prior PHS601 model development or validation. The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with 35,515 participants. This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} format(p2521_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with 15,769 participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} format(p212_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in NFCS.
+This study evaluated two Norwegian cohorts that have not been included in prior PHS601 model development or validation (@supptab-age-summary). The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with 35,515 participants. This cohort was recruited from Rogaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} format(p2521_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with 15,769 participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} format(p212_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in NFCS.
 
 ## Characterization of PCa Cases
 
-In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Age was used as the time scale, with follow-up from birth to age at diagnosis (event) or age at last follow-up (censoring). Deaths prior to prostate cancer diagnosis were treated as censoring events. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. 
+In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been found to be 98.8% complete [@larsen2009]. Age was used as the time scale, with follow-up from birth to age at diagnosis (event) or age at last follow-up (censoring). Deaths prior to prostate cancer diagnosis were treated as censoring events. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures. Progression, relapse, and metastases are required to be reported by the Norwegian Cancer Registry, supporting completeness of the aggressive phenotype ascertainment.
 
 ## Genotyping and PHS calculation
 
@@ -199,7 +199,7 @@ For the NFCS cohort, genomic DNA was extracted from peripheral blood samples usi
 
 ### Harmonization of alleles and calculation of PHS
 
-The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors [@vassy2024]. Chromosome X imputation was not available in our genotype data so the 21 SNPs in the original model on chromosome X were removed leaving 580 SNPs. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in 519 variants (in HUSK) and 557 variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink --score` [@purcell2007].
+The list of variants used by the PHS601 model, and their effect sizes, were acquired by contacting the authors [@vassy2026]. Chromosome X imputation was not available in our genotype data so the 21 SNPs in the original model on chromosome X were removed leaving 580 SNPs. Imputed genotype data in each cohort and model variants were matched by genomic position and alleles, resulting in 519 variants (in HUSK) and 557 variants (in NFCS) used for PHS computation. Strand-ambiguous variants were retained, after verifying that no strand flips were present among non-strand ambiguous SNPs in either of the two cohorts. Polygenic hazard scores were calculated for each cohort using `plink --score` [@purcell2007].
 
 ## Whole-genome sequencing
 
@@ -209,7 +209,7 @@ The whole-genome sequencing data were generated at deCODE Genetics on samples fr
 
 ### Variant calling and classification of RPVs
 
-Identification of RPVs in the WGS dataset was performed using the Cancer Predisposition Sequencing Reporter – CPSR v2.2.0 [@nakken2021]. Specifically, we used CPSR to screen WGS variant calls for heterozygous and homozygous SNVs/InDels in high-penetrance prostate cancer genes, including BRCA1, BRCA2, ATM, PALB2, CHEK2, HOXB13, MLH1, MSH2, MSH6, PMS2, TP53, and EPCAM. Coding variants in these genes classified as pathogenic according to ClinVar (release 2025_03) were considered RPVs. Of note, the HOXB13 G84E variant (rs138213197) was included in PHS601 and was also identified among the RPVs in whole-genome sequenced participants. All participants carrying the G84E mutation in WGS data also carried rs138213197 in the imputed genotype data.
+Identification of RPVs in the WGS dataset was performed using the Cancer Predisposition Sequencing Reporter – CPSR v2.2.0 [@nakken2021]. Specifically, we used CPSR to screen WGS variant calls for heterozygous and homozygous SNVs/InDels in high-penetrance prostate cancer genes, including BRCA1, BRCA2, ATM, PALB2, CHEK2, HOXB13, MLH1, MSH2, MSH6, PMS2, TP53, and EPCAM. Coding variants in these genes classified as pathogenic according to ClinVar (release 2025_03) were considered RPVs (@supptab-variants). Of note, the HOXB13 G84E variant (rs138213197) was included in PHS601 and was also identified among the RPVs in whole-genome sequenced participants. All participants carrying the G84E mutation in WGS data also carried rs138213197 in the imputed genotype data.
 
 ## Statistical Analysis
 
@@ -229,13 +229,13 @@ To evaluate how generalizable our results were to the population of Norway, we c
 
 ## PHS601 stratified PCa risk in two Norwegian cohorts
 
-Participants with higher genetic risk scores in PHS601 showed greater risk of early diagnosis in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of PCa (HR = `{r} sprintf("%.2f", round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_high))`]), with individuals in the top quintile having over `{r} p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR = `{r} sprintf("%.2f", round(p212 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_high))`]; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95\% CI \[`{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}).
+Participants with higher genetic risk scores in PHS601 showed greater risk of early diagnosis in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of PCa (HR~SD~ = `{r} sprintf("%.2f", round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_high))`]), with individuals in the top quintile having over `{r} p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR~SD~ = `{r} sprintf("%.2f", round(p212 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_high))`]; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95\% CI \[`{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}). Cumulative incidence in the HUSK cohort was consistent with national Cancer Registry data, though the NFCS cohort showed elevated baseline incidence relative to national data (@{suppfig-comp}).
 
 PHS effects were strongest at younger ages in both cohorts. Schoenfeld residuals tests revealed a negative trend in HR with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{supptab-zph} and @{suppfig-zph}) confirmed with a time-varying Cox model with a linear age interaction (@{supptab-tt}). Given the weak magnitude of this interaction and high residual variability, we present proportional hazards models as the primary analysis; the age attenuation finding is discussed below.
 
 ## PHS601 was associated with aggressive PCa in Norwegian cohorts
 
-In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), while individuals in the top quintile of PHS had `{r} p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()`-fold the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Similarily, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR = `{r} sprintf("%.2f", round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), with HR~80/20~ = `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95% CI \[`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{supptab-zph} and @{suppfig-zph}).
+In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), while individuals in the top quintile of PHS had `{r} p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()`-fold the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Similarly, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), with HR~80/20~ = `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95% CI \[`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{supptab-zph} and @{suppfig-zph}).
 
 ## PHS outperformed RPV screening across known PCa predisposition genes
 
@@ -245,23 +245,22 @@ In the WGS subset, a one-SD increase in PHS predicted a `{r} (wgs_results |> fil
 
 # Discussion
 
-PHS601 was developed within the MVP, a US veterans cohort with a specific clinical infrastructure and demographic profile, and validated in the PRACTICAL consortium. We provide the first replication of PHS601 in independent European population-based cohorts, demonstrating that the time-to-event genetic risk stratification of PHS601 generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. This is a necessary step toward international clinical implementation in a precision medicine screening paradigm.
+We provide the first replication of PHS601 in independent European population-based cohorts, demonstrating that the time-to-event genetic risk stratification of PHS601 generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. The magnitude of risk stratification in HUSK (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]) was consistent with PHS601 replication in the PRACTICAL consortium (COSM: HR~80/20~ = 9.18, 95% CI \[6.66–12.93\]; ProtecT: HR~80/20~ = 5.67, 95% CI \[4.75, 6.73\])[@vassy2026], supporting robust cross-population transferability of the model to independent European cohorts outside the development and prior validation populations. To illustrate the clinical magnitude of this risk stratification: by age 75, men in the top PHS quintile had an estimated cumulative PCa incidence of approximately 30%, compared with ~8% for those in the bottom quintile (@{fig-strat}), a ~4-fold absolute risk difference.
 
-PHS601 stratified absolute risk of aggressive and metastatic PCa in both cohorts, despite being trained on any-stage disease [@dornisch2025; @seibert2018; @seibert2023; @pagadala2023]. The clinical relevance of PHS for aggressive disease is further supported by evidence that earlier PCa diagnosis independently confers elevated lifetime risk of metastatic progression regardless of initial grade [@clark2022]: high-PHS men are enriched for early-onset disease and therefore carry elevated cumulative metastatic risk. Critically, PHS serves the screening decision rather than the treatment decision. High-PHS men benefit from earlier and more intensive surveillance, while low-PHS men are candidates for reduced or deferred screening — directly addressing the overdiagnosis harms that limit current PSA-based screening paradigms. Once a diagnosis is established, germline risk is superseded by superior instruments for predicting progression, including PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers such as Decipher and Oncotype DX.
-
-By age 75, men in the top PHS quintile had an estimated cumulative incidence of approximately 30%, compared with ~8% for those in the bottom quintile and ~15% at the population baseline (@{fig-strat}). This ~4-fold absolute risk difference across strata illustrates the clinical magnitude of the genomic stratification observed in both cohorts. The apparent decline in incidence after age 70 likely reflects reduced screening rather than true disease reduction [@huynh-le2020a].
+PHS601 stratified absolute risk of aggressive PCa in both cohorts, despite being trained on any-stage disease, confirming prior associations of PHS601 with metastatic and clinically-significant disease [@dornisch2025; @vassy2026]. Risk stratification for aggressive PCa was weaker than for any-stage PCa (HUSK: HR~80/20~ = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]). This study assessed risk from birth in the general population, which is the appopriate framing for a pre-screening context, since the clinically actionable question is who among undiagnosed men carries elevated inherited risk of aggressive disease. A case-only analysis would inappropriately condition on prior diagnosis [@paternoster2017]. Once a diagnosis is established, germline risk is superseded by superior instruments for predicting progression, including PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers such as Decipher and Oncotype DX. Critically, PHS serves the screening decision rather than the treatment decision. High-PHS men benefit from earlier and more intensive surveillance, while low-PHS men are candidates for reduced or deferred screening — directly addressing the overdiagnosis harms that limit current PSA-based screening paradigms. The clinical relevance of PHS for aggressive disease is further supported by evidence that earlier PCa diagnosis independently confers elevated lifetime risk of metastatic progression regardless of initial grade [@clark2022]. High-PHS men are enriched for early-onset disease and therefore carry elevated cumulative metastatic risk. 
 
 In addition to testing the performance of PHS, we screened twelve known PCa predisposition genes and found that genotyping-based PHS outperformed WGS-based RPV screening. Only HOXB13 showed enrichment among cases, and even this variant performed substantially worse than PHS. A much larger percentage of the population is affected by a high risk score than is affected by currently known RPVs---high polygenic risk affects 50x more people than BRCA2 mutations [@seibert2023]---which means genetic risk scoring may be more useful at the population level. Notably, genotyping with imputation successfully identified all HOXB13 carriers subsequently confirmed by WGS, suggesting that for population-scale PCa screening, a single genotyping array simultaneously generates PHS and captures the only known high-penetrance PCa variant, making WGS unnecessary for this specific application.
 
 Even though HOXB13 did not discriminate as well as the PHS model, clinical interventions may differ between individuals whose phenotype arises from rare deleterious mutations versus those whose phenotype arises from the interaction of environment with the normal array of segregating genes of minor effect. For example, individuals with BRCA mutations may benefit from PARP inhibitors [@turk2018]. Furthermore, RPVs and PHSes have different implications for genetic counseling, particularly regarding the risk to offspring in the case of RPVs. Therefore, there remains value in screening for these rare variants in appropriate clinical contexts. 
 
-We observed a time-dependency for PHS in the any-stage PCa model, though not for aggressive disease. While the time-varying effect of PHS was weak, we observed a significant negative trend in the HR of PHS with age in two independent cohorts such that the strongest effect of genetic risk was at the youngest ages (@suppfig-zph). This age-dependent attenuation of genetic risk is consistent with observations from other complex diseases and may reflect several biological processes. First, as individuals age, the cumulative burden of environmental exposures, somatic mutations, and stochastic cellular processes may increasingly dominate over germline genetic variation in determining disease risk [@jiang2021; @winkler2024]. Second, competing risks of death from other causes may differentially affect high-risk individuals, leading to a selected survivor population at older ages. Stronger genetic effects at younger ages have been well-documented for BRCA1/2 mutations in breast cancer [@kuchenbaecker2017] and across multiple complex diseases [@jiang2021]. The non-significant trend for aggressive disease may be explained by more complete case ascertainment for clinically-significant disease [@huynh-le2020a] or low power due to the small number of aggressive disease cases. These findings identify the age range where genetic risk stratification may be most actionable for prevention and early detection.
+We observed a weak but significant negative trend in the HR of PHS with age in two independent cohorts such that the strongest effect of genetic risk was at the youngest ages (@suppfig-zph). This age-dependent attenuation of genetic risk is consistent with observations from other complex diseases and may reflect several biological processes. First, as individuals age, the cumulative burden of environmental exposures, somatic mutations, and stochastic cellular processes may increasingly dominate over germline genetic variation in determining disease risk [@jiang2021; @winkler2024]. Second, competing risks of death from other causes may differentially affect high-risk individuals, leading to a selected survivor population at older ages. Stronger genetic effects at younger ages have been well-documented for BRCA1/2 mutations in breast cancer [@kuchenbaecker2017] and across multiple complex diseases [@jiang2021]. These findings identify the age range where genetic risk stratification may be most actionable for prevention and early detection.
 
-This study has several limitations. We did not have access to family history data or prostate-specific antigen measurements for all participants; while previous studies suggest family history adds limited information beyond PHS601 [@vassy2024], future work should explore integration of PHS with other clinical risk factors and with social determinants of health, lifestyle factors, and environmental exposures [@plym2023; @pagadala2024; @pagadala2024a]. The strong risk stratification observed here provides a foundation for prospective trials of risk-stratified screening in Norway, but cost-effectiveness analyses will be needed before clinical implementation to identify optimal screening thresholds and age ranges.
+This study has several limitations. We did not have access to family history data or prostate-specific antigen measurements for all participants. While family history provides modest additional information beyond PHS601 at the population level, and is included as an independent predictor in the integrated P-CARE model [@vassy2026], future work should explore integration of PHS with other clinical risk factors and with social determinants of health, lifestyle factors, and environmental exposures [@plym2023; @pagadala2024; @pagadala2024a]. The NFCS cohort was enriched for family history of cancer and is not representative of the general Norwegian population (@{suppfig-comp}); absolute risk estimates were therefore derived from the population-based HUSK cohort. The strong risk stratification observed here provides a foundation for prospective trials of risk-stratified screening in Norway, but cost-effectiveness analyses will be needed before clinical implementation to identify optimal screening thresholds and age ranges.
 
 # Conclusions
 
-We demonstrated that PHS601 performs well in independent, population-based cohorts from Norway, providing strong risk stratification for both prostate cancer and aggressive disease. These findings support the development of prospective trials of risk-stratified PCa screening in Norway. Given that high polygenic risk affects far more individuals than known rare pathogenic variants, a PHS-based screening paradigm has the potential for substantial population health impact.
+We demonstrated that PHS601 performs well in independent, population-based cohorts, providing strong risk stratification for both prostate cancer and aggressive disease. This represents the first replication in a population with a distinct healthcare system, baseline risk profile, and genetic background from the development and validation populations. In addition, genotyping-derived PHS601 outperformed WGS-based screening across twelve known predisposition genes. Given that high polygenic risk affects far more individuals than known RPVs, a PHS-based screening paradigm has the potential for substantial population health impact. Lastly, the time-varying effect suggests PHS may have the greatest clinical utility at younger ages. These findings support the potential utility of PHS in a precision screening paradigm for PCa. 
+
 
 # Conflit of interest statement {.unnumbered}
 
@@ -291,8 +290,7 @@ The study protocol was approved by the Norwegian Regional Ethics Committee (REK)
 
 ![](manuscript/figures_and_tables/km_curve.pdf){width=90%}
 
-Cumulative incidence of PCa by age and stratified by centile ranges of PHS. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
-<!-- Kaplan-Meier curves showing proportion of PCa-free participants as a function of age and stratified by centile ranges of PHS. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.25-1.0. -->
+Cumulative incidence of PCa by age and stratified by centile ranges of PHS for the HUSK and NFCS cohorts. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
 :::
 
@@ -300,8 +298,7 @@ Cumulative incidence of PCa by age and stratified by centile ranges of PHS. **(A
 
 ![](manuscript/figures_and_tables/metastatic_km_curve.pdf){width=90%}
 
-Cumulative incidence of aggressive PCa by age and stratified by centile ranges of PHS. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of event is age at diagnosis of aggressive PCa. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
-<!-- Kaplan-Meier curves showing proportion of aggressive-PCa-free participants as a function of age and stratified by centile ranges of PHS. **(A)** Curves for the HUSK cohort and **(B)** curves for the NFCS cohort. Time of event is age at diagnosis of aggressive PCa. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. Note that the y-axis is truncated to 0.80-1.0. -->
+Cumulative incidence of aggressive PCa by age and stratified by centile ranges of PHS for the HUSK and NFCS cohorts. Time of event is age at diagnosis of aggressive PCa. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
 :::
 
@@ -309,8 +306,7 @@ Cumulative incidence of aggressive PCa by age and stratified by centile ranges o
 
 ![](manuscript/figures_and_tables/p212_wgs_km_curve.pdf){width=90%}
 
-Cumulative incidence of PCa by age for the whole-genome sequenced subsample of the NFCS cohort. **(A)** Centile ranges of PHS and **(B)** HOXB13 carriers. Time of event was age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
-<!-- Kaplan-Meier curves showing proportion of PCa-free participants for the whole-genome sequenced subsample of the NFCS cohort. **(A)** Centile ranges of PHS and **(B)** HOXB13 carriers. Time of event was age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval. -->
+Cumulative incidence of PCa by age for the whole-genome sequenced subsample of the NFCS cohort stratified by either centile ranges of PHS or HOXB13 carrier status. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
 :::
 
@@ -318,18 +314,25 @@ Cumulative incidence of PCa by age for the whole-genome sequenced subsample of t
 
 ![](manuscript/figures_and_tables/stratified_incidence.pdf){width=90%}
 
-Predicted cumulative incidence of PCa in the general population of Norway based on data from the Norwegian Cancer Registry. The population baseline reflects PCa cases in Norway from 2014-2017, as reported by Huynh-Le, et al. (2020). Incidence curves are stratified by the HRs for the top 20% and bottom 20% of PHS from the PHS601 model fit to the HUSK cohort. **(A)** Any-stage PCa. **(B)** Aggressive PCa. The decline in incidence after age 70 observed in panel **A** is likely due to decreased screening rather than a true reduction in incidence.
+Predicted cumulative incidence of PCa and aggressive PCa in the general population of Norway based on data from the Norwegian Cancer Registry. The population baseline reflects PCa cases in Norway from 2014-2017 [@huynh-le2020a]. Incidence curves are stratified by the HR of PHS centiles from the PHS601 model fit to the HUSK data. The decline in incidence after age 70 observed for any-stage PCa is likely due to decreased screening rather than a true reduction in incidence.
 
 :::
 
 
 ```{r tbl-coxph}
-#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS. HR~95/50~ is the HR between the top 5% and the median PHS. 95% confidence intervals are bootstrap-based for all HR metrics and C-index. "Any" = any stage of PCa, "Aggr" = aggressive PCa.
+#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). 95% confidence intervals are based on 999 bootstraps. "Any" = any stage of PCa, "Aggr" = aggressive PCa.
 
 table_coxph = read_tsv("manuscript/figures_and_tables/table_coxph.tsv")
 
 library(flextable)
 library(officer)
+# ft <- flextable(table_wgs) %>%
+#   fontsize(size = 9, part = "all") %>%
+#   border_outer(border = fp_border(width = 1)) %>%
+#   border_inner_h(border = fp_border(width = 0.5)) %>%
+#   border_inner_v(border = fp_border(width = 0.5)) %>%
+#   merge_v(j = c("Model", "C-index (SE)")) %>%
+#   autofit()
 
 # Create table
 ft <- flextable(table_coxph) %>%
@@ -337,40 +340,48 @@ ft <- flextable(table_coxph) %>%
   border_outer(border = fp_border(width = 1)) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
-  compose(
-    j = "HR_SD",
-    value = as_paragraph(
-      "HR", as_sub("SD")
-    ),
-    part = "header"
-  ) %>%
-  compose(
-    j = "HR80/20",
-    value = as_paragraph(
-      "HR", as_sub("80/20")
-    ),
-    part = "header"
-  ) %>%
-  compose(
-    j = "HR80/50",
-    value = as_paragraph(
-      "HR", as_sub("80/50")
-    ),
-    part = "header"
-  ) %>%
-  compose(
-    j = "HR95/50",
-    value = as_paragraph(
-      "HR", as_sub("95/50")
-    ),
-    part = "header"
-  ) %>%
+  # compose(
+  #   j = "HR_SD",
+  #   value = as_paragraph(
+  #     "HR", as_sub("SD")
+  #   ),
+  #   part = "header"
+  # ) %>%
+  # compose(
+  #   j = "HR80/20",
+  #   value = as_paragraph(
+  #     "HR", as_sub("80/20")
+  #   ),
+  #   part = "header"
+  # ) %>%
+  # compose(
+  #   j = "HR80/50",
+  #   value = as_paragraph(
+  #     "HR", as_sub("80/50")
+  #   ),
+  #   part = "header"
+  # ) %>%
+  # compose(
+  #   j = "HR95/50",
+  #   value = as_paragraph(
+  #     "HR", as_sub("95/50")
+  #   ),
+  #   part = "header"
+  # ) %>%
   autofit() %>%
   fit_to_width(max_width = 6.26)
 
 ft
 ```
 
+
+::: {#suppfig-comp}
+
+![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
+
+Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017[@huynh-le2020a]. Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
+
+:::
 
 
 ::: {#suppfig-zph}
@@ -382,11 +393,46 @@ Assessment of the proportional hazards assumption for PHS using Schoenfeld resid
 :::
 
 
-::: {#suppfig-comp}
+::: {#supptab-age-summary}
 
-![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
+```{r}
+table_age_summary = read_tsv("manuscript/figures_and_tables/table_age_summary.tsv")
 
-Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017, as reported by Huynh-Le et al. (2020). Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
+# Create table
+ft <- flextable(table_age_summary) %>%
+  set_header_labels(Variable = "") %>%
+  fontsize(size = 9, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  autofit()
+
+ft
+```
+
+
+
+:::
+
+::: {#supptab-variants}
+
+
+```{r}
+table_wgs = read_tsv("manuscript/figures_and_tables/table_variants.tsv")
+
+# # Create table
+ft <- flextable(table_wgs) %>%
+  fontsize(size = 6, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  # merge_v(j = c("Model", "Cases")) %>%
+  autofit()
+
+ft
+```
+
+All variants from genes that we investigated were classified as "Pathogenic" in ClinVar. N is the number of participants carrying this mutation.
 
 :::
 
@@ -406,7 +452,7 @@ ft <- flextable(table_zph) %>%
 ft
 ```
 
-Test of the proportional hazards assumption of the Cox regression models. A small P value indicates that there may be time-dependent coefficients in the Cox model.
+Test of the proportional hazards assumption of the Cox regression models. P value < 0.05 indicates that there may be time-dependent coefficients in the Cox model.
 
 :::
 
@@ -479,47 +525,4 @@ Hazard ratios and 95% confidence intervals from the Cox proportional hazards mod
 
 
 
-::: {#supptab-variants}
 
-
-```{r}
-table_wgs = read_tsv("manuscript/figures_and_tables/table_variants.tsv")
-
-# Create table
-ft <- flextable(table_wgs) %>%
-  fontsize(size = 6, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  # merge_v(j = c("Model", "Cases")) %>%
-  autofit()
-
-ft
-```
-
-All variants from genes that we investigated classified as "Pathogenic" in ClinVar. N is the number of participants carrying this mutation.
-
-:::
-
-
-::: {#supptab-age-summary}
-
-
-```{r}
-table_age_summary = read_tsv("manuscript/figures_and_tables/table_age_summary.tsv")
-
-# Create table
-ft <- flextable(table_age_summary) %>%
-  set_header_labels(Variable = "") %>%
-  fontsize(size = 9, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  autofit()
-
-ft
-```
-
-Median and interquartile range (Q1, Q3) of key age and demographic variables for each cohort. Age at first follow-up is not available for the NFCS cohort. Age at metastatic diagnosis is restricted to metastatic cases. HUSK = HUSKMent cohort (recruited 1992–1999); NFCS = Norwegian Familial Cancer Study (recruited 1980–1995).
-
-:::
