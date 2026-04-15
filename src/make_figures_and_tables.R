@@ -413,7 +413,9 @@ table_gws <-
   select(
     Model = model, Term = term, `HR (95% CI)` = HR, `P-value` = p.value,
     `C-index (SE)` = cindex
-  )
+  ) %>%
+  filter(Model %in% c("PHS", "HOXB13")) %>%
+  select(-Term)
 
 write_tsv(table_gws, "figures_and_tables/table_wgs.tsv")
 

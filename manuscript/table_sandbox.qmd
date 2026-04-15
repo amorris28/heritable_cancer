@@ -1,0 +1,87 @@
+---
+title: "Table sandbox"
+format:
+  pdf:
+    keep-tex: false
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(tidyverse)
+library(flextable)
+library(officer)
+
+```
+
+```{r table}
+#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). 95% confidence intervals are based on 999 bootstraps.
+table_coxph <- read_tsv("figures_and_tables/table_coxph.tsv")
+border <- fp_border_default()
+
+subheaders = c("Any-stage PCa", "Aggressive PCa")
+rows = c(1, 4)
+update <- table_coxph[, -1]
+update <-
+  update %>%
+  mutate(subheader = NA_character_) %>%
+  select(subheader, Cohort:`C-Index`)
+for (i in seq_along(rows)) {
+  start = rows[i]-1
+  update <- rbind(
+    update[0:start,],
+    c(subheaders[i], rep_len(NA, ncol(update) - 1)),
+    update[rows[i]:nrow(update),]
+  ) %>%
+  print()
+}
+
+
+ft <- flextable(update) %>%
+      fontsize(size = 9, part = "all") %>%
+      font(part = "all", fontname = "Helvetica Neue") %>% 
+      bold(part = "body", j = "subheader") %>%
+      width(j = c("subheader", "Cohort", "Cases", "HR_SD", "HR80/20", "HR80/50", "HR95/50", "C-Index"), width = c(.3, .4, .4, 1, 1, 1, 1, 1)) %>%
+      mk_par( 
+        j = "HR_SD", 
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("SD")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR80/20",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("80/20")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR80/50",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("80/50")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR95/50",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("95/50")
+        )
+      ) %>%
+      merge_h_range(i = 1, j1 = "subheader", j2 = "`C-Index`") %>%
+      merge_h_range(i = 4, j1 = "subheader", j2 = "`C-Index`") %>%
+      mk_par( 
+        j = "subheader",
+        part = "header",
+        value = as_paragraph(
+          ""
+        )
+      ) %>%
+      theme_vanilla()
+
+ft
+```

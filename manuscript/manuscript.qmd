@@ -98,7 +98,7 @@ crossref:
 ---
 
 ```{r initialize, echo = FALSE, warning = FALSE, message = FALSE}
-options(flextable.bookdown = TRUE)
+# options(flextable.bookdown = TRUE)
 ```
 
 ```{r load}
@@ -106,6 +106,7 @@ library(ggplot2)
 library(tidyverse)
 library(knitr)
 library(flextable)
+library(officer)
 
 source("src/config.R")
 source("src/functions.R")
@@ -231,17 +232,17 @@ To evaluate how generalizable our results were to the population of Norway, we c
 
 Participants with higher genetic risk scores in PHS601 showed greater risk of early diagnosis in both Norwegian cohorts. In the HUSK cohort (`{r} p2521_sample_size[1, 3]` cases and  `{r} format(p2521_sample_size[[1, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with an `r (round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of PCa (HR~SD~ = `{r} sprintf("%.2f", round(p2521 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR_SD") |> pull(conf_high))`]), with individuals in the top quintile having over `{r} p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()` times the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}). Results were similar in the NFCS cohort (`{r} p212_sample_size[1, 3]` cases and `{r} p212_sample_size[1, 4]` controls), where each SD increase in PHS conferred a twofold greater risk (HR~SD~ = `{r} sprintf("%.2f", round(p212 |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR_SD") |> pull(conf_high))`]; @{tbl-coxph}), with HR~80/20~ = `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95\% CI \[`{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-phs}). Cumulative incidence in the HUSK cohort was consistent with national Cancer Registry data, though the NFCS cohort showed elevated baseline incidence relative to national data (@{suppfig-comp}).
 
-PHS effects were strongest at younger ages in both cohorts. Schoenfeld residuals tests revealed a negative trend in HR with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{supptab-zph} and @{suppfig-zph}) confirmed with a time-varying Cox model with a linear age interaction (@{supptab-tt}). Given the weak magnitude of this interaction and high residual variability, we present proportional hazards models as the primary analysis; the age attenuation finding is discussed below.
+PHS effects were strongest at younger ages in both cohorts. Schoenfeld residuals tests revealed a negative trend in HR with age (HUSK: $\chi^2$ = `r round(p2521_zph[1, "chisq"], 2)`, p = `r pvalr(p2521_zph[1, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[1, "chisq"], 2)`, p = `r pvalr(p212_zph[1, "p"])`; @{suppfig-zph}) confirmed with a time-varying Cox model with a linear age interaction (@{supptab-tt}). Given the weak magnitude of this interaction and high residual variability, we present proportional hazards models as the primary analysis; the age attenuation finding is discussed below.
 
 ## PHS601 was associated with aggressive PCa in Norwegian cohorts
 
-In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), while individuals in the top quintile of PHS had `{r} p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()`-fold the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Similarly, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), with HR~80/20~ = `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95% CI \[`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{supptab-zph} and @{suppfig-zph}).
+In addition to evaluating the performance of PHS601 in stratifying individuals based on risk of PCa at any stage, we were also interested in the association of PHS601 with aggressive disease. In the HUSK cohort (`{r} p2521_sample_size[2, 3]` aggressive cases and `{r} format(p2521_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS was associated with a `{r} (round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p2521_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), while individuals in the top quintile of PHS had `{r} p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate) |> floor()`-fold the risk of those in the bottom quintile (HR~80/20~ = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Similarly, in the NFCS cohort (`{r} p212_sample_size[2, 3]` aggressive cases and `{r} format(p212_sample_size[[2, 4]], big.mark = ",", scientific = FALSE)` controls), each SD increase in PHS conferred a `{r} (round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2) * 100) - 100`\% greater risk of aggressive disease (HR~SD~ = `{r} sprintf("%.2f", round(p212_meta |> filter(metric == "HR_SD") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR_SD") |> pull(conf_high))`]), with HR~80/20~ = `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))` (95% CI \[`{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p212_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]; @{tbl-coxph} and @{fig-meta}). Proportional hazards assumptions were not violated in either cohort based on statistical tests and weighted residual plots (HUSK: $\chi^2$ = `r round(p2521_zph[2, "chisq"], 2)`, p = `r pvalr(p2521_zph[2, "p"])`; NFCS: $\chi^2$ = `r round(p212_zph[2, "chisq"], 2)`, p = `r pvalr(p212_zph[2, "p"])`; @{suppfig-zph}).
 
 ## PHS outperformed RPV screening across known PCa predisposition genes
 
 We compared RPVs and PHS in predicting PCa risk in the NFCS cohort. Analyses were restricted to `{r} wgs_summary$wgs_1` participants with both WGS and genotyping (`{r} wgs_summary$status_1` cases and `{r} wgs_summary$wgs_1 - wgs_summary$status_1` controls) of whom `{r} wgs_summary$any_carrier_1` carried a predisposing mutation in one of the twelve target genes. Of the twelve potentially predisposing genes, only HOXB13 had an enrichment in the number of pathogenic variants among PCa cases compared to controls (OR = `{r} sprintf("%.2f", fisher |> filter(gene == "HOXB13_carrier") |> pull(estimate))`, 95% LCB = `{r} sprintf("%.2f", fisher |> filter(gene == "HOXB13_carrier") |> pull(conf.low))`, adj. p = `{r} fisher |> filter(gene == "HOXB13_carrier") |> pull(p.adjust) |> pvalr(digits = 2)`; @{supptab-fisher}); subsequent survival models therefore focus on HOXB13 as the only gene with evidence of enrichment. 
 
-In the WGS subset, a one-SD increase in PHS predicted a `{r} (wgs_results |> filter(model == "phs_wgs") |> pull(estimate) |> round(2) * 100) - 100`\% higher risk of PCa (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(estimate))`, 95% CI [`{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(conf.low))`, `{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(conf.high))`], p `{r} wgs_results |> filter(model == "phs_wgs") |> pull(p.value) |> pvalr()`; @{fig-hoxb13}; @{supptab-wgs}), while HOXB13 carriers had a `{r} wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate) |> round(1)`-fold greater risk than non-carriers (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate))`, 95% CI [`{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(conf.low))`, `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(conf.high))`], p `{r} wgs_results |> filter(model == "hoxb13_wgs") |> pull(p.value) |> pvalr()`). Similarly, the PHS model had a C-index of `{r} wgs_cindex |> filter(model == "phs_wgs") %>% pull(concordance) |> round(3)` (SE = `{r} wgs_cindex |> filter(model == "phs_wgs") %>% pull(std.error.concordance) |> round(3)`) whereas the HOXB13 model had a C-index of `{r} wgs_cindex |> filter(model == "hoxb13_wgs") %>% pull(concordance) |> round(3)` (SE = `{r} wgs_cindex |> filter(model == "hoxb13_wgs") %>% pull(std.error.concordance) |> round(3)`; @{supptab-wgs}). HOXB13 pathogenic variants occurred in `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of participants. To enable direct comparison with this risk stratum, we evaluated individuals in the top `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of the PHS distribution against the median. This high-risk PHS stratum demonstrated `{r} round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(estimate), 1)`-fold higher risk (HR~98.2/50~ = `{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(conf_low), 2))`, `{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(conf_high), 2))`]), exceeding the risk conferred by HOXB13 pathogenic variants (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate))`). 
+In the WGS subset, a one-SD increase in PHS predicted a `{r} (wgs_results |> filter(model == "phs_wgs") |> pull(estimate) |> round(2) * 100) - 100`\% higher risk of PCa (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(estimate))`, 95% CI [`{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(conf.low))`, `{r} sprintf("%.2f", wgs_results |> filter(model == "phs_wgs") |> pull(conf.high))`], p `{r} wgs_results |> filter(model == "phs_wgs") |> pull(p.value) |> pvalr()`; @{fig-hoxb13}), while HOXB13 carriers had a `{r} wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate) |> round(1)`-fold greater risk than non-carriers (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate))`, 95% CI [`{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(conf.low))`, `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(conf.high))`], p `{r} wgs_results |> filter(model == "hoxb13_wgs") |> pull(p.value) |> pvalr()`). Similarly, the PHS model had a C-index of `{r} wgs_cindex |> filter(model == "phs_wgs") %>% pull(concordance) |> round(3)` (SE = `{r} wgs_cindex |> filter(model == "phs_wgs") %>% pull(std.error.concordance) |> round(3)`) whereas the HOXB13 model had a C-index of `{r} wgs_cindex |> filter(model == "hoxb13_wgs") %>% pull(concordance) |> round(3)` (SE = `{r} wgs_cindex |> filter(model == "hoxb13_wgs") %>% pull(std.error.concordance) |> round(3)`). HOXB13 pathogenic variants occurred in `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of participants. To enable direct comparison with this risk stratum, we evaluated individuals in the top `r round(wgs_summary$HOXB13_carrier_1 / wgs_summary$wgs_1 * 100, 1)`\% of the PHS distribution against the median. This high-risk PHS stratum demonstrated `{r} round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(estimate), 1)`-fold higher risk (HR~98.2/50~ = `{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(estimate), 2))`, 95% CI [`{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(conf_low), 2))`, `{r} sprintf("%.2f", round(wgs_phs_95 |> filter(metric == "HR[98-100]_[30-70]") |> pull(conf_high), 2))`]), exceeding the risk conferred by HOXB13 pathogenic variants (HR = `{r} sprintf("%.2f", wgs_results |> filter(model == "hoxb13_wgs") |> pull(estimate))`). 
 
 # Discussion
 
@@ -320,56 +321,64 @@ Predicted cumulative incidence of PCa and aggressive PCa in the general populati
 
 
 ```{r tbl-coxph}
-#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). 95% confidence intervals are based on 999 bootstraps. "Any" = any stage of PCa, "Aggr" = aggressive PCa.
+#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). 95% confidence intervals are based on 999 bootstraps.
+table_coxph <- read_tsv("manuscript/figures_and_tables/table_coxph.tsv")
+border <- fp_border_default()
 
-table_coxph = read_tsv("manuscript/figures_and_tables/table_coxph.tsv")
+subheaders = c("Any-stage PCa", "Aggressive PCa")
+rows = c(1, 4)
+update <- table_coxph[, -1]
+update <-
+  update %>%
+  mutate(subheader = NA_character_) %>%
+  select(subheader, Cohort:`C-Index`)
+for (i in seq_along(rows)) {
+  start = rows[i]-1
+  update <- rbind(
+    update[0:start,],
+    c(subheaders[i], rep_len(NA, ncol(update) - 1)),
+    update[rows[i]:nrow(update),]
+  )
+}
 
-library(flextable)
-library(officer)
-# ft <- flextable(table_wgs) %>%
-#   fontsize(size = 9, part = "all") %>%
-#   border_outer(border = fp_border(width = 1)) %>%
-#   border_inner_h(border = fp_border(width = 0.5)) %>%
-#   border_inner_v(border = fp_border(width = 0.5)) %>%
-#   merge_v(j = c("Model", "C-index (SE)")) %>%
-#   autofit()
 
-# Create table
-ft <- flextable(table_coxph) %>%
-  fontsize(size = 9, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  # compose(
-  #   j = "HR_SD",
-  #   value = as_paragraph(
-  #     "HR", as_sub("SD")
-  #   ),
-  #   part = "header"
-  # ) %>%
-  # compose(
-  #   j = "HR80/20",
-  #   value = as_paragraph(
-  #     "HR", as_sub("80/20")
-  #   ),
-  #   part = "header"
-  # ) %>%
-  # compose(
-  #   j = "HR80/50",
-  #   value = as_paragraph(
-  #     "HR", as_sub("80/50")
-  #   ),
-  #   part = "header"
-  # ) %>%
-  # compose(
-  #   j = "HR95/50",
-  #   value = as_paragraph(
-  #     "HR", as_sub("95/50")
-  #   ),
-  #   part = "header"
-  # ) %>%
-  autofit() %>%
-  fit_to_width(max_width = 6.26)
+ft <- flextable(update) %>%
+      fontsize(size = 9, part = "all") %>%
+      font(part = "all", fontname = "Helvetica Neue") %>% 
+      bold(part = "body", j = "subheader") %>%
+      width(j = c("subheader", "Cohort", "Cases", "HR_SD", "HR80/20", "HR80/50", "HR95/50", "C-Index"), width = c(.3, .4, .4, 1, 1, 1, 1, 1)) %>%
+      mk_par( 
+        j = "HR_SD", 
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("SD")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR80/20",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("80/20")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR80/50",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("80/50")
+        )
+      ) %>%
+      mk_par( 
+        j = "HR95/50",
+        part = "header",
+        value = as_paragraph(
+          "HR", as_sub("95/50")
+        )
+      ) %>%
+      merge_h_range(i = 1, j1 = "subheader", j2 = "`C-Index`") %>%
+      merge_h_range(i = 4, j1 = "subheader", j2 = "`C-Index`")  %>%
+      set_header_labels(subheader = "") %>%
+      theme_vanilla()
 
 ft
 ```
@@ -402,10 +411,11 @@ table_age_summary = read_tsv("manuscript/figures_and_tables/table_age_summary.ts
 ft <- flextable(table_age_summary) %>%
   set_header_labels(Variable = "") %>%
   fontsize(size = 9, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  autofit()
+  # border_outer(border = fp_border(width = 1)) %>%
+  # border_inner_h(border = fp_border(width = 0.5)) %>%
+  # border_inner_v(border = fp_border(width = 0.5)) %>%
+  autofit() %>%
+  theme_vanilla()
 
 ft
 ```
@@ -422,12 +432,9 @@ table_wgs = read_tsv("manuscript/figures_and_tables/table_variants.tsv")
 
 # # Create table
 ft <- flextable(table_wgs) %>%
-  fontsize(size = 6, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  # merge_v(j = c("Model", "Cases")) %>%
-  autofit()
+  fontsize(size = 8, part = "all") %>%
+  autofit() %>%
+  theme_vanilla()
 
 ft
 ```
@@ -436,25 +443,6 @@ All variants from genes that we investigated were classified as "Pathogenic" in 
 
 :::
 
-::: {#supptab-zph}
-
-```{r}
-table_zph = read_tsv("manuscript/figures_and_tables/table_zph.tsv")
-
-# Create table
-ft <- flextable(table_zph) %>%
-  fontsize(size = 10, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  autofit()
-
-ft
-```
-
-Test of the proportional hazards assumption of the Cox regression models. P value < 0.05 indicates that there may be time-dependent coefficients in the Cox model.
-
-:::
 
 ::: {#supptab-tt}
 
@@ -468,7 +456,8 @@ ft <- flextable(table_tt) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
   merge_v(j = c("Cohort", "Cases")) %>%
-  autofit()
+  autofit() %>%
+  theme_vanilla()
 
 ft
 ```
@@ -490,36 +479,14 @@ ft <- flextable(table_fisher) %>%
   border_outer(border = fp_border(width = 1)) %>%
   border_inner_h(border = fp_border(width = 0.5)) %>%
   border_inner_v(border = fp_border(width = 0.5)) %>%
-  autofit()
+  autofit() %>%
+  theme_vanilla()
 
 ft
 ```
 
 One-sided Fisher's exact tests of whether the odds of carrying an RPV are greater among cases than controls in the NFCS cohort. P values adjusted using the Benjamini & Hochberg method. OR = Odds ratio, LCB = lower confidence bound.
 
-
-:::
-
-
-::: {#supptab-wgs}
-
-
-```{r}
-table_wgs = read_tsv("manuscript/figures_and_tables/table_wgs.tsv")
-
-# Create table
-ft <- flextable(table_wgs) %>%
-  fontsize(size = 9, part = "all") %>%
-  border_outer(border = fp_border(width = 1)) %>%
-  border_inner_h(border = fp_border(width = 0.5)) %>%
-  border_inner_v(border = fp_border(width = 0.5)) %>%
-  merge_v(j = c("Model", "C-index (SE)")) %>%
-  autofit()
-
-ft
-```
-
-Hazard ratios and 95% confidence intervals from the Cox proportional hazards models for the WGS subset of the NFCS cohort. The HR for the PHS term represents the increase in HR for a one-standard-deviation increase in PHS; the HOXB13 term represents the increase in PCa risk for HOXB13 carriers relative to non-carriers. Outcomes is age at diagnosis of any-stage PCa. N = `{r} wgs_summary$wgs_1`, PCa cases = `{r} wgs_summary$status_1`
 
 :::
 

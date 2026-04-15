@@ -303,7 +303,6 @@ process postprocess_figures {
 }
 process knit_manuscript {
     publishDir params.manuscript_dir, mode: 'copy'
-    container params.r_image
 
     input:
     path manuscript_file
