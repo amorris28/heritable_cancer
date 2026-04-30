@@ -97,6 +97,42 @@ if (perform_bool) {
   )
 }
 
+# PCa-specific mortality
+pca_death_fit <- coxph(
+  Surv(age_at_pca_death, pca_death) ~ phs,
+  combined_data
+)
+pca_death_coxph <- broom::tidy(pca_death_fit,
+  exponentiate = TRUE,
+  conf.int = TRUE
+)
+pca_death_zph_fit <- cox.zph(pca_death_fit)
+
+pca_death_zph_tidy <-
+  pca_death_zph_fit %>%
+  print() %>%
+  as_tibble() %>%
+  mutate(cohort = output_prefix, PCa = "pca_death")
+pca_death_zph_tidy <- pca_death_zph_tidy[1, ]
+
+# Performance metrics
+if (perform_bool) {
+  pca_death_perform <- phs_metrics(
+    combined_data,
+    time     = "age_at_pca_death",
+    event    = "pca_death",
+    metrics  = c("HR", "C_index", "HR_SD"),
+    hr_pairs = list(
+      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
+      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
+      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
+    ),
+    bootstrap = TRUE,
+    n_boot    = 999,
+    seed      = 42
+  )
+}
+
 # Gather sample sizes
 any_pca_sample_size <-
   combined_data %>%
@@ -115,38 +151,52 @@ metastatic_sample_size_controls <-
   metastatic_sample_size_total -
   metastatic_sample_size_cases
 
+pca_death_sample_size <-
+  combined_data %>%
+  select(phs, age_at_pca_death, pca_death)
+pca_death_sample_size_cases <- sum(pca_death_sample_size$pca_death)
+pca_death_sample_size_total <- nrow(pca_death_sample_size)
+pca_death_sample_size_controls <-
+  pca_death_sample_size_total - pca_death_sample_size_cases
+
 sample_size <- tibble(
-  group = c("any_pca", "metastatic"),
+  group = c("any_pca", "metastatic", "pca_death"),
   total = c(
     any_pca_sample_size_total,
-    metastatic_sample_size_total
+    metastatic_sample_size_total,
+    pca_death_sample_size_total
   ),
   cases = c(
     any_pca_sample_size_cases,
-    metastatic_sample_size_cases
+    metastatic_sample_size_cases,
+    pca_death_sample_size_cases
   ),
   controls = c(
     any_pca_sample_size_controls,
-    metastatic_sample_size_controls
+    metastatic_sample_size_controls,
+    pca_death_sample_size_controls
   )
 )
 
 # Combine Coxph results
 any_pca_coxph$model <- "any_pca"
 metastatic_coxph$model <- "metastatic"
+pca_death_coxph$model <- "pca_death"
 phs_tt_tidy$model <- "phs_tt"
 
 coxph_results <-
   rbind(
     any_pca_coxph,
     metastatic_coxph,
+    pca_death_coxph,
     phs_tt_tidy
   )
 
 # Combine zph results
 phs_zph_tidy <-
   phs_zph_tidy %>%
-  bind_rows(meta_phs_zph_tidy)
+  bind_rows(meta_phs_zph_tidy) %>%
+  bind_rows(pca_death_zph_tidy)
 
 # Save Output
 write_tsv(phs_zph_tidy, paste(output_prefix, "phs_zph_tidy.tsv", sep = "_"))
@@ -157,6 +207,10 @@ write_tsv(
 write_tsv(
   metastatic_perform,
   paste(output_prefix, "metastatic_performance.tsv", sep = "_")
+)
+write_tsv(
+  pca_death_perform,
+  paste(output_prefix, "pca_death_performance.tsv", sep = "_")
 )
 write_tsv(
   sample_size,

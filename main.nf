@@ -185,6 +185,7 @@ process fit_models {
     path "${params.cluster}_phs_zph_tidy.tsv"
     path "${params.cluster}_any_pca_performance.tsv"
     path "${params.cluster}_metastatic_performance.tsv"
+    path "${params.cluster}_pca_death_performance.tsv"
     path "${params.cluster}_sample_size.tsv"
     path "${params.cluster}_coxph.tsv"
 
@@ -318,11 +319,11 @@ process knit_manuscript {
 
     output:
     path "manuscript.pdf"
-    // path "manuscript.docx"
+    path "manuscript.docx"
 
     script:
     """
-    # quarto render ${manuscript_file} --to docx --metadata csl=${csl}
+    quarto render ${manuscript_file} --to docx --metadata csl=${csl}
     quarto render ${manuscript_file} --to pdf --metadata csl=${csl}
     """
 }

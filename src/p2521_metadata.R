@@ -148,6 +148,15 @@ death_dates <-
   mutate(dato = ym(paste(daar, dmnd, sep = "-"))) %>%
   select(huskmentid, dato)
 
+### prostate cancer death data
+pca_death_data <-
+  death_data %>%
+  select(huskmentid = HUSKMENTID, daar = DAAR, dmnd = DMND, alle_koder = ALLE_KODER) %>%
+  filter(grepl(icd10pca, alle_koder, fixed = TRUE)) %>%
+  mutate(pca_death = 1L) %>%
+  mutate(pca_death_date = ym(paste(daar, dmnd, sep = "-"))) %>%
+  select(huskmentid, pca_death, pca_death_date)
+
 ### cancer data
 kreft_dates <-
   kreft_data %>%
@@ -252,6 +261,19 @@ phenotype_data <-
     )
   ) %>%
   mutate(conversion_to_metastasis_years = age_of_metastasis - age_diagnosis)
+
+# PCa-specific mortality
+phenotype_data <-
+  phenotype_data %>%
+  left_join(pca_death_data, by = "huskmentid") %>%
+  mutate(pca_death = if_else(is.na(pca_death), 0L, pca_death)) %>%
+  mutate(
+    age_at_pca_death = if_else(
+      pca_death == 1L,
+      interval(fdato, pca_death_date) / years(1),
+      age_lastobs
+    )
+  )
 
 
 #########################################################################

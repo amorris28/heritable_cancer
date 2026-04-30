@@ -196,7 +196,10 @@ wgs_phs_rt <- wgs_phs_rt + labs(x = NULL) +
   lims(x = c(45, 90))
 wgs_hxb_ar <-
   wgs_hxb_ar +
-  labs(x = "Age") +
+  labs(y = "Cumulative Incidence (%)",
+       x = "Age") +
+  guides(color = guide_legend(title = "HOXB13"),
+         fill = guide_legend(title = "HOXB13")) +
   lims(x = c(45, 90)) +
   labs(title = "NFCS - Any-stage PCa") +
   theme_classic()
@@ -214,8 +217,8 @@ any_pca <- (p2521 | p212) +
 
 wgs_phs_ar <- wgs_phs_ar +
   labs(title = "NFCS - Any-stage PCa", y = "Cumulative Incidence (%)")
-wgs_hxb_ar <- wgs_hxb_ar +
-  labs(y = "Cumulative Incidence (%)")
+# wgs_hxb_ar <- wgs_hxb_ar +
+#   labs(y = "Cumulative Incidence (%)")
 wgs_km <-
   (hazrd::attach_risk_table(wgs_phs_ar, wgs_phs_rt) |
    hazrd::attach_risk_table(wgs_hxb_ar, wgs_hxb_rt)) +

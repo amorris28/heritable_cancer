@@ -153,7 +153,9 @@ doed_av_pca <-
 combined_data <-
   combined_data %>%
   left_join(doed_av_pca, by = "pid") %>%
-  mutate(diagnosis_to_death_years = age_at_death - age_diagnosis)
+  mutate(diagnosis_to_death_years = age_at_death - age_diagnosis) %>%
+  mutate(pca_death = if_else(is.na(doed_av_pca), 0L, 1L)) %>%
+  mutate(age_at_pca_death = if_else(pca_death == 1L, age_at_death, age_lastobs))
 
 #####################################################################
 # WGS
