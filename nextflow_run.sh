@@ -7,5 +7,5 @@
 #SBATCH --output=nextflow.log
 #SBATCH --error=nextflow.err
 
-module load Nextflow/24.04.2
+module load Nextflow/25.04.6
 nextflow run main.nf -profile p212 -resume

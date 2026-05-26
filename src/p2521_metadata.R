@@ -311,11 +311,13 @@ age_summary <- phenotype_data %>%
   mutate(
     birth_year = year(fdato),
     age_first_follow_up = interval(fdato, date_first_follow_up) / years(1),
-    age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_)
+    age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_),
+    age_lastobs_censored = if_else(status == 0, age_lastobs, NA_real_)
   ) %>%
   summarize(
     across(
-      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis),
+      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis,
+        age_lastobs_censored),
       list(
         median = ~ median(.x, na.rm = TRUE),
         q25    = ~ quantile(.x, 0.25, na.rm = TRUE),

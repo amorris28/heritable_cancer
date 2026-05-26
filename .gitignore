@@ -51,6 +51,7 @@ data/**/bim_files/*
 *.md
 reports/
 scratch/
+*.tiff
 
 # plink bfiles
 *.bim

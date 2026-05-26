@@ -1,0 +1,15 @@
+﻿Role,Standard phrasing,A.H.M.,B.C.A.,S.N.,A.S.,A.M.D.,O.A.A.,E.H.,T.M.S.,O.F.
+Conceptualization,"""conceived and designed the study""",,,,,x,x,x,x,x
+Methodology,"""developed the methodology""",,,,,,,,,
+Software,"""developed the software/pipeline""",,,,,,,,,
+Validation,"""validated the results""",,,,,,,,,
+Formal analysis,"""performed the formal analysis"" / ""analyzed the data""",x,,,,,,,,
+Investigation,"""conducted the experiments"" / ""collected the data""",,,,,,,,,
+Resources,"""provided resources/materials/reagents""",,,,,,,,,
+Data curation,"""curated the data""",,x,x,x,,,,,
+Writing – Original draft,"""wrote the original manuscript""",x,,,,,,,,
+Writing – Review & editing,"""reviewed and edited the manuscript""",x,x,x,x,x,x,x,x,x
+Visualization,"""created the figures/visualizations""",x,,,,,,,,
+Supervision,"""supervised the work""",,,,,,,,,x
+Project administration,"""managed the project""",,,,,,,,,x
+Funding acquisition,"""acquired funding""",,,,,,x,x,,x

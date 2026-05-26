@@ -71,6 +71,9 @@ ggsave("figures_and_tables/km_curve.pdf", any_pca,
 ggsave("figures_and_tables/km_curve.png", any_pca,
   height = 8 * 0.618, width = 8
 )
+ggsave("figures_and_tables/km_curve.tiff", any_pca,
+  height = 8 * 0.618, width = 8, dpi = 300
+)
 
 ###############################################################
 # PHS Any-PCa and Meta-PCa Table
@@ -176,6 +179,9 @@ ggsave("figures_and_tables/metastatic_km_curve.pdf", metastatic,
 ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
   height = 8 * 0.618, width = 8
 )
+ggsave("figures_and_tables/metastatic_km_curve.tiff", metastatic,
+  height = 8 * 0.618, width = 8, dpi = 300
+)
 
 ###############################################################
 # WGS HOXB13 K-M Curve figure
@@ -231,6 +237,9 @@ ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
 ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
   height = 8 * 0.618, width = 8
 )
+ggsave("figures_and_tables/p212_wgs_km_curve.tiff", wgs_km,
+  height = 8 * 0.618, width = 8, dpi = 300
+)
 
 ###############################################################
 # Stratified incidence rate figure
@@ -259,6 +268,9 @@ ggsave("figures_and_tables/stratified_incidence.pdf", stratified,
 )
 ggsave("figures_and_tables/stratified_incidence.png", stratified,
   height = 6 * 0.618, width = 8
+)
+ggsave("figures_and_tables/stratified_incidence.tiff", stratified,
+  height = 6 * 0.618, width = 8, dpi = 300
 )
 
 ###############################################################
@@ -289,6 +301,9 @@ ggsave("figures_and_tables/zph_tt.pdf", zph_tt,
 )
 ggsave("figures_and_tables/zph_tt.png", zph_tt,
   height = 8, width = 8
+)
+ggsave("figures_and_tables/zph_tt.tiff", zph_tt,
+  height = 8, width = 8, dpi = 300
 )
 
 ###############################################################
@@ -326,6 +341,9 @@ ggsave("figures_and_tables/cumulative_comparison.pdf", comparison,
 )
 ggsave("figures_and_tables/cumulative_comparison.png", comparison,
   height = 8, width = 8
+)
+ggsave("figures_and_tables/cumulative_comparison.tiff", comparison,
+  height = 8, width = 8, dpi = 300
 )
 
 ###############################################################
@@ -476,7 +494,8 @@ table_age_summary <-
     "birth_year"        ~ "Birth Year",
     "age_first_follow_up" ~ "Age at First Follow-up",
     "age_diagnosis"     ~ "Age at Diagnosis",
-    "age_of_metastasis" ~ "Age at Aggressive Diagnosis"
+    "age_of_metastasis" ~ "Age at Aggressive Diagnosis",
+    "age_lastobs_censored" ~ "Age at Last Follow-up (controls)"
   )) %>%
   mutate(value = if_else(
     variable == "Birth Year",

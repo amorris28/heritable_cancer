@@ -27,7 +27,7 @@ module load R/4.4.2-gfbf-2024a
 Rscript -e 'install.packages("hazrd_latest.tar.gz", repos=NULL, type="source", dependencies=FALSE)'
 
 echo "[$PROJECT] Running Nextflow with profile: $PROFILE"
-module load Nextflow/24.04.2
+module load Nextflow/25.04.6
 export NXF_HOME="$PIPELINE_DIR/.nextflow"
 export NXF_WORK="$PIPELINE_DIR/work"
 nextflow run main.nf -profile "$PROFILE" -resume
