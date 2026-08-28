@@ -262,31 +262,37 @@ birth_year_p212 <-
   mutate(pid = as.character(pid)) %>%
   distinct()
 
-age_summary <- combined_data %>%
-  left_join(birth_year_p212, by = "pid") %>%
-  mutate(
-    age_first_follow_up = NA_real_,
-    age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_),
-    age_lastobs_censored = if_else(status == 0, age_lastobs, NA_real_)
-  ) %>%
-  summarize(
-    across(
-      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis,
-        age_lastobs_censored),
-      list(
-        median = ~ median(.x, na.rm = TRUE),
-        q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
-        q75    = ~ quantile(.x, 0.75, na.rm = TRUE)
-      ),
-      .names = "{.col}_{.fn}"
-    )
-  ) %>%
-  pivot_longer(
-    everything(),
-    names_to  = c("variable", ".value"),
-    names_sep = "_(?=median|q25|q75)"
-  ) %>%
-  mutate(iqr = q75 - q25) %>%
-  select(variable, median, q25, q75, iqr)
+summarize_age_vars <- function(df, birth_year_df) {
+  df %>%
+    left_join(birth_year_df, by = "pid") %>%
+    mutate(
+      age_first_follow_up   = NA_real_,
+      age_of_metastasis     = if_else(metastasis == 1, age_of_metastasis, NA_real_),
+      age_lastobs_censored  = if_else(status == 0, age_lastobs, NA_real_)
+    ) %>%
+    summarize(
+      across(
+        c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis,
+          age_lastobs_censored, phs),
+        list(
+          median = ~ median(.x, na.rm = TRUE),
+          q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
+          q75    = ~ quantile(.x, 0.75, na.rm = TRUE)
+        ),
+        .names = "{.col}_{.fn}"
+      )
+    ) %>%
+    pivot_longer(
+      everything(),
+      names_to  = c("variable", ".value"),
+      names_sep = "_(?=median|q25|q75)"
+    ) %>%
+    mutate(iqr = q75 - q25) %>%
+    select(variable, median, q25, q75, iqr)
+}
 
-write_tsv(age_summary, "age_summary.tsv")
+age_summary     <- summarize_age_vars(combined_data, birth_year_p212)
+age_summary_wgs <- summarize_age_vars(filter(combined_data, wgs == 1), birth_year_p212)
+
+write_tsv(age_summary,     "age_summary.tsv")
+write_tsv(age_summary_wgs, "age_summary_wgs.tsv")

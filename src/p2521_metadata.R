@@ -334,4 +334,16 @@ age_summary <- phenotype_data %>%
   mutate(iqr = q75 - q25) %>%
   select(variable, median, q25, q75, iqr)
 
+# PHS summary from genotyped subjects (combined_data)
+phs_summary <- combined_data %>%
+  summarize(
+    median = median(phs, na.rm = TRUE),
+    q25    = quantile(phs, 0.25, na.rm = TRUE),
+    q75    = quantile(phs, 0.75, na.rm = TRUE)
+  ) %>%
+  mutate(variable = "phs", iqr = q75 - q25) %>%
+  select(variable, median, q25, q75, iqr)
+
+age_summary <- bind_rows(age_summary, phs_summary)
+
 write_tsv(age_summary, "age_summary.tsv")
