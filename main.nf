@@ -149,7 +149,7 @@ process preprocess_metadata {
                pattern: "all_variants.tsv"
     publishDir params.public_dir,
                mode: 'copy',
-               pattern: "${params.cluster}_age_summary.tsv"
+               pattern: "${params.cluster}_age_summary*"
 
     input:
     path preprocess_script
@@ -162,6 +162,7 @@ process preprocess_metadata {
     path "phenotypes.tsv", emit: phenotypes
     path "all_variants.tsv", optional: true, emit: all_variants
     path "${params.cluster}_age_summary.tsv", optional: true, emit: age_summary
+    path "${params.cluster}_age_summary_wgs.tsv", optional: true, emit: age_summary_wgs
 
     script:
     """
