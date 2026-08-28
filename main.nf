@@ -171,6 +171,7 @@ process preprocess_metadata {
         ${model_file} \
         FALSE
     mv age_summary.tsv ${params.cluster}_age_summary.tsv
+    [ -f age_summary_wgs.tsv ] && mv age_summary_wgs.tsv ${params.cluster}_age_summary_wgs.tsv || true
     """
 }
 process fit_models {
