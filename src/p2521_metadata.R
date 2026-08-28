@@ -344,6 +344,18 @@ phs_summary <- combined_data %>%
   mutate(variable = "phs", iqr = q75 - q25) %>%
   select(variable, median, q25, q75, iqr)
 
-age_summary <- bind_rows(age_summary, phs_summary)
+# died_before_dx: censored and appears in death register
+proportion_summary_p2521 <- phenotype_data %>%
+  mutate(died_before_dx = (huskmentid %in% death_dates$huskmentid) & (status == 0)) %>%
+  summarize(
+    pct_pca             = mean(status == 1) * 100,
+    pct_aggressive      = mean(metastasis == 1) * 100,
+    pct_censored        = mean(status == 0) * 100,
+    pct_death_before_dx = mean(died_before_dx) * 100
+  ) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "median") %>%
+  mutate(q25 = NA_real_, q75 = NA_real_, iqr = NA_real_)
+
+age_summary <- bind_rows(age_summary, phs_summary, proportion_summary_p2521)
 
 write_tsv(age_summary, "age_summary.tsv")

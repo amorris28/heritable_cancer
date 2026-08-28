@@ -291,8 +291,22 @@ summarize_age_vars <- function(df, birth_year_df) {
     select(variable, median, q25, q75, iqr)
 }
 
-age_summary     <- summarize_age_vars(combined_data, birth_year_p212)
-age_summary_wgs <- summarize_age_vars(filter(combined_data, wgs == 1), birth_year_p212)
+proportion_summary <- function(df) {
+  df %>%
+    summarize(
+      pct_pca             = mean(status == 1) * 100,
+      pct_aggressive      = mean(metastasis == 1) * 100,
+      pct_censored        = mean(status == 0) * 100,
+      pct_death_before_dx = mean(death == 1 & status == 0) * 100
+    ) %>%
+    pivot_longer(everything(), names_to = "variable", values_to = "median") %>%
+    mutate(q25 = NA_real_, q75 = NA_real_, iqr = NA_real_)
+}
+
+age_summary     <- bind_rows(summarize_age_vars(combined_data, birth_year_p212),
+                             proportion_summary(combined_data))
+age_summary_wgs <- bind_rows(summarize_age_vars(filter(combined_data, wgs == 1), birth_year_p212),
+                             proportion_summary(filter(combined_data, wgs == 1)))
 
 write_tsv(age_summary,     "age_summary.tsv")
 write_tsv(age_summary_wgs, "age_summary_wgs.tsv")

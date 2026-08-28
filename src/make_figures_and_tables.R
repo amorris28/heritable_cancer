@@ -499,12 +499,16 @@ table_age_summary <-
     "age_diagnosis"        ~ "Age at Diagnosis",
     "age_of_metastasis"    ~ "Age at Aggressive Diagnosis",
     "age_lastobs_censored" ~ "Age at Last Follow-up (controls)",
-    "phs"                  ~ "PHS (z-score)"
+    "phs"                  ~ "PHS (z-score)",
+    "pct_pca"              ~ "PCa cases (%)",
+    "pct_aggressive"       ~ "Aggressive PCa cases (%)",
+    "pct_censored"         ~ "Censored (%)",
+    "pct_death_before_dx"  ~ "Died before diagnosis (%)"
   )) %>%
-  mutate(value = if_else(
-    variable == "Birth Year",
-    sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
-    sprintf("%.2f (%.2f, %.2f)", median, q25, q75)
+  mutate(value = case_when(
+    variable == "Birth Year"           ~ sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
+    str_detect(variable, "\\(%\\)")    ~ sprintf("%.1f%%", median),
+    TRUE                               ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75)
   )) %>%
   select(cohort, Variable = variable, `Median (Q1, Q3)` = value) %>%
   pivot_wider(names_from = cohort, values_from = `Median (Q1, Q3)`) %>%
