@@ -49,6 +49,7 @@ data/**/bim_files/*
 *.png
 *.aux
 *.md
+!scripts/README.md
 reports/
 scratch/
 *.tiff
@@ -90,3 +91,4 @@ credentials.py
 tsd_import_example.ipynb
 
 
+work/

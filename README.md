@@ -10,8 +10,10 @@ of Oslo's Tjenester for Sensitiv Data (TSD).
 
 ## Required software
 
-Recreating the analysis requires a recent version of [Nextflow](https://github.com/nextflow-io/nextflow).
-Analyses were developed using Nextflow [version 24.04.2](https://github.com/nextflow-io/nextflow/releases/tag/v24.04.2).
+Analyses are run as a series of plain bash/R/python scripts. 
+See `scripts/README.md` for the full list and order of operations.
+`bash`, `R` (>= 4.4), `python3`, `plink`/`plink2`, and `quarto` (for the
+manuscript) are required, along with `singularity` on TSD.
 
 All R, python3, and plink calls were performed using
 [the COMORMENT containers](https://github.com/comorment/containers) with either
@@ -20,27 +22,40 @@ singularity or docker. Analyses were developed using the COMORMENT containers
 
 ## Commands to reproduce analysis
 
-To run the analysis, run `main.nf` with nextflow. Passing a `-profile` is
-_required_. Profiles are available for TSD projects `p2521` and `p212` as
-well as `local` for compiling of the manuscript. It is recommended to always
-run with `-resume` so that cached files are re-used. Here is an example command:
+Run the numbered scripts in `scripts/` in order, once per TSD cohort project
+(`p212` and `p2521`). Each script skips its work if its
+output already exists, so reruns only recompute what you ask for:
 
 ```
-nextflow run main.nf -profile p2521 -resume
+sbatch scripts/01_prepare_genotypes_p212.sh   # one-time, long-running genotype prep (per cohort)
+scripts/02_preprocess_metadata.sh p212        # phenotype preprocessing
+scripts/03_fit_models.sh p212                 # Cox models + bootstrap performance
+scripts/04_plot_figures.sh p212               # KM/absolute-risk curves
+scripts/05_incidence_analysis.sh p212         # population incidence comparison
+scripts/06_wgs_analysis.sh                    # rare-variant (WGS) analysis, p212 only
 ```
 
-The final output of `-profile local` (once all figures and tables have been
-exported from TSD to local) is a copy of the compiled manuscript in `.docx`
-and `.pdf` format.
+Repeat steps 2-5 for `p2521`. Once `data/public/` has been exported from both
+TSD projects to a local machine, build the manuscript figures/tables and
+render the manuscript:
+
+```
+scripts/07_make_figures_and_tables.sh
+cd manuscript && quarto render manuscript.qmd --to pdf
+```
+
+See `scripts/README.md` for details, cohort-specific config (`config/p212.env`,
+`config/p2521.env`), and how to force a step to rerun.
 
 ## Project Organization
 
 ```
 Project/
 │                         
-├── main.nf            <- Nextflow workflow file 
+├── scripts/           <- Numbered, idempotent scripts that run the analysis
+│                         (see scripts/README.md for order of operations)
 │                         
-├── nextflow.config    <- Nextflow config with project-specific params
+├── config/            <- Per-cohort (p212, p2521) paths/params, sourced by scripts/
 │                         
 ├── Makefile           <- Makefile with convenience commands 
 │
@@ -58,6 +73,9 @@ Project/
 │   ├── reference.docx <- Reference file for formatting Quarto docx output
 │   └── references.bib <- Bibtex references for citing in the text
 │
-└── src                <- Source code for R, Python, and bash scripts used 
-                          in this project
+├── src                <- Source code for R, Python, and bash scripts used 
+│                         in this project (wrapped by scripts/)
+│                         
+└── archive            <- Retired Nextflow pipeline and superseded analyses,
+                          kept for reference only
 ```
