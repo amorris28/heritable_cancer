@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=prepare_genotypes_p2521
-#SBATCH --account=p2521_tsd
+#SBATCH --account=p2521
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=7792M
 #SBATCH --time=04:00:00
@@ -11,7 +11,12 @@
 # Idempotent: each step is skipped if its output already exists (see scripts/lib/common.sh).
 # Submit with: sbatch scripts/01_prepare_genotypes_p2521.sh
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# sbatch copies this script into a spool dir, so BASH_SOURCE can't locate the repo; use SLURM_SUBMIT_DIR instead.
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+  SCRIPT_DIR="${SLURM_SUBMIT_DIR}/scripts"
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 source "${SCRIPT_DIR}/lib/common.sh"
 load_cohort_config p2521
 cd "$REPO_ROOT"
