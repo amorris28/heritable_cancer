@@ -292,15 +292,20 @@ summarize_age_vars <- function(df, birth_year_df) {
 }
 
 proportion_summary <- function(df) {
-  df %>%
-    summarize(
-      pct_pca             = mean(status == 1) * 100,
-      pct_aggressive      = mean(metastasis == 1) * 100,
-      pct_censored        = mean(status == 0) * 100,
-      pct_death_before_dx = mean(death == 1 & status == 0) * 100
-    ) %>%
-    pivot_longer(everything(), names_to = "variable", values_to = "median") %>%
-    mutate(q25 = NA_real_, q75 = NA_real_, iqr = NA_real_)
+  n_total <- nrow(df)
+  tibble(
+    variable = c("pct_pca", "pct_aggressive", "pct_censored", "pct_death_before_dx"),
+    n = c(
+      sum(df$status == 1),
+      sum(df$metastasis == 1),
+      sum(df$status == 0),
+      sum(df$death == 1 & df$status == 0)
+    )
+  ) %>%
+    mutate(pct = 100 * n / n_total) %>%
+    add_row(variable = "n_total", n = n_total, pct = NA_real_, .before = 1) %>%
+    mutate(median = NA_real_, q25 = NA_real_, q75 = NA_real_, iqr = NA_real_) %>%
+    select(variable, median, q25, q75, iqr, n, pct)
 }
 
 age_summary     <- bind_rows(summarize_age_vars(combined_data, birth_year_p212),

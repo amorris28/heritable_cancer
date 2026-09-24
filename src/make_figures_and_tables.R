@@ -492,6 +492,12 @@ table_age_summary <-
   p2521_age_summary %>%
   rbind(p212_age_summary) %>%
   rbind(p212_age_summary_wgs) %>%
+  mutate(value = case_when(
+    variable == "n_total"         ~ sprintf("%.0f", n),
+    str_detect(variable, "^pct_") ~ sprintf("%.0f (%.1f%%)", n, pct),
+    variable == "birth_year"      ~ sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
+    TRUE                          ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75)
+  )) %>%
   mutate(variable = case_match(
     variable,
     "birth_year"           ~ "Birth Year",
@@ -500,15 +506,11 @@ table_age_summary <-
     "age_of_metastasis"    ~ "Age at Aggressive Diagnosis",
     "age_lastobs_censored" ~ "Age at Last Follow-up (controls)",
     "phs"                  ~ "PHS (z-score)",
-    "pct_pca"              ~ "PCa cases (%)",
-    "pct_aggressive"       ~ "Aggressive PCa cases (%)",
-    "pct_censored"         ~ "Censored (%)",
-    "pct_death_before_dx"  ~ "Died before diagnosis (%)"
-  )) %>%
-  mutate(value = case_when(
-    variable == "Birth Year"           ~ sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
-    str_detect(variable, "\\(%\\)")    ~ sprintf("%.1f%%", median),
-    TRUE                               ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75)
+    "n_total"              ~ "n",
+    "pct_pca"              ~ "PCa cases, n (%)",
+    "pct_aggressive"       ~ "Aggressive PCa cases, n (%)",
+    "pct_censored"         ~ "Censored, n (%)",
+    "pct_death_before_dx"  ~ "Died before diagnosis, n (%)"
   )) %>%
   select(cohort, Variable = variable, `Median (Q1, Q3)` = value) %>%
   pivot_wider(names_from = cohort, values_from = `Median (Q1, Q3)`) %>%
