@@ -41,8 +41,13 @@ render the manuscript:
 
 ```
 scripts/07_make_figures_and_tables.sh
-cd manuscript && quarto render manuscript.qmd --to pdf
+quarto render manuscript/manuscript.qmd --to pdf \
+  --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
 ```
+
+`--execute-dir` is required: the R code in `manuscript.qmd` reads `src/` and
+`data/public/` relative to the repo root, but Quarto otherwise executes code
+relative to the `.qmd` file's own directory (`manuscript/`).
 
 See `scripts/README.md` for details, cohort-specific config (`config/p212.env`,
 `config/p2521.env`), and how to force a step to rerun.

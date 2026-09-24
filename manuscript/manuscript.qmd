@@ -270,7 +270,7 @@ The study protocol was approved by the Norwegian Regional Ethics Committee (REK)
 
 ::: {#fig-phs}
 
-![](manuscript/figures_and_tables/km_curve.pdf){width=90%}
+![](figures_and_tables/km_curve.pdf){width=90%}
 
 Cumulative incidence of PCa by age and stratified by centile ranges of PHS for the HUSK and NFCS cohorts. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
@@ -278,7 +278,7 @@ Cumulative incidence of PCa by age and stratified by centile ranges of PHS for t
 
 ::: {#fig-meta}
 
-![](manuscript/figures_and_tables/metastatic_km_curve.pdf){width=90%}
+![](figures_and_tables/metastatic_km_curve.pdf){width=90%}
 
 Cumulative incidence of aggressive PCa by age and stratified by centile ranges of PHS for the HUSK and NFCS cohorts. Time of event is age at diagnosis of aggressive PCa. Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
@@ -286,7 +286,7 @@ Cumulative incidence of aggressive PCa by age and stratified by centile ranges o
 
 ::: {#fig-hoxb13}
 
-![](manuscript/figures_and_tables/p212_wgs_km_curve.pdf){width=90%}
+![](figures_and_tables/p212_wgs_km_curve.pdf){width=90%}
 
 Cumulative incidence of PCa by age for the whole-genome sequenced subsample of the NFCS cohort stratified by either centile ranges of PHS or HOXB13 carrier status. Time of event is age at diagnosis of PCa (any stage). Controls were censored at age of last observation. Error ribbons are the 95% confidence interval.
 
@@ -294,7 +294,7 @@ Cumulative incidence of PCa by age for the whole-genome sequenced subsample of t
 
 ::: {#fig-strat}
 
-![](manuscript/figures_and_tables/stratified_incidence.pdf){width=90%}
+![](figures_and_tables/stratified_incidence.pdf){width=90%}
 
 Predicted cumulative incidence of PCa and aggressive PCa in the general population of Norway based on data from the Norwegian Cancer Registry. The population baseline reflects PCa cases in Norway from 2014-2017 [@huynh-le2020a]. Incidence curves are stratified by the HR of PHS centiles from the PHS601 model fit to the HUSK data. The decline in incidence after age 70 observed for any-stage PCa is likely due to decreased screening rather than a true reduction in incidence.
 
@@ -391,7 +391,7 @@ ft
 
 ::: {#suppfig-comp}
 
-![](manuscript/figures_and_tables/cumulative_comparison.pdf){width=85%}
+![](figures_and_tables/cumulative_comparison.pdf){width=85%}
 
 Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017[@huynh-le2020a]. Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
 
@@ -400,7 +400,7 @@ Comparison of cumulative incidence rates for PCa in two cohorts against national
 
 ::: {#suppfig-zph}
 
-![](manuscript/figures_and_tables/zph_tt.pdf){width=85%}
+![](figures_and_tables/zph_tt.pdf){width=85%}
 
 Assessment of the proportional hazards assumption for PHS using Schoenfeld residuals plotted against age. The solid blue line represents the estimated time-varying log hazard ratio from the extended Cox model with a linear time transform for PHS (95% confidence bands shown). The dashed blue line shows the log hazard ratio for PHS from the standard Cox proportional hazards model, and the dashed red line indicates a hazard ratio of 1.0 (log HR = 0). Divergence between the solid and dashed blue lines indicates violation of the proportional hazards assumption and time-dependency of the PHS effect. Panels **(A)** and **(B)** show results for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show results for aggressive PCa in the same cohorts. 
 

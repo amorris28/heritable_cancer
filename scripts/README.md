@@ -25,7 +25,13 @@ an expensive downstream step (e.g. the bootstrap in `03_fit_models.sh`).
    `data/public/` results are available, to build `manuscript/figures_and_tables/`.
 
 Manuscript rendering itself stays manual and separate:
-`cd manuscript && quarto render manuscript.qmd --to pdf`.
+```
+quarto render manuscript/manuscript.qmd --to pdf \
+  --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
+```
+`--execute-dir` must point at the repo root (run this from there) — the R
+chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but
+Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
 ## Config
 

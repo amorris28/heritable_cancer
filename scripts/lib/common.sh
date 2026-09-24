@@ -41,6 +41,19 @@ run_rscript() {
   fi
 }
 
+# run_rscript_docker <image> <script.R> [args...]
+# Same as run_rscript, but inside the given docker image (repo mounted at the
+# same path so relative sourcing/reads/writes in the R scripts still work).
+run_rscript_docker() {
+  local image="$1"; shift
+  if ! docker run --rm --platform linux/amd64 \
+        -v "${REPO_ROOT}:${REPO_ROOT}" -w "$REPO_ROOT" \
+        "$image" Rscript "$@"; then
+    echo "ERROR: Rscript $* (docker image: $image) exited with a non-zero status; aborting before moving any output." >&2
+    exit 1
+  fi
+}
+
 # require_files <file> [<file> ...]
 # Fails loudly if any expected R output is missing, e.g. because the script
 # exited 0 but errored/warned partway through without writing that file.

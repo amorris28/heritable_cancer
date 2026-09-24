@@ -85,14 +85,28 @@ cases <-
   filter(age_diagnosis == min(age_diagnosis)) %>%
   ungroup()
 
+# Earliest age we can identify for each participant, from any diagnosis record
+# in sheet 2 (not just the PCa diagnosis used for `cases` above) — add more
+# sources here with additional pmin() terms if they become available.
+earliest_case_age <-
+  case_data %>%
+  select(pid, age_ca) %>%
+  filter(!is.na(age_ca)) %>%
+  group_by(pid) %>%
+  summarize(earliest_case_age = min(age_ca, na.rm = TRUE)) %>%
+  ungroup()
+
 combined_data <-
   all_data %>%
   filter(SEX == "M") %>%
   mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
   select(pid = PID, death = DEATH, wgs = WGS, age_lastobs = AGELASTOBS) %>%
   full_join(cases, by = "pid") %>%
+  full_join(earliest_case_age, by = "pid") %>%
   mutate(status = if_else(is.na(status), 0, status)) %>%
   mutate(age = if_else(status == 1, age_diagnosis, age_lastobs)) %>%
+  mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
+  select(-earliest_case_age) %>%
   mutate(pid = as.character(pid))
 
 # SubjectIDs in a text file
@@ -266,7 +280,6 @@ summarize_age_vars <- function(df, birth_year_df) {
   df %>%
     left_join(birth_year_df, by = "pid") %>%
     mutate(
-      age_first_follow_up   = NA_real_,
       age_of_metastasis     = if_else(metastasis == 1, age_of_metastasis, NA_real_),
       age_lastobs_censored  = if_else(status == 0, age_lastobs, NA_real_)
     ) %>%
