@@ -495,8 +495,12 @@ table_age_summary <-
   mutate(value = case_when(
     variable == "n_total"         ~ sprintf("%.0f", n),
     str_detect(variable, "^pct_") ~ sprintf("%.0f (%.1f%%)", n, pct),
-    variable == "birth_year"      ~ sprintf("%.0f (%.0f, %.0f)", median, q25, q75),
-    TRUE                          ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75)
+    variable == "phs"             ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75),
+    # Ages are reported in whole years for both cohorts, even though HUSK/p2521's
+    # source dates would support decimals — p212/NFCS's source ages are already
+    # whole years, so mixed precision would look like an error rather than a
+    # genuine difference in source data.
+    TRUE                          ~ sprintf("%.0f (%.0f, %.0f)", median, q25, q75)
   )) %>%
   mutate(variable = case_match(
     variable,
@@ -505,6 +509,7 @@ table_age_summary <-
     "age_diagnosis"        ~ "Age at Diagnosis",
     "age_of_metastasis"    ~ "Age at Aggressive Diagnosis",
     "age_lastobs_censored" ~ "Age at Last Follow-up (controls)",
+    "follow_up_years"      ~ "Follow-up Duration (years)",
     "phs"                  ~ "PHS (z-score)",
     "n_total"              ~ "n",
     "pct_pca"              ~ "PCa cases, n (%)",

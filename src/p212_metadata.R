@@ -106,6 +106,8 @@ combined_data <-
   mutate(status = if_else(is.na(status), 0, status)) %>%
   mutate(age = if_else(status == 1, age_diagnosis, age_lastobs)) %>%
   mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
+  # age_lastobs is last observed age for everyone in the registry, cases included
+  mutate(follow_up_years = age_lastobs - age_first_follow_up) %>%
   select(-earliest_case_age) %>%
   mutate(pid = as.character(pid))
 
@@ -286,7 +288,7 @@ summarize_age_vars <- function(df, birth_year_df) {
     summarize(
       across(
         c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis,
-          age_lastobs_censored, phs),
+          age_lastobs_censored, follow_up_years, phs),
         list(
           median = ~ median(.x, na.rm = TRUE),
           q25    = ~ quantile(.x, 0.25, na.rm = TRUE),
