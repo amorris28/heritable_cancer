@@ -196,7 +196,7 @@ combined_data <-
   left_join(carriers, by = join_by(bfile_id))
 
 # Hoxb13 SNP
-raw_file <- "tmp_rs138213197.raw"
+raw_file <- "data/processed/tmp_rs138213197.raw"
 
 dat <-
   read.table(

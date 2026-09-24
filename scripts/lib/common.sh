@@ -30,3 +30,27 @@ should_run() {
   echo "  [skip] already present: $* (rerun with FORCE=1 to regenerate)"
   return 1
 }
+
+# run_rscript <script.R> [args...]
+# Runs an Rscript and fails loudly (rather than silently continuing) if it
+# exits non-zero — belt-and-suspenders on top of `set -e`.
+run_rscript() {
+  if ! Rscript "$@"; then
+    echo "ERROR: Rscript $* exited with a non-zero status; aborting before moving any output." >&2
+    exit 1
+  fi
+}
+
+# require_files <file> [<file> ...]
+# Fails loudly if any expected R output is missing, e.g. because the script
+# exited 0 but errored/warned partway through without writing that file.
+require_files() {
+  local missing=() f
+  for f in "$@"; do
+    [[ -f "$f" ]] || missing+=("$f")
+  done
+  if (( ${#missing[@]} > 0 )); then
+    echo "ERROR: expected output(s) not found (check R output above for errors/warnings): ${missing[*]}" >&2
+    exit 1
+  fi
+}

@@ -21,7 +21,9 @@ outputs=(
 )
 should_run "${outputs[@]}" || exit 0
 
-Rscript src/fit-models-plot-figures-incidence-rate.R "$PHENOTYPES" "$CLUSTER"
+run_rscript src/fit-models-plot-figures-incidence-rate.R "$PHENOTYPES" "$CLUSTER"
+require_files "${CLUSTER}_cumulative_comparison.rds" "${CLUSTER}_stratified_incidence.rds" \
+  "${CLUSTER}_cumulative_comparison_metastatic.rds" "${CLUSTER}_stratified_incidence_metastatic.rds"
 
 mv "${CLUSTER}_cumulative_comparison.rds" "${CLUSTER}_stratified_incidence.rds" \
    "${CLUSTER}_cumulative_comparison_metastatic.rds" "${CLUSTER}_stratified_incidence_metastatic.rds" \

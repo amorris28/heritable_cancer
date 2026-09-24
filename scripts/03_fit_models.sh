@@ -24,7 +24,10 @@ outputs=(
 )
 should_run "${outputs[@]}" || exit 0
 
-Rscript src/fit-models.R "$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS"
+run_rscript src/fit-models.R "$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS"
+require_files "${CLUSTER}_phs_zph_tidy.tsv" "${CLUSTER}_any_pca_performance.tsv" \
+  "${CLUSTER}_metastatic_performance.tsv" "${CLUSTER}_pca_death_performance.tsv" \
+  "${CLUSTER}_sample_size.tsv" "${CLUSTER}_coxph.tsv"
 
 mv "${CLUSTER}_phs_zph_tidy.tsv" "${CLUSTER}_any_pca_performance.tsv" \
    "${CLUSTER}_metastatic_performance.tsv" "${CLUSTER}_pca_death_performance.tsv" \

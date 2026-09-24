@@ -24,12 +24,18 @@ if [[ "$HAS_HOXB13" == "1" ]]; then
   cp data/processed/tmp_rs138213197.raw tmp_rs138213197.raw
 fi
 
-Rscript "$PREPROCESS_SCRIPT" "$SCORE_FILE" FALSE
+run_rscript "$PREPROCESS_SCRIPT" "$SCORE_FILE" FALSE
+require_files phenotypes.tsv age_summary.tsv
+if [[ "$HAS_HOXB13" == "1" ]]; then
+  require_files all_variants.tsv age_summary_wgs.tsv
+fi
 
 mv phenotypes.tsv "$PHENOTYPES"
-[[ -f all_variants.tsv ]] && mv all_variants.tsv data/public/all_variants.tsv
-[[ -f age_summary.tsv ]] && mv age_summary.tsv "data/public/${CLUSTER}_age_summary.tsv"
-[[ -f age_summary_wgs.tsv ]] && mv age_summary_wgs.tsv "data/public/${CLUSTER}_age_summary_wgs.tsv"
+mv age_summary.tsv "data/public/${CLUSTER}_age_summary.tsv"
+if [[ "$HAS_HOXB13" == "1" ]]; then
+  mv all_variants.tsv data/public/all_variants.tsv
+  mv age_summary_wgs.tsv "data/public/${CLUSTER}_age_summary_wgs.tsv"
+fi
 rm -f tmp_rs138213197.raw
 
 echo "Done. Output: $PHENOTYPES"

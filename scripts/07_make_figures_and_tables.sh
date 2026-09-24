@@ -13,7 +13,8 @@ outputs=(manuscript/figures_and_tables/km_curve.pdf manuscript/figures_and_table
 should_run "${outputs[@]}" || exit 0
 
 mkdir -p figures_and_tables
-Rscript src/make_figures_and_tables.R
+run_rscript src/make_figures_and_tables.R
+require_files figures_and_tables/km_curve.pdf figures_and_tables/table_coxph.tsv
 
 mkdir -p manuscript/figures_and_tables
 mv figures_and_tables/* manuscript/figures_and_tables/

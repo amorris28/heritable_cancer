@@ -23,7 +23,10 @@ outputs=(
 )
 should_run "${outputs[@]}" || exit 0
 
-Rscript src/plot-figures.R "$PHENOTYPES" "$CLUSTER"
+run_rscript src/plot-figures.R "$PHENOTYPES" "$CLUSTER"
+require_files "${CLUSTER}_any_pca_abs_risk.rds" "${CLUSTER}_any_pca_risk_table.rds" \
+  "${CLUSTER}_metastatic_abs_risk.rds" "${CLUSTER}_metastatic_risk_table.rds" \
+  "${CLUSTER}_zph_tt.rds" "${CLUSTER}_zph_tt_aggr.rds"
 
 mv "${CLUSTER}_any_pca_abs_risk.rds" "${CLUSTER}_any_pca_risk_table.rds" \
    "${CLUSTER}_metastatic_abs_risk.rds" "${CLUSTER}_metastatic_risk_table.rds" \
