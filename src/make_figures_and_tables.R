@@ -66,13 +66,13 @@ any_pca <- (p2521 | p212) +
   theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/km_curve.pdf", any_pca,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/km_curve.png", any_pca,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/km_curve.tiff", any_pca,
-  height = 8 * 0.618, width = 8, dpi = 300
+  height = 10 * 0.618, width = 10, dpi = 300
 )
 
 ###############################################################
@@ -174,13 +174,13 @@ metastatic <- (p2521 | p212) +
   theme(legend.position = "bottom")
 
 ggsave("figures_and_tables/metastatic_km_curve.pdf", metastatic,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/metastatic_km_curve.tiff", metastatic,
-  height = 8 * 0.618, width = 8, dpi = 300
+  height = 10 * 0.618, width = 10, dpi = 300
 )
 
 ###############################################################
