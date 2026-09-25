@@ -111,11 +111,46 @@ zph_tt <- ggplot(plot_data, aes(x = time, y = beta_t)) +
 saveRDS(zph_tt, paste(output_prefix, "zph_tt.rds", sep = "_"))
 
 #########################################################
+# Overlay Cox model-predicted curves onto an empirical (KM) phs_abs_risk plot.
+# Percentiles are band midpoints so each dashed line tracks the corresponding
+# solid KM stratum: 95-100% -> 0.975, 80-100% -> 0.90, 30-70% -> 0.50, 0-20% -> 0.10.
+add_cox_curve_overlay <- function(km_plot, data, time = "age", event = "status") {
+  stratum_levels <- c("95-100%", "80-100%", "30-70%", "0-20%")
+  cox_pct        <- c(0.975, 0.90, 0.50, 0.10)
+
+  cox_data <-
+    phs_cox_curve(
+      data, time = time, event = event,
+      percentiles = cox_pct, output = "data"
+    ) %>%
+    mutate(
+      stratum        = factor(stratum_levels[match(percentile_value, cox_pct)], levels = stratum_levels),
+      risk_estimate  = 1 - estimate,
+      risk_conf_low  = 1 - conf.high,
+      risk_conf_high = 1 - conf.low
+    ) %>%
+    select(time, stratum, risk_estimate, conf.low = risk_conf_low, conf.high = risk_conf_high)
+
+  km_plot +
+    geom_ribbon(
+      data = cox_data,
+      aes(x = time, ymin = conf.low, ymax = conf.high, fill = stratum),
+      alpha = 0.15, color = NA, inherit.aes = FALSE
+    ) +
+    geom_line(
+      data = cox_data,
+      aes(x = time, y = risk_estimate, color = stratum),
+      linetype = "dashed", linewidth = 0.8, inherit.aes = FALSE
+    )
+}
+
+#########################################################
 # Plot Cumulative Incidence Curves
 any_pca_km_curve <- phs_abs_risk(
   combined_data,
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
+any_pca_km_curve <- add_cox_curve_overlay(any_pca_km_curve, combined_data)
 
 ######################################################
 # metastatic
@@ -218,6 +253,10 @@ metastatic_km_curve <- phs_abs_risk(
   time      = "age_of_metastasis",
   event     = "metastasis",
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
+)
+metastatic_km_curve <- add_cox_curve_overlay(
+  metastatic_km_curve, combined_data,
+  time = "age_of_metastasis", event = "metastasis"
 )
 
 # Build numbers-at-risk tables
