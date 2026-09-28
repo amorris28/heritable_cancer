@@ -279,12 +279,11 @@ phenotype_data <-
 #########################################################################
 ## Step 5: date of first follow-up
 date_first_follow_up <-
-  avt_data %>%
-  select(huskmentid = lopenr, inndato) %>%
-  rbind(som_data %>% select(huskmentid = lopenr, inndato)) %>%
-  rbind(phv_data %>% select(huskmentid = lopenr, inndato)) %>%
+  age_dob_data %>%
+  select(huskmentid = HUSKMentID, usdag, usmnd, usaar) %>%
+  mutate(date_first_follow_up = ymd(paste(usaar, usmnd, usdag, sep = "-")))
   group_by(huskmentid) %>%
-  summarize(date_first_follow_up = min(inndato, na.rm = TRUE))
+  summarize(date_first_follow_up = min(date_first_follow_up, na.rm = TRUE))
 
 phenotype_data <-
   phenotype_data %>%
