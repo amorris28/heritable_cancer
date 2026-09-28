@@ -261,6 +261,16 @@ This work was supported by a grant from the Research Council of Norway (award #3
 
 The study protocol was approved by the Norwegian Regional Ethics Committee (REK)  Sør-Øst, IDs 2015/2382 (NFCS cohort) and 270326 (HUSK cohort).
 
+# Data availability statement {.unnumbered}
+
+Data from the Norwegian Mother, Father and Child Cohort Study (MoBa) and the Medical Birth Registry of Norway are administered by the Norwegian Institute of Public Health and are not publicly available due to ethical and legal restrictions. Access may be granted to qualified researchers following approval from the Regional Committees for Medical and Health Research Ethics (REC), compliance with the EU General Data Protection Regulation (GDPR), and permission from the data owners. Participant consent does not allow for deposition of individual-level data in public repositories. Researchers seeking access for replication or further analyses must apply through the Norwegian health data access portal (helsedata.no) and enter a data access agreement with MoBa.
+
+The data that support the findings of this study are not publicly available due to patient privacy and ethical restrictions. Data were accessed through the Tjenester for Sensitive Data facilities owned by the University of Oslo under ethics approval by the Regional Committee for Medical Research Ethics South East Norway. Inquiries about data access should be directed to the Regional Committees for Medical and Health Research Ethics of Norway.
+
+Data from the The Hordaland Health Studies (HUSK) are administered by the University of Bergen and data from the Norwegian Familial Cancer Study (NFCS) and are not publicly available due to ethical and legal restrictions. Access may be granted to qualified researchers following approval from the Regional Committees for Medical and Health Research Ethics (REC), compliance with the EU General Data Protection Regulation (GDPR), and permission from the data owners.
+
+The scripts to recreate the analysis, figures, and manuscript can be accessed on Github at https://github.com/amorris28/heritable_cancer.
+
 # References {.unnumbered}
 
 ::: {#refs}
@@ -296,7 +306,7 @@ Cumulative incidence of PCa by age for the whole-genome sequenced subsample of t
 
 ![](figures_and_tables/stratified_incidence.pdf){width=90%}
 
-Predicted cumulative incidence of PCa and aggressive PCa in the general population of Norway based on data from the Norwegian Cancer Registry. The population baseline reflects PCa cases in Norway from 2014-2017 [@huynh-le2020a]. Incidence curves are stratified by the HR of PHS centiles from the PHS601 model fit to the HUSK data. The decline in incidence after age 70 observed for any-stage PCa is likely due to decreased screening rather than a true reduction in incidence.
+Predicted cumulative incidence of PCa and aggressive PCa in the general population of Norway based on data from the Norwegian Cancer Registry. The population baseline reflects PCa cases in Norway from 2014-2017 [@huynh-le2020a]. Incidence curves are stratified by the HR of PHS centiles from the PHS601 model fit to the HUSK data. For example, the PHS 95-100th curve was created by multiplying the HR for the top 5% of PHS from the HUSK data relative to the median (i.e., the HR~95/50~) by the baseline curve from the registry data. The decline in incidence after age 70 observed for any-stage PCa is likely due to decreased screening rather than a true reduction in incidence.
 
 :::
 

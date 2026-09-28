@@ -232,13 +232,13 @@ wgs_km <-
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 ggsave("figures_and_tables/p212_wgs_km_curve.pdf", wgs_km,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/p212_wgs_km_curve.png", wgs_km,
-  height = 8 * 0.618, width = 8
+  height = 10 * 0.618, width = 10
 )
 ggsave("figures_and_tables/p212_wgs_km_curve.tiff", wgs_km,
-  height = 8 * 0.618, width = 8, dpi = 300
+  height = 10 * 0.618, width = 10, dpi = 300
 )
 
 ###############################################################
