@@ -172,8 +172,12 @@ plot_stratified <- function(stratified_df, group_labels, y_var = "hazard") {
     stratified_df[, c("conf_low", "conf_high")] <- stratified_df[, c("conf_low", "conf_high")] * 1e2
   }
   y_var <- sym(y_var)
+  # Population baseline has no CI (all NA); pass geom_ribbon its own pre-filtered
+  # data rather than relying on na.rm, which can leave a zero-row factor level
+  # in the layer and crash grid's legend-key building ('fill' length 0).
+  ribbon_df <- dplyr::filter(stratified_df, !is.na(conf_low), !is.na(conf_high))
   ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve, fill = curve)) +
-    geom_ribbon(aes(ymin = conf_low, ymax = conf_high), alpha = 0.15, color = NA, na.rm = TRUE) +
+    geom_ribbon(data = ribbon_df, aes(ymin = conf_low, ymax = conf_high), alpha = 0.15, color = NA) +
     geom_line(linewidth = 0.8) +
     ggplot2::scale_color_brewer(palette = "Set1", labels = group_labels) +
     ggplot2::scale_fill_brewer(palette = "Set1", labels = group_labels) +
