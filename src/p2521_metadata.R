@@ -281,7 +281,7 @@ phenotype_data <-
 date_first_follow_up <-
   age_dob_data %>%
   select(huskmentid = HUSKMentID, usdag, usmnd, usaar) %>%
-  mutate(date_first_follow_up = ymd(paste(usaar, usmnd, usdag, sep = "-")))
+  mutate(date_first_follow_up = ymd(paste(usaar, usmnd, usdag, sep = "-"))) %>%
   group_by(huskmentid) %>%
   summarize(date_first_follow_up = min(date_first_follow_up, na.rm = TRUE))
 
