@@ -2,6 +2,7 @@ library(tidyverse)
 library(readxl)
 library(survival)
 library(hazrd)
+source("src/config.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -74,49 +75,78 @@ cox_fit_meta <- coxph(Surv(age_of_metastasis, metastasis) ~ phs,
 )
 
 # cohort data, pca_risk data
+# Registry hazard is treated as fixed/known; only the cohort's bootstrapped HR
+# estimate contributes uncertainty, so the CI ribbon reflects HR uncertainty only.
 stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   # output must be "hazard" or "cum_risk"
-  HR95_50 <- phs_metrics(
-    full_data,
-    metrics  = "HR",
-    hr_pairs = list(list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70)))
-  )$estimate  
-  HR80_50 <- phs_metrics(
-    full_data,
-    metrics  = "HR",
-    hr_pairs = list(list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)))
-  )$estimate
-  HR20_50 <- phs_metrics(
-    full_data,
-    metrics  = "HR",
-    hr_pairs = list(list(numerator = c(0.00, 0.20), denominator = c(0.30, 0.70)))
-  )$estimate
+  hr_bands <- list(
+    "95" = c(0.95, 1.00),
+    "80" = c(0.80, 1.00),
+    "20" = c(0.00, 0.20)
+  )
 
-  # stratify registry data (hazard) by high and low HR
-  pca_risk <-
-    pca_risk %>%
-    mutate(
-      hazard_95 = hazard * HR95_50,
-      annual_risk_95 = 1 - exp(-hazard_95),
-      cum_risk_95 = 1 - exp(-cumsum(hazard_95))
-    )  %>%
-    mutate(
-      hazard_80 = hazard * HR80_50,
-      annual_risk_80 = 1 - exp(-hazard_80),
-      cum_risk_80 = 1 - exp(-cumsum(hazard_80))
-    ) %>%
-    mutate(
-      hazard_20 = pca_risk$hazard * HR20_50,
-      annual_risk_20 = 1 - exp(-hazard_20),
-      cum_risk_20 = 1 - exp(-cumsum(hazard_20))
+  hr_summary <- purrr::map_dfr(names(hr_bands), function(band) {
+    res <- phs_metrics(
+      full_data,
+      metrics   = "HR",
+      hr_pairs  = list(list(numerator = hr_bands[[band]], denominator = c(0.30, 0.70))),
+      bootstrap = TRUE,
+      n_boot    = bootstrap_iters,
+      seed      = 42
     )
+    tibble(
+      band = band, estimate = res$estimate,
+      conf_low = res$conf_low, conf_high = res$conf_high
+    )
+  })
 
-  pca_risk %>%
-    select(age, starts_with(output)) %>%
-    pivot_longer(starts_with(output), names_to = "curve", values_to = output) %>%
-    mutate(curve = factor(curve, levels = paste0(output, c("_95", "_80", "", "_20")))) ->
-  stratified_df_long
-  return(stratified_df_long)
+  # stratify registry data (hazard) by cohort HR point estimate and its bootstrap CI
+  for (band in names(hr_bands)) {
+    hr <- hr_summary[hr_summary$band == band, ]
+    pca_risk[[paste0("hazard_", band)]] <- pca_risk$hazard * hr$estimate
+    pca_risk[[paste0("cum_risk_", band)]] <-
+      1 - exp(-cumsum(pca_risk[[paste0("hazard_", band)]]))
+    pca_risk[[paste0("cum_risk_", band, "_lo")]] <-
+      1 - exp(-cumsum(pca_risk$hazard * hr$conf_low))
+    pca_risk[[paste0("cum_risk_", band, "_hi")]] <-
+      1 - exp(-cumsum(pca_risk$hazard * hr$conf_high))
+  }
+  # Population baseline (HR = 1) has no bootstrapped CI; no ribbon is drawn for it.
+  pca_risk$cum_risk_lo <- NA_real_
+  pca_risk$cum_risk_hi <- NA_real_
+
+  estimate_cols <- c(paste0(output, "_95"), paste0(output, "_80"), output, paste0(output, "_20"))
+  if (output == "cum_risk") {
+    lo_cols <- paste0(estimate_cols, "_lo")
+    hi_cols <- paste0(estimate_cols, "_hi")
+    # baseline column has no "_lo"/"_hi" suffix variants; use the NA placeholders added above
+    lo_cols[estimate_cols == output] <- "cum_risk_lo"
+    hi_cols[estimate_cols == output] <- "cum_risk_hi"
+  } else {
+    # No bootstrapped CI computed for the raw (non-cumulative) hazard curves.
+    pca_risk[paste0(estimate_cols, "_lo")] <- NA_real_
+    pca_risk[paste0(estimate_cols, "_hi")] <- NA_real_
+    lo_cols <- paste0(estimate_cols, "_lo")
+    hi_cols <- paste0(estimate_cols, "_hi")
+  }
+
+  stratified_df_long <-
+    pca_risk %>%
+    select(age, all_of(estimate_cols)) %>%
+    pivot_longer(all_of(estimate_cols), names_to = "curve", values_to = output) %>%
+    mutate(curve = factor(curve, levels = estimate_cols))
+
+  ci_long <-
+    map_dfr(seq_along(estimate_cols), function(i) {
+      tibble(
+        age       = pca_risk$age,
+        curve     = factor(estimate_cols[i], levels = estimate_cols),
+        conf_low  = pca_risk[[lo_cols[i]]],
+        conf_high = pca_risk[[hi_cols[i]]]
+      )
+    })
+
+  left_join(stratified_df_long, ci_long, by = c("age", "curve"))
 }
 
 stratified_hazard_pca <- stratify_curve(full_data, pca_risk, cox_fit_pca)
@@ -135,16 +165,19 @@ plot_stratified <- function(stratified_df, group_labels, y_var = "hazard") {
   if (y_var == "hazard") {
     y_label <- "Hazard (per 100,000)"
     stratified_df[, y_var] <- stratified_df[, y_var] * 1e5
+    stratified_df[, c("conf_low", "conf_high")] <- stratified_df[, c("conf_low", "conf_high")] * 1e5
   } else if (y_var == "cum_risk") {
     y_label <- "Cumulative incidence, %\n(Absolute risk)"
     stratified_df[, y_var] <- stratified_df[, y_var] * 1e2
+    stratified_df[, c("conf_low", "conf_high")] <- stratified_df[, c("conf_low", "conf_high")] * 1e2
   }
   y_var <- sym(y_var)
-  ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve)) +
-    geom_line(linewidth = 1) +
+  ggplot(stratified_df, aes(x = age, y = !!y_var, color = curve, fill = curve)) +
+    geom_ribbon(aes(ymin = conf_low, ymax = conf_high), alpha = 0.15, color = NA, na.rm = TRUE) +
+    geom_line(linewidth = 0.8) +
     ggplot2::scale_color_brewer(palette = "Set1", labels = group_labels) +
-    # scale_color_manual(values = c("#4DAF4A", "#377EB8", "#E41A1C"), labels = group_labels) +
-    labs(x = "Age", y = y_label, color = "") +
+    ggplot2::scale_fill_brewer(palette = "Set1", labels = group_labels) +
+    labs(x = "Age", y = y_label, color = "", fill = "") +
     theme_classic(base_size = 12) +
     theme(aspect.ratio = 1)
 }
