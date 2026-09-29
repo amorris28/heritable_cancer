@@ -46,8 +46,10 @@ birth_month_husk2 <- read_delim(
 death_data %>% arrange(desc(DAAR), desc(DMND))
 
 # IDs for each wave
-husk1ids <- age_dob_data$HUSKMentID
 husk2ids <- birth_month_husk2$HUSKMentID
+husk1ids <- age_dob_data %>% 
+              filter(!HUSKMentID %in% birth_month_husk2$HUSKMentID) %>%
+              pull(HUSKMentID)
 
 ## Step 1: All IDs
 id_key <-
