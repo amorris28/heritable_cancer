@@ -25,3 +25,4 @@ echo "Done. Outputs written to manuscript/figures_and_tables/"
 echo 'Render manually with: quarto render manuscript/manuscript.qmd --to pdf --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"'
 
 quarto render manuscript/manuscript.qmd --to pdf --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
+quarto render manuscript/manuscript.qmd --to docx --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"

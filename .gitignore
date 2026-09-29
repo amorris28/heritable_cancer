@@ -90,5 +90,8 @@ work/*
 credentials.py
 tsd_import_example.ipynb
 
+#quarto
+
+.quarto/
 
 work/
