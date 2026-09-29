@@ -310,6 +310,7 @@ write_tsv(combined_data, "phenotypes.tsv")
 ## Summary statistics: median and IQR
 age_summary <- phenotype_data %>%
   mutate(
+    birth_year = year(fdato),
     age_first_follow_up = interval(fdato, date_first_follow_up) / years(1),
     age_of_metastasis = if_else(metastasis == 1, age_of_metastasis, NA_real_),
     age_lastobs_censored = if_else(status == 0, age_lastobs, NA_real_),
@@ -319,7 +320,7 @@ age_summary <- phenotype_data %>%
   ) %>%
   summarize(
     across(
-      c(age_first_follow_up, age_diagnosis, age_of_metastasis,
+      c(birth_year, age_first_follow_up, age_diagnosis, age_of_metastasis,
         age_lastobs_censored, follow_up_years),
       list(
         median = ~ median(.x, na.rm = TRUE),
@@ -336,28 +337,6 @@ age_summary <- phenotype_data %>%
   ) %>%
   mutate(iqr = q75 - q25) %>%
   select(variable, median, q25, q75, iqr)
-
-birth_year_summary <- phenotype_data %>%
-  mutate(
-    birth_year = year(fdato),
-    variable = case_when(
-      huskmentid %in% husk1ids ~ "birth_year_wave1",
-      huskmentid %in% husk2ids ~ "birth_year_wave2",
-      TRUE ~ NA_character_
-    )
-  ) %>%
-  filter(!is.na(variable)) %>%
-  group_by(variable) %>%
-  summarize(
-    median = median(birth_year, na.rm = TRUE),
-    q25 = quantile(birth_year, 0.25, na.rm = TRUE),
-    q75 = quantile(birth_year, 0.75, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  mutate(iqr = q75 - q25) %>%
-  select(variable, median, q25, q75, iqr)
-
-age_summary <- bind_rows(birth_year_summary, age_summary)
 
 # PHS summary from genotyped subjects (combined_data)
 phs_summary <- combined_data %>%

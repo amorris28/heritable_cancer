@@ -496,8 +496,6 @@ table_age_summary <-
     variable == "n_total"         ~ sprintf("%.0f", n),
     str_detect(variable, "^pct_") ~ sprintf("%.0f (%.1f%%)", n, pct),
     variable == "phs"             ~ sprintf("%.2f (%.2f, %.2f)", median, q25, q75),
-    variable == "birth_year_wave1" ~ sprintf("Wave 1: %.0f (%.0f, %.0f)", median, q25, q75),
-    variable == "birth_year_wave2" ~ sprintf("Wave 2: %.0f (%.0f, %.0f)", median, q25, q75),
     # Ages are reported in whole years for both cohorts, even though HUSK/p2521's
     # source dates would support decimals — p212/NFCS's source ages are already
     # whole years, so mixed precision would look like an error rather than a
@@ -507,8 +505,6 @@ table_age_summary <-
   mutate(variable = case_match(
     variable,
     "birth_year"           ~ "Birth Year",
-    "birth_year_wave1"     ~ "Birth Year",
-    "birth_year_wave2"     ~ "Birth Year",
     "age_first_follow_up"  ~ "Age at First Follow-up",
     "age_diagnosis"        ~ "Age at Diagnosis",
     "age_of_metastasis"    ~ "Age at Aggressive Diagnosis",
@@ -522,11 +518,7 @@ table_age_summary <-
     "pct_death_before_dx"  ~ "Died before diagnosis, n (%)"
   )) %>%
   select(cohort, Variable = variable, `Median (Q1, Q3)` = value) %>%
-  pivot_wider(
-    names_from = cohort,
-    values_from = `Median (Q1, Q3)`,
-    values_fn = list(`Median (Q1, Q3)` = ~ paste(.x, collapse = "; "))
-  ) %>%
+  pivot_wider(names_from = cohort, values_from = `Median (Q1, Q3)`) %>%
   mutate(across(where(is.character), ~ if_else(str_detect(.x, "^NA"), "\u2014", .x))) %>%
   add_row(
     Variable = "Recruitment Period",
