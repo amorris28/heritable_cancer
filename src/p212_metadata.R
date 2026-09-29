@@ -102,7 +102,7 @@ combined_data <-
   mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
   select(pid = PID, death = DEATH, wgs = WGS, age_lastobs = AGELASTOBS) %>%
   full_join(cases, by = "pid") %>%
-  full_join(earliest_case_age, by = "pid") %>%
+  # full_join(earliest_case_age, by = "pid") %>%
   mutate(status = if_else(is.na(status), 0, status)) %>%
   mutate(age = if_else(status == 1, age_diagnosis, age_lastobs)) %>%
   # mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
@@ -285,7 +285,7 @@ summarize_age_vars <- function(df, birth_year_df) {
       age_of_metastasis     = if_else(metastasis == 1, age_of_metastasis, NA_real_),
       age_lastobs_censored  = if_else(status == 0, age_lastobs, NA_real_),
       follow_up_years       = NA_real_,
-      age_first_follow_up   = NA_real_ 
+      age_first_follow_up   = NA_real_
     ) %>%
     summarize(
       across(
