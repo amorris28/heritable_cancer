@@ -88,13 +88,13 @@ cases <-
 # Earliest age we can identify for each participant, from any diagnosis record
 # in sheet 2 (not just the PCa diagnosis used for `cases` above) — add more
 # sources here with additional pmin() terms if they become available.
-earliest_case_age <-
-  case_data %>%
-  select(pid, age_ca) %>%
-  filter(!is.na(age_ca)) %>%
-  group_by(pid) %>%
-  summarize(earliest_case_age = min(age_ca, na.rm = TRUE)) %>%
-  ungroup()
+# earliest_case_age <-
+#   case_data %>%
+#   select(pid, age_ca) %>%
+#   filter(!is.na(age_ca)) %>%
+#   group_by(pid) %>%
+#   summarize(earliest_case_age = min(age_ca, na.rm = TRUE)) %>%
+#   ungroup()
 
 combined_data <-
   all_data %>%
@@ -105,10 +105,10 @@ combined_data <-
   full_join(earliest_case_age, by = "pid") %>%
   mutate(status = if_else(is.na(status), 0, status)) %>%
   mutate(age = if_else(status == 1, age_diagnosis, age_lastobs)) %>%
-  mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
+  # mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
   # age_lastobs is last observed age for everyone in the registry, cases included
-  mutate(follow_up_years = age_lastobs - age_first_follow_up) %>%
-  select(-earliest_case_age) %>%
+  # mutate(follow_up_years = age_lastobs - age_first_follow_up) %>%
+  # select(-earliest_case_age) %>%
   mutate(pid = as.character(pid))
 
 # SubjectIDs in a text file
@@ -283,7 +283,9 @@ summarize_age_vars <- function(df, birth_year_df) {
     left_join(birth_year_df, by = "pid") %>%
     mutate(
       age_of_metastasis     = if_else(metastasis == 1, age_of_metastasis, NA_real_),
-      age_lastobs_censored  = if_else(status == 0, age_lastobs, NA_real_)
+      age_lastobs_censored  = if_else(status == 0, age_lastobs, NA_real_),
+      follow_up_years       = NA_real_,
+      age_first_follow_up   = NA_real_ 
     ) %>%
     summarize(
       across(
