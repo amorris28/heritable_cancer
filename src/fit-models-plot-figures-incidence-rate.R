@@ -1,8 +1,8 @@
 library(tidyverse)
 library(readxl)
 library(survival)
-library(hazrd)
 source("src/config.R")
+source("src/functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -86,14 +86,12 @@ stratify_curve <- function(full_data, pca_risk, fit_cox, output = "hazard") {
   )
 
   hr_summary <- purrr::map_dfr(names(hr_bands), function(band) {
-    res <- phs_metrics(
-      full_data,
-      metrics   = "HR",
-      hr_pairs  = list(list(numerator = hr_bands[[band]], denominator = c(0.30, 0.70))),
-      bootstrap = TRUE,
-      n_boot    = bootstrap_iters,
-      seed      = 42
-    )
+    point_stat <- function(d) {
+      cxph <- survival::coxph(survival::Surv(age, status) ~ phs, data = d)
+      hr <- calc_hr_band(cxph, d, "phs", hr_bands[[band]], c(0.30, 0.70))
+      stats::setNames(hr$estimate, hr$metric)
+    }
+    res <- boot_ci(full_data, point_stat, n_boot = bootstrap_iters, seed = 42)
     tibble(
       band = band, estimate = res$estimate,
       conf_low = res$conf_low, conf_high = res$conf_high

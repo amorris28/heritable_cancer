@@ -1,6 +1,5 @@
 library(tidyverse)
 library(stringr)
-library(hazrd)
 library(survival)
 library(patchwork)
 source("src/functions.R")
@@ -130,15 +129,13 @@ hoxb13_freq <- sum(wgs$HOXB13_carrier) / nrow(wgs) # 1.7%
 sum(combined_data$hoxb13_snp) / nrow(combined_data) # 0.5%
 
 # Performance metrics
-perform <- phs_metrics(
+perform <- phs_performance_metrics(
   wgs,
-  metrics  = c("HR", "C_index"),
   hr_pairs = list(
     list(numerator = c(1.00 - hoxb13_freq, 1.00), denominator = c(0.30, 0.70))
   ),
-  bootstrap = TRUE,
-  n_boot    = 999,
-  seed      = 42
+  n_boot = 999,
+  seed   = 42
 )
 perform <- dplyr::mutate(perform, model = output_prefix)
 write_tsv(perform, paste(output_prefix, "wgs_phs_performance_95.tsv",
@@ -146,10 +143,11 @@ write_tsv(perform, paste(output_prefix, "wgs_phs_performance_95.tsv",
 ))
 
 # Cumulative incidence curve for PHS
-wgs_inc <- phs_abs_risk(
+wgs_cuminc <- phs_cuminc_strata(
   wgs,
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
+wgs_inc <- plot_cuminc_strata(wgs_cuminc)
 
 # KM Curves for HOXB13
 km_curves <- data.frame()
@@ -271,10 +269,9 @@ hoxb13_rt <- ggplot(
   )
 
 # Build PHS numbers-at-risk table
-wgs_phs_risk_table <- phs_risk_table(
-  wgs,
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
-  time_points = c(50, 60, 70, 80, 90)
+wgs_phs_risk_table <- plot_risk_table(
+  phs_risk_at_times(wgs_cuminc, c(50, 60, 70, 80, 90)),
+  x_range = range(wgs_cuminc$time)
 )
 
 # Save plots and risk tables as separate objects

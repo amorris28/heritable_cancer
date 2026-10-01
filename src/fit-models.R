@@ -1,6 +1,5 @@
 library(tidyverse)
 library(stringr)
-library(hazrd)
 library(survival)
 library(patchwork)
 source("src/functions.R")
@@ -10,7 +9,7 @@ args <- commandArgs(trailingOnly = TRUE)
 metadata_file <- args[1] # Phenotype data
 perform_bool <- args[2]
 output_prefix <- args[3]
-bootstrap_iters <- args[4]
+bootstrap_iters <- as.integer(args[4])
 
 
 #########################################
@@ -47,17 +46,10 @@ phs_tt_tidy <- broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
 
 # Performance metrics
 if (perform_bool) {
-  any_pca_perform <- phs_metrics(
+  any_pca_perform <- phs_performance_metrics(
     combined_data,
-    metrics  = c("HR", "C_index", "HR_SD"),
-    hr_pairs = list(
-      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
-      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
-      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
-    ),
-    bootstrap = TRUE,
-    n_boot    = 999,
-    seed      = 42
+    n_boot = bootstrap_iters,
+    seed   = 42
   )
 }
 
@@ -81,19 +73,12 @@ meta_phs_zph_tidy <- meta_phs_zph_tidy[1, ]
 
 # Performance metrics
 if (perform_bool) {
-  metastatic_perform <- phs_metrics(
+  metastatic_perform <- phs_performance_metrics(
     combined_data,
-    time     = "age_of_metastasis",
-    event    = "metastasis",
-    metrics  = c("HR", "C_index", "HR_SD"),
-    hr_pairs = list(
-      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
-      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
-      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
-    ),
-    bootstrap = TRUE,
-    n_boot    = 999,
-    seed      = 42
+    time   = "age_of_metastasis",
+    event  = "metastasis",
+    n_boot = bootstrap_iters,
+    seed   = 42
   )
 }
 
@@ -117,19 +102,12 @@ pca_death_zph_tidy <- pca_death_zph_tidy[1, ]
 
 # Performance metrics
 if (perform_bool) {
-  pca_death_perform <- phs_metrics(
+  pca_death_perform <- phs_performance_metrics(
     combined_data,
-    time     = "age_at_pca_death",
-    event    = "pca_death",
-    metrics  = c("HR", "C_index", "HR_SD"),
-    hr_pairs = list(
-      list(numerator = c(0.80, 1.00), denominator = c(0.00, 0.20)),
-      list(numerator = c(0.80, 1.00), denominator = c(0.30, 0.70)),
-      list(numerator = c(0.95, 1.00), denominator = c(0.30, 0.70))
-    ),
-    bootstrap = TRUE,
-    n_boot    = 999,
-    seed      = 42
+    time   = "age_at_pca_death",
+    event  = "pca_death",
+    n_boot = bootstrap_iters,
+    seed   = 42
   )
 }
 

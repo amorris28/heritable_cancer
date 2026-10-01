@@ -1,6 +1,5 @@
 library(tidyverse)
 library(patchwork)
-library(hazrd)
 
 source("src/functions.R")
 
@@ -57,8 +56,8 @@ p2521_ar <- p2521_ar +
 p2521_rt <- p2521_rt + labs(x = NULL) +
       lims(x = c(45, 90))
 
-p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
-p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
+p212 <- patchwork::wrap_plots(p212_ar, p212_rt, ncol = 1L, heights = c(3, 1))
+p2521 <- patchwork::wrap_plots(p2521_ar, p2521_rt, ncol = 1L, heights = c(3, 1))
 
 any_pca <- (p2521 | p212) +
   # patchwork::plot_annotation(tag_levels = "A") +
@@ -166,8 +165,8 @@ p2521_ar <- p2521_ar +
   theme_classic()
 p2521_rt <- p2521_rt + labs(x = NULL) +
   lims(x = c(45, 90))
-p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
-p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
+p212 <- patchwork::wrap_plots(p212_ar, p212_rt, ncol = 1L, heights = c(3, 1))
+p2521 <- patchwork::wrap_plots(p2521_ar, p2521_rt, ncol = 1L, heights = c(3, 1))
 metastatic <- (p2521 | p212) +
   # patchwork::plot_annotation(tag_levels = "A") +
   patchwork::plot_layout(guides = "collect") &
@@ -212,8 +211,8 @@ wgs_hxb_ar <-
 wgs_hxb_rt <- wgs_hxb_rt + labs(x = NULL) +
   lims(x = c(45, 90))
 
-p212 <- hazrd::attach_risk_table(p212_ar, p212_rt)
-p2521 <- hazrd::attach_risk_table(p2521_ar, p2521_rt)
+p212 <- patchwork::wrap_plots(p212_ar, p212_rt, ncol = 1L, heights = c(3, 1))
+p2521 <- patchwork::wrap_plots(p2521_ar, p2521_rt, ncol = 1L, heights = c(3, 1))
 
 any_pca <- (p2521 | p212) +
   # patchwork::plot_annotation(tag_levels = "A") +
@@ -226,8 +225,8 @@ wgs_phs_ar <- wgs_phs_ar +
 # wgs_hxb_ar <- wgs_hxb_ar +
 #   labs(y = "Cumulative Incidence (%)")
 wgs_km <-
-  (hazrd::attach_risk_table(wgs_phs_ar, wgs_phs_rt) |
-   hazrd::attach_risk_table(wgs_hxb_ar, wgs_hxb_rt)) +
+  (patchwork::wrap_plots(wgs_phs_ar, wgs_phs_rt, ncol = 1L, heights = c(3, 1)) |
+   patchwork::wrap_plots(wgs_hxb_ar, wgs_hxb_rt, ncol = 1L, heights = c(3, 1))) +
   # plot_annotation(tag_levels = "A") +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "bottom")

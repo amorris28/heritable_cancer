@@ -1,6 +1,5 @@
 library(tidyverse)
 library(stringr)
-library(hazrd)
 library(survival)
 library(patchwork)
 source("src/config.R")
@@ -121,11 +120,13 @@ add_cox_curve_overlay <- function(km_plot, data, time = "age", event = "status")
   stratum_levels <- c("95-100%", "80-100%", "30-70%", "0-20%")
   cox_pct        <- c(0.975, 0.90, 0.50, 0.10)
 
+  cxph <- survival::coxph(
+    stats::as.formula(paste0("survival::Surv(", time, ", ", event, ") ~ phs")),
+    data = data
+  )
+
   cox_data <-
-    phs_cox_curve(
-      data, time = time, event = event,
-      percentiles = cox_pct, output = "data"
-    ) %>%
+    phs_cox_curve_at_percentile(cxph, data$phs, cox_pct) %>%
     mutate(
       stratum       = factor(stratum_levels[match(percentile_value, cox_pct)], levels = stratum_levels),
       risk_estimate = 1 - estimate
@@ -145,10 +146,11 @@ add_cox_curve_overlay <- function(km_plot, data, time = "age", event = "status")
 
 #########################################################
 # Plot Cumulative Incidence Curves
-any_pca_km_curve <- phs_abs_risk(
+any_pca_cuminc <- phs_cuminc_strata(
   combined_data,
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
+any_pca_km_curve <- plot_cuminc_strata(any_pca_cuminc)
 any_pca_km_curve <- add_cox_curve_overlay(any_pca_km_curve, combined_data)
 
 ######################################################
@@ -247,29 +249,26 @@ saveRDS(zph_tt, paste(output_prefix, "zph_tt_aggr.rds", sep = "_"))
 #########################################################
 
 # KM Curves for metastatic disease
-metastatic_km_curve <- phs_abs_risk(
+metastatic_cuminc <- phs_cuminc_strata(
   combined_data,
   time      = "age_of_metastasis",
   event     = "metastasis",
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
+metastatic_km_curve <- plot_cuminc_strata(metastatic_cuminc)
 metastatic_km_curve <- add_cox_curve_overlay(
   metastatic_km_curve, combined_data,
   time = "age_of_metastasis", event = "metastasis"
 )
 
 # Build numbers-at-risk tables
-any_pca_risk_table <- phs_risk_table(
-  combined_data,
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
-  time_points = c(50, 60, 70, 80, 90)
+any_pca_risk_table <- plot_risk_table(
+  phs_risk_at_times(any_pca_cuminc, c(50, 60, 70, 80, 90)),
+  x_range = range(any_pca_cuminc$time)
 )
-metastatic_risk_table <- phs_risk_table(
-  combined_data,
-  time  = "age_of_metastasis",
-  event = "metastasis",
-  intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20)),
-  time_points = c(50, 60, 70, 80, 90)
+metastatic_risk_table <- plot_risk_table(
+  phs_risk_at_times(metastatic_cuminc, c(50, 60, 70, 80, 90)),
+  x_range = range(metastatic_cuminc$time)
 )
 
 # Save Output
