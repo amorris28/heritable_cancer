@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=kingrelatedness
 #SBATCH --account=p2521
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=7792M
-#SBATCH --time=04:00:00
+#SBATCH --time=01:00:00
 #SBATCH --output=kingrelatedness.log
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# sbatch copies this script into a spool dir, so BASH_SOURCE can't locate the repo; use SLURM_SUBMIT_DIR instead.
+if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
+  SCRIPT_DIR="${SLURM_SUBMIT_DIR}/scripts"
+else
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 source "${SCRIPT_DIR}/lib/common.sh"
 
 COHORT="${1:?Usage: $0 <p212|p2521> [--force]}"
