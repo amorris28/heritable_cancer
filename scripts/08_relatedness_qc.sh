@@ -2,7 +2,7 @@
 #SBATCH --job-name=kingrelatedness
 #SBATCH --account=p2521
 #SBATCH --cpus-per-task=8
-#SBATCH --mem-per-cpu=7792M
+#SBATCH --mem-per-cpu=3G
 #SBATCH --time=01:00:00
 #SBATCH --output=kingrelatedness.log
 set -euo pipefail
@@ -29,15 +29,21 @@ if ! should_run "${RELATED_FILES[@]}"; then
   exit 0
 fi
 
-[[ -f "$BED_FILE.bed" ]] || { echo "Missing $BED_FILE.bed" >&2; exit 1; }
-
 mkdir -p data/interim/king
 
-$PLINK --bfile $BED_FILE --geno 0.05 --make-bed --out $OUT/$COHORT.pca.step1
-$PLINK --bfile $OUT/$COHORT.pca.step1 --chr 1-22 --indep-pairwise 1000 50 0.05 --make-bed --out $OUT/$COHORT.pca.step2
-$PLINK --bfile $OUT/$COHORT.pca.step1 --extract $OUT/$COHORT.pca.step2.prune.in --make-bed --out $OUT/$COHORT.pca.step3
-$PLINK --bfile $OUT/$COHORT.pca.step3 --make-set data/external/high-ld.txt --write-set --out $OUT/$COHORT.pca.step4
-$PLINK --bfile $OUT/$COHORT.pca.step3 --exclude $OUT/$COHORT.pca.step4.set --make-bed --out $OUT/$COHORT.pca.step5
+STEP5="$OUT/$COHORT.pca.step5"
+if [[ "$FORCE" != "1" && -f "$STEP5.bed" && -f "$STEP5.bim" && -f "$STEP5.fam" ]]; then
+  echo "  [skip] PLINK preprocessing outputs already present: $STEP5.{bed,bim,fam}"
+else
+  [[ -f "$BED_FILE.bed" ]] || { echo "Missing $BED_FILE.bed" >&2; exit 1; }
+
+  $PLINK --bfile "$BED_FILE" --geno 0.05 --make-bed --out "$OUT/$COHORT.pca.step1"
+  $PLINK --bfile "$OUT/$COHORT.pca.step1" --chr 1-22 --indep-pairwise 1000 50 0.05 --make-bed --out "$OUT/$COHORT.pca.step2"
+  $PLINK --bfile "$OUT/$COHORT.pca.step1" --extract "$OUT/$COHORT.pca.step2.prune.in" --make-bed --out "$OUT/$COHORT.pca.step3"
+  $PLINK --bfile "$OUT/$COHORT.pca.step3" --make-set data/external/high-ld.txt --write-set --out "$OUT/$COHORT.pca.step4"
+  $PLINK --bfile "$OUT/$COHORT.pca.step3" --exclude "$OUT/$COHORT.pca.step4.set" --make-bed --out "$STEP5"
+fi
+require_files "$STEP5.bed" "$STEP5.bim" "$STEP5.fam"
 
 # KING defaults to half of the node's (logical) cores for --cpus, which can
 # wildly oversubscribe an interactive session or a Slurm job that was only
