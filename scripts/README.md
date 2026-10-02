@@ -33,6 +33,39 @@ quarto render manuscript/manuscript.qmd --to pdf \
 chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but
 Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
+## Relatedness QC
+
+Run `sbatch scripts/08_relatedness_qc.sh <p212|p2521>` to identify close
+relatives with KING. Its KING input is restricted to autosomes and variants
+with at most 5% missingness, but is not LD-pruned and does not exclude
+high-LD regions. This keeps the relatedness analysis separate from the
+LD-pruned genotype set that will be prepared for PCA. Results from the earlier
+pruned workflow use a different output prefix and are not reused.
+
+## PCA
+
+Submit `scripts/09_pca.sh <p212|p2521>` with the matching Slurm account, for
+example:
+
+```sh
+sbatch --account=p2521 scripts/09_pca.sh p2521
+sbatch --account=p212 scripts/09_pca.sh p212
+```
+
+The script uses the autosomal KING input when available (otherwise it creates
+one with `--geno 0.05`), excludes build-matched high-LD intervals during
+`--indep-pairwise 1000 50 0.05` pruning, and runs FlashPCA in the cohort's
+`gwas.sif` image. It passes the build-matched PLINK range file directly to
+`--exclude range`: `scripts/resources/high-LD-regions-hg38-GRCh38.txt` for
+GRCh38 (from
+[plinkQC](https://github.com/cran/plinkQC/blob/master/inst/extdata/high-LD-regions-hg38-GRCh38.txt))
+and `scripts/resources/high-LD-regions-hg19-GRCh37.txt` for GRCh37. The files
+are used as-is without coordinate or chromosome-name conversion.
+
+PLINK intermediates and FlashPCA outputs are written under
+`data/interim/pca/`. The `pcs_<cohort>.txt` file contains the sample PC scores;
+loadings and means/standard deviations are also retained for later projection.
+
 ## Config
 
 Per-cohort paths/params (TSD genotype file locations, container images, SLURM

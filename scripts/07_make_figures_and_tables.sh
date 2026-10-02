@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"
 cd "$REPO_ROOT"
 
-R_IMAGE="${R_IMAGE:-r_manuscript}"
+R_IMAGE="${R_IMAGE:-r_hazrd}"
 [[ "${1:-}" == "--force" ]] && FORCE=1
 
 outputs=(manuscript/figures_and_tables/km_curve.pdf manuscript/figures_and_tables/table_coxph.tsv)
