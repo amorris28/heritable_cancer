@@ -2,7 +2,7 @@
 #SBATCH --job-name=kingrelatedness
 #SBATCH --account=p2521
 #SBATCH --cpus-per-task=8
-#SBATCH --mem-per-cpu=3G
+#SBATCH --mem-per-cpu=8G
 #SBATCH --time=24:00:00
 #SBATCH --output=kingrelatedness.log
 set -euo pipefail
