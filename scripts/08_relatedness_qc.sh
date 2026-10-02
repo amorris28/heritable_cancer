@@ -3,7 +3,7 @@
 #SBATCH --account=p2521
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=3G
-#SBATCH --time=01:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=kingrelatedness.log
 set -euo pipefail
 # sbatch copies this script into a spool dir, so BASH_SOURCE can't locate the repo; use SLURM_SUBMIT_DIR instead.
@@ -20,7 +20,7 @@ load_cohort_config "$COHORT"
 cd "$REPO_ROOT"
 
 OUT="data/interim/king"
-RELATED="$OUT/${CLUSTER}related_deg3"
+RELATED="$OUT/${CLUSTER}_related_deg3"
 RELATED_FILES=("$RELATED.kin" "$RELATED.kin0")
 PLINK="../bin/plink"
 KING="../bin/king"
