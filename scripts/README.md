@@ -54,8 +54,8 @@ sbatch --account=p212 scripts/09_pca.sh p212
 
 The script uses the autosomal KING input when available (otherwise it creates
 one with `--geno 0.05`), excludes build-matched high-LD intervals during
-`--indep-pairwise 1000 50 0.05` pruning, and runs FlashPCA in the cohort's
-`gwas.sif` image. It passes the build-matched PLINK range file directly to
+`--indep-pairwise 1000 50 0.05` pruning, and runs FlashPCA using the local
+`../bin/plink` and `../bin/flashpca_x86-64` binaries. It passes the build-matched PLINK range file directly to
 `--exclude range`: `scripts/resources/high-LD-regions-hg38-GRCh38.txt` for
 GRCh38 (from
 [plinkQC](https://github.com/cran/plinkQC/blob/master/inst/extdata/high-LD-regions-hg38-GRCh38.txt))

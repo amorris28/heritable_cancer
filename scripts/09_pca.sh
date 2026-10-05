@@ -42,7 +42,9 @@ esac
 }
 
 mkdir -p "$OUT"
-SINGULARITY_BIND_ARGS=(--bind "$REPO_ROOT" --bind "$GENOTYPE_DIR")
+PLINK="../bin/plink"
+FLASHPCA="$(cd ../bin && pwd)/flashpca_x86-64"
+[[ -x "$FLASHPCA" ]] || { echo "Missing or non-executable $FLASHPCA" >&2; exit 1; }
 PCA_CPUS="${SLURM_CPUS_PER_TASK:-$(nproc 2>/dev/null || echo 1)}"
 
 if [[ ! -f "$INPUT_BFILE.bed" || ! -f "$INPUT_BFILE.bim" || ! -f "$INPUT_BFILE.fam" ]]; then
@@ -51,14 +53,14 @@ if [[ ! -f "$INPUT_BFILE.bed" || ! -f "$INPUT_BFILE.bim" || ! -f "$INPUT_BFILE.f
     exit 1
   }
   echo "Creating autosomal KING-style input for PCA from $BED_FILE"
-  singularity exec "${SINGULARITY_BIND_ARGS[@]}" "$GWAS_IMAGE" plink \
+  "$PLINK" \
     --bfile "$BED_FILE" --chr 1-22 --geno 0.05 --threads "$PCA_CPUS" \
     --make-bed --out "$INPUT_BFILE"
 fi
 require_files "$INPUT_BFILE.bed" "$INPUT_BFILE.bim" "$INPUT_BFILE.fam"
 
 if should_run "$PRUNE_PREFIX.prune.in"; then
-  singularity exec "${SINGULARITY_BIND_ARGS[@]}" "$GWAS_IMAGE" plink \
+  "$PLINK" \
     --bfile "$INPUT_BFILE" \
     --indep-pairwise 1000 50 0.05 \
     --exclude range "$HIGH_LD_FILE" \
@@ -67,7 +69,7 @@ if should_run "$PRUNE_PREFIX.prune.in"; then
 fi
 
 if should_run "$PCA_BFILE.bed" "$PCA_BFILE.bim" "$PCA_BFILE.fam"; then
-  singularity exec "${SINGULARITY_BIND_ARGS[@]}" "$GWAS_IMAGE" plink \
+  "$PLINK" \
     --bfile "$INPUT_BFILE" \
     --extract "$PRUNE_PREFIX.prune.in" \
     --make-bed \
@@ -87,7 +89,7 @@ PCA_OUTPUTS=(
 if should_run "${PCA_OUTPUTS[@]}"; then
   (
     cd "$OUT"
-    singularity exec "${SINGULARITY_BIND_ARGS[@]}" "$GWAS_IMAGE" flashpca \
+    "$FLASHPCA" \
       --bfile "$COHORT.pruned" \
       --outload "loadings_${CLUSTER}.txt" \
       --outmeansd "meansd_${CLUSTER}.txt" \
