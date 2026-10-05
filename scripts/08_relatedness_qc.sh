@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=kingrelatedness
-#SBATCH --account=p2521
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8G
 #SBATCH --time=24:00:00
@@ -31,13 +30,17 @@ fi
 
 mkdir -p data/interim/king
 
-KING_BFILE="$OUT/$COHORT.king"
+KING_BFILE="$OUT/$COHORT.king_thin"
 if [[ "$FORCE" != "1" && -f "$KING_BFILE.bed" && -f "$KING_BFILE.bim" && -f "$KING_BFILE.fam" ]]; then
   echo "  [skip] KING input files already present: $KING_BFILE.{bed,bim,fam}"
 else
   [[ -f "$BED_FILE.bed" ]] || { echo "Missing $BED_FILE.bed" >&2; exit 1; }
 
-  $PLINK --bfile "$BED_FILE" --chr 1-22 --geno 0.05 --make-bed --out "$KING_BFILE"
+  # KING cost scales with samples^2 x SNPs; ~6M imputed SNPs is far more than
+  # needed (a few hundred thousand common SNPs resolve 3rd-degree kinship).
+  # Random thinning (no LD pruning) keeps KING's assumptions intact.
+  $PLINK --bfile "$BED_FILE" --chr 1-22 --geno 0.05 --maf 0.05 \
+    --thin-count 400000 --seed 1 --make-bed --out "$KING_BFILE"
 fi
 require_files "$KING_BFILE.bed" "$KING_BFILE.bim" "$KING_BFILE.fam"
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=cohort_pca
 #SBATCH --cpus-per-task=8
-#SBATCH --mem-per-cpu=8G
+#SBATCH --mem-per-cpu=4G
 #SBATCH --time=04:00:00
 #SBATCH --output=cohort_pca_%j.log
 set -euo pipefail
