@@ -33,14 +33,23 @@ quarto render manuscript/manuscript.qmd --to pdf \
 chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but
 Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
-## Relatedness QC
+## Relatedness sensitivity analysis
 
-Run `sbatch scripts/08_relatedness_qc.sh <p212|p2521>` to identify close
-relatives with KING. Its KING input is restricted to autosomes and variants
-with at most 5% missingness, but is not LD-pruned and does not exclude
-high-LD regions. This keeps the relatedness analysis separate from the
-LD-pruned genotype set that will be prepared for PCA. Results from the earlier
-pruned workflow use a different output prefix and are not reused.
+The former `08_relatedness_qc.sh` KING job has been removed; the p2521 KING
+cutoff lists are supplied by the external relatedness run.
+`scripts/03_fit_models.sh p2521` uses the 0-degree retained list (kinship
+cutoff 0.35333) as its primary analysis set, removing potential
+duplicates/monozygotic-level pairs while retaining one sample from each pair.
+It also estimates the PHS Cox coefficients in the 2-degree and 3-degree
+retained sets (kinship cutoffs 0.0883883 and 0.0441942). The estimates are
+written to `data/public/p2521_relatedness_sensitivity.tsv`.
+
+These ID lists provide unrelated subsets, not family/cluster identifiers, so
+they do not support a full-cohort relatedness-adjusted Cox model. The
+sensitivity models should be interpreted as robustness checks against
+excluding increasingly distant relatives. The required input lists are
+`all_chr.cutoff_{0deg,2deg,3deg}.king.cutoff.in.id` under
+`/ess/p2521/cluster/users/espenhage/BioBankNorge_AD/results/husk`.
 
 ## PCA
 

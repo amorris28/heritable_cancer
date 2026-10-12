@@ -7,9 +7,48 @@ source("src/functions.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 metadata_file <- args[1] # Phenotype data
-perform_bool <- args[2]
+perform_bool <- as.logical(args[2])
 output_prefix <- args[3]
 bootstrap_iters <- as.integer(args[4])
+relatedness_keep_files <- if (length(args) >= 5) args[5:length(args)] else character()
+
+if (length(relatedness_keep_files) > 0 && length(relatedness_keep_files) != 3) {
+  stop("Provide all three relatedness keep files: 0deg, 2deg, and 3deg")
+}
+
+read_relatedness_ids <- function(path, sample_ids) {
+  sample_ids <- as.character(sample_ids)
+  if (!file.exists(path)) {
+    stop("Relatedness keep file does not exist: ", path)
+  }
+  id_table <- readr::read_table(
+    path,
+    col_names = FALSE,
+    col_types = readr::cols(.default = readr::col_character()),
+    comment = "#",
+    progress = FALSE
+  )
+  if (nrow(id_table) == 0 || ncol(id_table) == 0) {
+    stop("Relatedness keep file is empty: ", path)
+  }
+  id_table <- id_table %>%
+    filter(!if_all(everything(), ~ toupper(.x) %in% c("FID", "IID")))
+  if (nrow(id_table) == 0) {
+    stop("Relatedness keep file contains no sample IDs: ", path)
+  }
+  overlaps <- vapply(id_table, function(column) {
+    length(intersect(sample_ids, column))
+  }, integer(1))
+  if (max(overlaps) == 0) {
+    stop("No IDs in ", path, " match phenotype bfile_id values")
+  }
+  ids <- unique(id_table[[which.max(overlaps)]])
+  message(
+    "Read ", length(ids), " retained IDs from ", path,
+    "; ", max(overlaps), " match the phenotype cohort"
+  )
+  ids
+}
 
 
 #########################################
@@ -20,10 +59,28 @@ combined_data <- read_tsv(metadata_file)
 # Analyze PHS data
 
 # Coxph, min case age is 40ish
-combined_data <-
+analysis_data <-
   combined_data %>%
   filter(age >= 40) %>%
   mutate(age_minus_40 = age - 40)
+
+# The cutoff-0 list removes duplicate/monozygotic-level samples while retaining
+# one sample per pair. Use it for the primary p2521 analyses.
+if (length(relatedness_keep_files) == 3) {
+  primary_ids <- read_relatedness_ids(relatedness_keep_files[[1]], analysis_data$bfile_id)
+  before_n <- nrow(analysis_data)
+  combined_data <- analysis_data %>%
+    filter(as.character(bfile_id) %in% primary_ids)
+  if (nrow(combined_data) == 0) {
+    stop("The 0-degree relatedness list removed every analysis participant")
+  }
+  message(
+    "Primary 0-degree set: retained ", nrow(combined_data), " of ", before_n,
+    " participants after age eligibility"
+  )
+} else {
+  combined_data <- analysis_data
+}
 
 fit <- coxph(Surv(age, status) ~ phs, data = combined_data)
 zph_fit <- cox.zph(fit)
@@ -156,6 +213,47 @@ sample_size <- tibble(
   )
 )
 
+# Estimate the same three PHS coefficients in increasingly unrelated subsets.
+relatedness_sensitivity <- NULL
+if (length(relatedness_keep_files) == 3) {
+  sensitivity_specs <- list(
+    any_pca = c(time = "age", event = "status"),
+    metastatic = c(time = "age_of_metastasis", event = "metastasis"),
+    pca_death = c(time = "age_at_pca_death", event = "pca_death")
+  )
+  sensitivity_labels <- c("2deg", "3deg")
+  relatedness_sensitivity <- purrr::map2_dfr(
+    relatedness_keep_files[2:3], sensitivity_labels,
+    function(keep_file, degree_label) {
+      keep_ids <- read_relatedness_ids(keep_file, analysis_data$bfile_id)
+      sensitivity_data <- analysis_data %>%
+        filter(as.character(bfile_id) %in% keep_ids)
+      purrr::imap_dfr(sensitivity_specs, function(spec, model_name) {
+        model_data <- sensitivity_data %>%
+          filter(!is.na(.data[[spec[["time"]]]]), !is.na(.data[[spec[["event"]]]]))
+        if (nrow(model_data) == 0 || sum(model_data[[spec[["event"]]]]) == 0) {
+          stop(
+            "No analyzable events for ", model_name, " in ",
+            degree_label, " relatedness subset"
+          )
+        }
+        formula <- stats::as.formula(paste0(
+          "survival::Surv(", spec[["time"]], ", ", spec[["event"]], ") ~ phs"
+        ))
+        fit <- survival::coxph(formula, data = model_data)
+        broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>%
+          mutate(
+            model = paste0(model_name, "_", degree_label),
+            relatedness_set = degree_label,
+            kinship_cutoff = if_else(degree_label == "2deg", 0.0883883, 0.0441942),
+            n = stats::nobs(fit),
+            events = fit$nevent
+          )
+      })
+    }
+  )
+}
+
 # Combine Coxph results
 any_pca_coxph$model <- "any_pca"
 metastatic_coxph$model <- "metastatic"
@@ -195,3 +293,9 @@ write_tsv(
   paste(output_prefix, "sample_size.tsv", sep = "_")
 )
 write_tsv(coxph_results, paste(output_prefix, "coxph.tsv", sep = "_"))
+if (!is.null(relatedness_sensitivity)) {
+  write_tsv(
+    relatedness_sensitivity,
+    paste(output_prefix, "relatedness_sensitivity.tsv", sep = "_")
+  )
+}
