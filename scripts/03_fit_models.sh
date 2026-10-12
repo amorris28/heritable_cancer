@@ -25,7 +25,7 @@ outputs=(
 
 relatedness_files=()
 if [[ "$COHORT" == "p2521" ]]; then
-  relatedness_dir=/ess/p2521/cluster/users/espenhage/BioBankNorge_AD/results/husk
+  relatedness_dir=/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk
   relatedness_files=(
     "$relatedness_dir/all_chr.cutoff_0deg.king.cutoff.in.id"
     "$relatedness_dir/all_chr.cutoff_2deg.king.cutoff.in.id"

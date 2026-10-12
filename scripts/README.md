@@ -40,9 +40,9 @@ cutoff lists are supplied by the external relatedness run.
 `scripts/03_fit_models.sh p2521` uses the 0-degree retained list (kinship
 cutoff 0.35333) as its primary analysis set, removing potential
 duplicates/monozygotic-level pairs while retaining one sample from each pair.
-It also estimates the PHS Cox coefficients in the 2-degree and 3-degree
-retained sets (kinship cutoffs 0.0883883 and 0.0441942). The estimates are
-written to `data/public/p2521_relatedness_sensitivity.tsv`.
+It also estimates the PHS Cox coefficients in the 0-degree, 2-degree and
+3-degree retained sets (kinship cutoffs 0.35333, 0.0883883 and 0.0441942). The
+estimates are written to `data/public/p2521_relatedness_sensitivity.tsv`.
 
 These ID lists provide unrelated subsets, not family/cluster identifiers, so
 they do not support a full-cohort relatedness-adjusted Cox model. The

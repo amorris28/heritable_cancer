@@ -221,9 +221,10 @@ if (length(relatedness_keep_files) == 3) {
     metastatic = c(time = "age_of_metastasis", event = "metastasis"),
     pca_death = c(time = "age_at_pca_death", event = "pca_death")
   )
-  sensitivity_labels <- c("2deg", "3deg")
+  sensitivity_labels <- c("0deg", "2deg", "3deg")
+  sensitivity_cutoffs <- c("0deg" = 0.35333, "2deg" = 0.0883883, "3deg" = 0.0441942)
   relatedness_sensitivity <- purrr::map2_dfr(
-    relatedness_keep_files[2:3], sensitivity_labels,
+    relatedness_keep_files, sensitivity_labels,
     function(keep_file, degree_label) {
       keep_ids <- read_relatedness_ids(keep_file, analysis_data$bfile_id)
       sensitivity_data <- analysis_data %>%
@@ -245,7 +246,7 @@ if (length(relatedness_keep_files) == 3) {
           mutate(
             model = paste0(model_name, "_", degree_label),
             relatedness_set = degree_label,
-            kinship_cutoff = if_else(degree_label == "2deg", 0.0883883, 0.0441942),
+            kinship_cutoff = unname(sensitivity_cutoffs[degree_label]),
             n = stats::nobs(fit),
             events = fit$nevent
           )
