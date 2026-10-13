@@ -33,10 +33,20 @@ quarto render manuscript/manuscript.qmd --to pdf \
 chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but
 Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
-## Relatedness sensitivity analysis
+## p212 KING relatedness
 
-The former `08_relatedness_qc.sh` KING job has been removed; the p2521 KING
-cutoff lists are supplied by the external relatedness run.
+Submit the KING jobs from the repository root, starting with
+`king/make_king.job`. After it completes, submit
+`king/king_cutoff_{0,1,2,3}.job` to generate the unrelated-sample lists at
+kinship cutoffs 0.353553, 0.176777, 0.0883883, and 0.0441942, respectively.
+The default full-genome PLINK binary prefix is
+`/ess/p212/cluster/moba_qc_imputation/BA/release6/moba_imputed_all`; override
+it with `KING_BFILE` when submitting if needed. Results are written to
+`data/interim/relatedness/p212/`.
+
+## p2521 Relatedness sensitivity analysis
+
+The p2521 KING cutoff lists are supplied by the external relatedness run.
 `scripts/03_fit_models.sh p2521` uses the 0-degree retained list (kinship
 cutoff 0.35333) as its primary analysis set, removing potential
 duplicates/monozygotic-level pairs while retaining one sample from each pair.
