@@ -33,33 +33,28 @@ quarto render manuscript/manuscript.qmd --to pdf \
 chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but
 Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
-## p212 KING relatedness
+## Relatedness sensitivity analysis
 
-Submit the KING jobs from the repository root, starting with
-`king/make_king.job`. After it completes, submit
-`king/king_cutoff_{0,1,2,3}.job` to generate the unrelated-sample lists at
-kinship cutoffs 0.353553, 0.176777, 0.0883883, and 0.0441942, respectively.
-The default full-genome PLINK binary prefix is
-`/ess/p212/cluster/moba_qc_imputation/BA/release6/moba_imputed_all`; override
-it with `KING_BFILE` when submitting if needed. Results are written to
-`data/interim/relatedness/p212/`.
+`scripts/03_fit_models.sh <cohort>` uses KING cutoff retained-ID lists
+(`plink2 --king-cutoff` `.in.id` files). The 0-degree list (kinship cutoff
+0.35333) defines the primary analysis set, removing duplicate/monozygotic-level
+pairs while retaining one sample from each pair. The PHS Cox coefficients are
+also estimated in the 0-degree, 2-degree and 3-degree retained sets (cutoffs
+0.35333, 0.0883883 and 0.0441942) and written to
+`data/public/<cohort>_relatedness_sensitivity.tsv`.
 
-## p2521 Relatedness sensitivity analysis
-
-The p2521 KING cutoff lists are supplied by the external relatedness run.
-`scripts/03_fit_models.sh p2521` uses the 0-degree retained list (kinship
-cutoff 0.35333) as its primary analysis set, removing potential
-duplicates/monozygotic-level pairs while retaining one sample from each pair.
-It also estimates the PHS Cox coefficients in the 0-degree, 2-degree and
-3-degree retained sets (kinship cutoffs 0.35333, 0.0883883 and 0.0441942). The
-estimates are written to `data/public/p2521_relatedness_sensitivity.tsv`.
+- p2521: lists come from the external run,
+  `/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk/all_chr.cutoff_{0deg,2deg,3deg}.king.cutoff.in.id`.
+- p212: run `scripts/08_p212_relatedness.sh` first. It converts the
+  colleague's KING text matrix to `.king.bin` (`scripts/lib/king_text_to_bin.py`)
+  and runs `plink2 --king-cutoff` at each threshold, writing
+  `data/interim/relatedness/p212_{0deg,2deg,3deg}.king.cutoff.in.id`. Override
+  inputs with `KING_TEXT`, `KING_IDS` or `KING_BFILE`.
 
 These ID lists provide unrelated subsets, not family/cluster identifiers, so
 they do not support a full-cohort relatedness-adjusted Cox model. The
-sensitivity models should be interpreted as robustness checks against
-excluding increasingly distant relatives. The required input lists are
-`all_chr.cutoff_{0deg,2deg,3deg}.king.cutoff.in.id` under
-`/ess/p2521/cluster/users/espenhage/BioBankNorge_AD/results/husk`.
+sensitivity models are robustness checks against excluding increasingly
+distant relatives.
 
 ## PCA
 

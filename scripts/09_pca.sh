@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=cohort_pca
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=4G
-#SBATCH --time=04:00:00
+#SBATCH --time=01:00:00
 #SBATCH --output=cohort_pca_%j.log
 set -euo pipefail
 
@@ -20,7 +20,7 @@ load_cohort_config "$COHORT"
 cd "$REPO_ROOT"
 
 OUT="data/interim/pca"
-INPUT_BFILE="data/interim/king/$COHORT.king"
+INPUT_BFILE="$BED_FILE"
 PRUNE_PREFIX="$OUT/$COHORT"
 PCA_BFILE="$OUT/$COHORT.pruned"
 
@@ -47,21 +47,13 @@ FLASHPCA="$(cd ../bin && pwd)/flashpca_x86-64"
 [[ -x "$FLASHPCA" ]] || { echo "Missing or non-executable $FLASHPCA" >&2; exit 1; }
 PCA_CPUS="${SLURM_CPUS_PER_TASK:-$(nproc 2>/dev/null || echo 1)}"
 
-if [[ ! -f "$INPUT_BFILE.bed" || ! -f "$INPUT_BFILE.bim" || ! -f "$INPUT_BFILE.fam" ]]; then
-  [[ -n "$BED_FILE" && -f "$BED_FILE.bed" ]] || {
-    echo "Missing KING input ($INPUT_BFILE.*) and source genotype file ($BED_FILE.bed)" >&2
-    exit 1
-  }
-  echo "Creating autosomal KING-style input for PCA from $BED_FILE"
-  "$PLINK" \
-    --bfile "$BED_FILE" --chr 1-22 --geno 0.05 --threads "$PCA_CPUS" \
-    --make-bed --out "$INPUT_BFILE"
-fi
+[[ -n "$INPUT_BFILE" ]] || { echo "BED_FILE is not set in config/$COHORT.env" >&2; exit 1; }
 require_files "$INPUT_BFILE.bed" "$INPUT_BFILE.bim" "$INPUT_BFILE.fam"
 
 if should_run "$PRUNE_PREFIX.prune.in"; then
   "$PLINK" \
     --bfile "$INPUT_BFILE" \
+    --chr 1-22 --geno 0.05 \
     --indep-pairwise 1000 50 0.05 \
     --exclude range "$HIGH_LD_FILE" \
     --threads "$PCA_CPUS" \

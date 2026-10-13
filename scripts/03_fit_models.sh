@@ -23,7 +23,7 @@ outputs=(
   "data/public/${CLUSTER}_coxph.tsv"
 )
 
-relatedness_files=()
+# KING cutoff retained-ID lists (plink2 --king-cutoff *.in.id)
 if [[ "$COHORT" == "p2521" ]]; then
   relatedness_dir=/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk
   relatedness_files=(
@@ -31,29 +31,27 @@ if [[ "$COHORT" == "p2521" ]]; then
     "$relatedness_dir/all_chr.cutoff_2deg.king.cutoff.in.id"
     "$relatedness_dir/all_chr.cutoff_3deg.king.cutoff.in.id"
   )
-  outputs+=("data/public/${CLUSTER}_relatedness_sensitivity.tsv")
-  for f in "${relatedness_files[@]}"; do
-    [[ -f "$f" ]] || { echo "Missing relatedness keep list: $f" >&2; exit 1; }
-  done
+else
+  relatedness_files=(
+    "data/interim/relatedness/p212_0deg.king.cutoff.in.id"
+    "data/interim/relatedness/p212_2deg.king.cutoff.in.id"
+    "data/interim/relatedness/p212_3deg.king.cutoff.in.id"
+  )
 fi
+outputs+=("data/public/${CLUSTER}_relatedness_sensitivity.tsv")
+for f in "${relatedness_files[@]}"; do
+  [[ -f "$f" ]] || { echo "Missing relatedness keep list: $f" >&2; exit 1; }
+done
 
 should_run "${outputs[@]}" || exit 0
 
-r_args=("$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS")
-if [[ "$COHORT" == "p2521" ]]; then
-  r_args+=("${relatedness_files[@]}")
-fi
+r_args=("$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS" "${relatedness_files[@]}")
 run_rscript src/fit-models.R "${r_args[@]}"
 require_files "${CLUSTER}_phs_zph_tidy.tsv" "${CLUSTER}_any_pca_performance.tsv" \
   "${CLUSTER}_metastatic_performance.tsv" "${CLUSTER}_pca_death_performance.tsv" \
   "${CLUSTER}_sample_size.tsv" "${CLUSTER}_coxph.tsv"
 
-if [[ "$COHORT" == "p2521" ]]; then
-  require_files "${CLUSTER}_relatedness_sensitivity.tsv"
-  relatedness_output="${CLUSTER}_relatedness_sensitivity.tsv"
-else
-  relatedness_output=
-fi
+require_files "${CLUSTER}_relatedness_sensitivity.tsv"
 
 move_files=(
   "${CLUSTER}_phs_zph_tidy.tsv"
@@ -62,10 +60,8 @@ move_files=(
   "${CLUSTER}_pca_death_performance.tsv"
   "${CLUSTER}_sample_size.tsv"
   "${CLUSTER}_coxph.tsv"
+  "${CLUSTER}_relatedness_sensitivity.tsv"
 )
-if [[ -n "$relatedness_output" ]]; then
-  move_files+=("$relatedness_output")
-fi
 mv "${move_files[@]}" data/public/
 
 echo "Done. Outputs: ${outputs[*]}"
