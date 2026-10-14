@@ -10,10 +10,14 @@ metadata_file <- args[1] # Phenotype data
 perform_bool <- as.logical(args[2])
 output_prefix <- args[3]
 bootstrap_iters <- as.integer(args[4])
-relatedness_keep_files <- if (length(args) >= 5) args[5:length(args)] else character()
+relatedness_keep_files <- if (length(args) >= 7) args[5:7] else character()
+pca_file <- if (length(args) >= 8) args[8] else NULL
 
-if (length(relatedness_keep_files) > 0 && length(relatedness_keep_files) != 3) {
-  stop("Provide all three relatedness keep files: 0deg, 2deg, and 3deg")
+if (length(args) != 8) {
+  stop(
+    "Usage: fit-models.R <phenotypes.tsv> <perform> <output_prefix> ",
+    "<bootstrap_iters> <0deg.keep> <2deg.keep> <3deg.keep> <pcs.txt>"
+  )
 }
 
 read_relatedness_ids <- function(path, sample_ids) {
@@ -50,6 +54,63 @@ read_relatedness_ids <- function(path, sample_ids) {
   ids
 }
 
+read_pca_scores <- function(path, sample_ids) {
+  if (!file.exists(path)) {
+    stop("PCA scores file does not exist: ", path)
+  }
+  scores <- readr::read_table(
+    path,
+    col_types = readr::cols(.default = readr::col_character()),
+    progress = FALSE
+  )
+  normalized_names <- toupper(sub("^#", "", names(scores)))
+  id_index <- match("IID", normalized_names)
+  if (is.na(id_index)) {
+    id_index <- match("ID", normalized_names)
+  }
+  if (is.na(id_index)) {
+    stop("Could not find an IID or ID column in PCA scores file: ", path)
+  }
+  pc_indices <- which(grepl("^PC[0-9]+$", normalized_names))
+  if (length(pc_indices) < 10) {
+    stop(
+      "Expected at least 10 PC columns in ", path, "; found ",
+      length(pc_indices)
+    )
+  }
+  pc_numbers <- as.integer(sub("^PC", "", normalized_names[pc_indices]))
+  pc_indices <- pc_indices[order(pc_numbers)]
+  pc_numbers <- sort(pc_numbers)
+  if (anyDuplicated(pc_numbers) || !all(seq_len(10) %in% pc_numbers)) {
+    stop("PCA scores must contain PC1 through PC10: ", path)
+  }
+  pca_ids <- as.character(scores[[id_index]])
+  if (anyNA(pca_ids) || anyDuplicated(pca_ids)) {
+    stop("PCA scores have missing or duplicate sample IDs: ", path)
+  }
+  missing_ids <- setdiff(as.character(sample_ids), pca_ids)
+  if (length(missing_ids) > 0) {
+    stop(
+      length(missing_ids), " phenotype sample IDs have no PCA scores in ", path,
+      "; examples: ", paste(head(missing_ids, 5), collapse = ", ")
+    )
+  }
+  relevant_rows <- match(as.character(sample_ids), pca_ids)
+  pca_data <- tibble::tibble(bfile_id = as.character(sample_ids))
+  for (pc_number in seq_len(10)) {
+    column_index <- pc_indices[match(pc_number, pc_numbers)]
+    pc_values <- suppressWarnings(as.numeric(scores[[column_index]][relevant_rows]))
+    if (anyNA(pc_values)) {
+      stop(
+        "PCA column ", names(scores)[column_index],
+        " contains missing or non-numeric values for phenotype samples"
+      )
+    }
+    pca_data[[paste0("PC", pc_number)]] <- pc_values
+  }
+  pca_data
+}
+
 
 #########################################
 # Import PHS data and metadata
@@ -64,23 +125,8 @@ analysis_data <-
   filter(age >= 40) %>%
   mutate(age_minus_40 = age - 40)
 
-# The cutoff-0 list removes duplicate/monozygotic-level samples while retaining
-# one sample per pair. Use it for the primary p2521 analyses.
-if (length(relatedness_keep_files) == 3) {
-  primary_ids <- read_relatedness_ids(relatedness_keep_files[[1]], analysis_data$bfile_id)
-  before_n <- nrow(analysis_data)
-  combined_data <- analysis_data %>%
-    filter(as.character(bfile_id) %in% primary_ids)
-  if (nrow(combined_data) == 0) {
-    stop("The 0-degree relatedness list removed every analysis participant")
-  }
-  message(
-    "Primary 0-degree set: retained ", nrow(combined_data), " of ", before_n,
-    " participants after age eligibility"
-  )
-} else {
-  combined_data <- analysis_data
-}
+# Preserve the original all-subject, unadjusted models as the primary analysis.
+combined_data <- analysis_data
 
 fit <- coxph(Surv(age, status) ~ phs, data = combined_data)
 zph_fit <- cox.zph(fit)
@@ -213,47 +259,76 @@ sample_size <- tibble(
   )
 )
 
-# Estimate the same three PHS coefficients in increasingly unrelated subsets.
-relatedness_sensitivity <- NULL
-if (length(relatedness_keep_files) == 3) {
-  sensitivity_specs <- list(
-    any_pca = c(time = "age", event = "status"),
-    metastatic = c(time = "age_of_metastasis", event = "metastasis"),
-    pca_death = c(time = "age_at_pca_death", event = "pca_death")
-  )
-  sensitivity_labels <- c("0deg", "2deg", "3deg")
-  sensitivity_cutoffs <- c("0deg" = 0.35333, "2deg" = 0.0883883, "3deg" = 0.0441942)
-  relatedness_sensitivity <- purrr::map2_dfr(
-    relatedness_keep_files, sensitivity_labels,
-    function(keep_file, degree_label) {
-      keep_ids <- read_relatedness_ids(keep_file, analysis_data$bfile_id)
-      sensitivity_data <- analysis_data %>%
-        filter(as.character(bfile_id) %in% keep_ids)
-      purrr::imap_dfr(sensitivity_specs, function(spec, model_name) {
-        model_data <- sensitivity_data %>%
+# Compare PHS coefficients across all subjects and KING retained sets, with no
+# PCs and with the first 5 or 10 PCs as covariates.
+sensitivity_specs <- list(
+  any_pca = c(time = "age", event = "status"),
+  metastatic = c(time = "age_of_metastasis", event = "metastasis"),
+  pca_death = c(time = "age_at_pca_death", event = "pca_death")
+)
+relatedness_labels <- c("0deg", "2deg", "3deg")
+relatedness_cutoffs <- c("0deg" = 0.35333, "2deg" = 0.0883883, "3deg" = 0.0441942)
+relatedness_ids <- purrr::map2(
+  relatedness_keep_files, relatedness_labels,
+  ~ read_relatedness_ids(.x, analysis_data$bfile_id)
+)
+names(relatedness_ids) <- relatedness_labels
+pca_scores <- read_pca_scores(pca_file, analysis_data$bfile_id)
+analysis_data <- analysis_data %>%
+  mutate(bfile_id = as.character(bfile_id)) %>%
+  left_join(pca_scores, by = "bfile_id")
+
+relatedness_sets <- c(
+  list(all = list(data = analysis_data, cutoff = NA_real_)),
+  purrr::imap(relatedness_ids, function(ids, label) {
+    list(
+      data = analysis_data %>% filter(bfile_id %in% ids),
+      cutoff = unname(relatedness_cutoffs[[label]])
+    )
+  })
+)
+names(relatedness_sets) <- c("all", relatedness_labels)
+
+genetic_qc_sensitivity <- purrr::imap_dfr(
+  relatedness_sets,
+  function(set, relatedness_label) {
+    purrr::imap_dfr(sensitivity_specs, function(spec, model_name) {
+      purrr::map_dfr(c(0L, 5L, 10L), function(pc_count) {
+        model_data <- set$data %>%
           filter(!is.na(.data[[spec[["time"]]]]), !is.na(.data[[spec[["event"]]]]))
-        if (nrow(model_data) == 0 || sum(model_data[[spec[["event"]]]]) == 0) {
+        pc_terms <- if (pc_count == 0L) character() else paste0("PC", seq_len(pc_count))
+        if (length(pc_terms) > 0) {
+          model_data <- model_data %>%
+            filter(if_all(all_of(pc_terms), ~ !is.na(.x)))
+        }
+        if (
+          nrow(model_data) == 0 ||
+          sum(model_data[[spec[["event"]]]], na.rm = TRUE) == 0
+        ) {
           stop(
             "No analyzable events for ", model_name, " in ",
-            degree_label, " relatedness subset"
+            relatedness_label, " relatedness set with ", pc_count, " PCs"
           )
         }
-        formula <- stats::as.formula(paste0(
-          "survival::Surv(", spec[["time"]], ", ", spec[["event"]], ") ~ phs"
+        formula <- stats::as.formula(paste(
+          "survival::Surv(", spec[["time"]], ", ", spec[["event"]], ") ~ phs",
+          if (length(pc_terms) > 0) paste("+", paste(pc_terms, collapse = " + ")) else ""
         ))
         fit <- survival::coxph(formula, data = model_data)
         broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>%
+          filter(term == "phs") %>%
           mutate(
-            model = paste0(model_name, "_", degree_label),
-            relatedness_set = degree_label,
-            kinship_cutoff = unname(sensitivity_cutoffs[degree_label]),
+            model = model_name,
+            relatedness_set = relatedness_label,
+            kinship_cutoff = set$cutoff,
+            pc_count = pc_count,
             n = fit$n,
             events = fit$nevent
           )
       })
-    }
-  )
-}
+    })
+  }
+)
 
 # Combine Coxph results
 any_pca_coxph$model <- "any_pca"
@@ -294,9 +369,7 @@ write_tsv(
   paste(output_prefix, "sample_size.tsv", sep = "_")
 )
 write_tsv(coxph_results, paste(output_prefix, "coxph.tsv", sep = "_"))
-if (!is.null(relatedness_sensitivity)) {
-  write_tsv(
-    relatedness_sensitivity,
-    paste(output_prefix, "relatedness_sensitivity.tsv", sep = "_")
-  )
-}
+write_tsv(
+  genetic_qc_sensitivity,
+  paste(output_prefix, "genetic_qc_sensitivity.tsv", sep = "_")
+)

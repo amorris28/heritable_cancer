@@ -21,9 +21,10 @@ outputs=(
   "data/public/${CLUSTER}_pca_death_performance.tsv"
   "data/public/${CLUSTER}_sample_size.tsv"
   "data/public/${CLUSTER}_coxph.tsv"
+  "data/public/${CLUSTER}_genetic_qc_sensitivity.tsv"
 )
 
-# KING cutoff retained-ID lists (plink2 --king-cutoff *.in.id)
+# KING cutoff retained-ID lists (plink2 --king-cutoff *.in.id).
 if [[ "$COHORT" == "p2521" ]]; then
   relatedness_dir=/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk
   relatedness_files=(
@@ -38,20 +39,23 @@ else
     "data/interim/relatedness/p212_3deg.king.cutoff.in.id"
   )
 fi
-outputs+=("data/public/${CLUSTER}_relatedness_sensitivity.tsv")
 for f in "${relatedness_files[@]}"; do
   [[ -f "$f" ]] || { echo "Missing relatedness keep list: $f" >&2; exit 1; }
 done
+PCA_FILE="data/interim/pca/pcs_${CLUSTER}.txt"
+[[ -f "$PCA_FILE" ]] || {
+  echo "Missing PCA scores: $PCA_FILE — run scripts/09_pca.sh $COHORT first" >&2
+  exit 1
+}
 
 should_run "${outputs[@]}" || exit 0
 
-r_args=("$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS" "${relatedness_files[@]}")
+r_args=("$PHENOTYPES" TRUE "$CLUSTER" "$BOOTSTRAP_ITERS" "${relatedness_files[@]}" "$PCA_FILE")
 run_rscript src/fit-models.R "${r_args[@]}"
 require_files "${CLUSTER}_phs_zph_tidy.tsv" "${CLUSTER}_any_pca_performance.tsv" \
   "${CLUSTER}_metastatic_performance.tsv" "${CLUSTER}_pca_death_performance.tsv" \
-  "${CLUSTER}_sample_size.tsv" "${CLUSTER}_coxph.tsv"
-
-require_files "${CLUSTER}_relatedness_sensitivity.tsv"
+  "${CLUSTER}_sample_size.tsv" "${CLUSTER}_coxph.tsv" \
+  "${CLUSTER}_genetic_qc_sensitivity.tsv"
 
 move_files=(
   "${CLUSTER}_phs_zph_tidy.tsv"
@@ -60,7 +64,7 @@ move_files=(
   "${CLUSTER}_pca_death_performance.tsv"
   "${CLUSTER}_sample_size.tsv"
   "${CLUSTER}_coxph.tsv"
-  "${CLUSTER}_relatedness_sensitivity.tsv"
+  "${CLUSTER}_genetic_qc_sensitivity.tsv"
 )
 mv "${move_files[@]}" data/public/
 
