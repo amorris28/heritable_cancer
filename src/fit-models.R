@@ -247,7 +247,7 @@ if (length(relatedness_keep_files) == 3) {
             model = paste0(model_name, "_", degree_label),
             relatedness_set = degree_label,
             kinship_cutoff = unname(sensitivity_cutoffs[degree_label]),
-            n = stats::nobs(fit),
+            n = fit$n,
             events = fit$nevent
           )
       })
