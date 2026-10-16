@@ -57,7 +57,8 @@ id_key <-
   select(
     huskmentid = HUSKMentID,
     bfile_id = decode_subjectid
-  )
+  ) %>%
+  resolve_duplicate_ids(c("huskmentid", "bfile_id"), "p2521 id_key")
 sum(!unique(avt_data$lopenr) %in% id_key$huskmentid)
 sum(!unique(som_data$lopenr) %in% id_key$huskmentid)
 sum(!unique(phv_data$lopenr) %in% id_key$huskmentid)
@@ -302,6 +303,8 @@ phenotype_data <-
 phs_data <- import_phs_data(model_file, inverse)
 
 combined_data <- process_combined_data(phenotype_data, phs_data)
+
+combined_data <- resolve_duplicate_ids(combined_data, c("huskmentid", "bfile_id"), "p2521 phenotypes")
 
 # Save output
 write_tsv(combined_data, "phenotypes.tsv")

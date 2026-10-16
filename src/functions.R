@@ -1,3 +1,25 @@
+# Drop exact duplicate rows, then drop every row whose value in any of id_cols
+# is shared with another row (NA ids are ignored). Conflicting duplicates are
+# removed entirely because the correct record cannot be determined.
+resolve_duplicate_ids <- function(data, id_cols, label = "data") {
+  n_start <- nrow(data)
+  data <- dplyr::distinct(data)
+  message(label, ": removed ", n_start - nrow(data), " exact duplicate rows")
+
+  dup <- rep(FALSE, nrow(data))
+  for (col in id_cols) {
+    ids <- data[[col]]
+    d <- !is.na(ids) & (duplicated(ids) | duplicated(ids, fromLast = TRUE))
+    message(label, ": ", length(unique(ids[d])), " conflicting duplicated ", col, " values")
+    dup <- dup | d
+  }
+  if (any(dup)) {
+    message(label, ": removing ", sum(dup), " rows with conflicting duplicate ids")
+    print(data[dup, ], n = Inf)
+  }
+  data[!dup, ]
+}
+
 # Function definitons
 ##  Data processing
 import_phs_data <- function(model_file, inverse = FALSE) {

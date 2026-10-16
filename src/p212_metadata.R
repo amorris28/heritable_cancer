@@ -115,7 +115,9 @@ combined_data <-
 id_key <-
   id_key %>%
   select(bfile_id = EDTANR, pid = PTN_REGNR) %>%
-  mutate(bfile_id = paste("Eivind", bfile_id, sep = "_"))
+  mutate(bfile_id = paste("Eivind", bfile_id, sep = "_")) %>%
+  mutate(pid = as.character(pid)) %>%
+  resolve_duplicate_ids(c("pid", "bfile_id"), "p212 id_key")
 
 # First, get the full dataset. Then filter it to the right subjects?
 combined_data <-
@@ -250,6 +252,8 @@ combined_data <-
 phs_data <- import_phs_data(model_file, inverse)
 
 combined_data <- process_combined_data(combined_data, phs_data)
+
+combined_data <- resolve_duplicate_ids(combined_data, c("pid", "bfile_id"), "p212 phenotypes")
 
 # Save output
 write_tsv(combined_data, "phenotypes.tsv")
