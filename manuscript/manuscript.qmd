@@ -484,5 +484,29 @@ One-sided Fisher's exact tests of whether the odds of carrying an RPV are greate
 :::
 
 
+::: {#supptab-qc}
+
+```{r}
+table_qc <- read_tsv("manuscript/figures_and_tables/table_qc_sensitivity.tsv")
+
+# Create table
+ft <- flextable(table_qc) %>%
+  fontsize(size = 8, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  merge_v(j = c("Cohort", "Outcome")) %>%
+  autofit() %>%
+  fit_to_width(max_width = 6) %>%
+  theme_vanilla()
+
+ft
+```
+
+Sensitivity analyses of the PHS hazard ratio (95% CI) per unit increase in PHS, accounting for relatedness and population structure. Kinship was estimated with KING; one member of each pair was retained at kinship coefficients above 0.35 (duplicates/monozygotic twins), 0.088 (2nd-degree or closer) and 0.044 (3rd-degree or closer). Models were adjusted for the first 0, 5 or 10 genetic principal components, calculated with FlashPCA on LD-pruned autosomal variants after excluding high-LD regions. Retained: all = all participants; Excl. = one member of each related pair removed at the indicated degree or closer. The primary analysis (all participants, no PCs) is the first row of each outcome. N (events) = participants in the model (cases of the outcome).
+
+:::
+
+
 
 

@@ -526,3 +526,44 @@ table_age_summary <-
   )
 
 write_tsv(table_age_summary, "figures_and_tables/table_age_summary.tsv")
+
+###############################################################
+# Supplementary Table - relatedness and PC sensitivity analyses
+###############################################################
+p212_qc_sensitivity <- read_tsv("data/public/p212_genetic_qc_sensitivity.tsv")
+p2521_qc_sensitivity <- read_tsv("data/public/p2521_genetic_qc_sensitivity.tsv")
+
+p212_qc_sensitivity$cohort <- "NFCS"
+p2521_qc_sensitivity$cohort <- "HUSK"
+
+table_qc_sensitivity <-
+  p2521_qc_sensitivity %>%
+  rbind(p212_qc_sensitivity) %>%
+  mutate(
+    cohort = factor(cohort, levels = c("HUSK", "NFCS")),
+    model = factor(
+      model,
+      levels = c("any_pca", "metastatic", "pca_death"),
+      labels = c("Any-stage PCa", "Aggressive PCa", "PCa death")
+    ),
+    relatedness_set = factor(
+      relatedness_set,
+      levels = c("all", "0deg", "2deg", "3deg"),
+      labels = c(
+        "All", "Excl. duplicates/MZ", "Excl. 2nd-degree+", "Excl. 3rd-degree+"
+      )
+    ),
+    pcs = factor(pc_count, levels = c(0, 5, 10), labels = c("No PCs", "5 PCs", "10 PCs")),
+    hr = sprintf("%.2f (%.2f, %.2f)", estimate, conf.low, conf.high),
+    n_events = sprintf("%d (%d)", n, events)
+  ) %>%
+  select(cohort, model, relatedness_set, n_events, pcs, hr) %>%
+  pivot_wider(names_from = pcs, values_from = hr) %>%
+  arrange(cohort, model, relatedness_set) %>%
+  select(
+    Cohort = cohort, Outcome = model, Retained = relatedness_set,
+    `N (events)` = n_events, `No PCs`, `5 PCs`, `10 PCs`
+  ) %>%
+  mutate(across(c(Cohort, Outcome, Retained), as.character))
+
+write_tsv(table_qc_sensitivity, "figures_and_tables/table_qc_sensitivity.tsv")
