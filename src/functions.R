@@ -14,7 +14,11 @@ resolve_duplicate_ids <- function(data, id_cols, label = "data") {
     dup <- dup | d
   }
   if (any(dup)) {
-    message(label, ": removing ", sum(dup), " rows with conflicting duplicate ids")
+    n_ids <- nrow(dplyr::distinct(data[dup, id_cols]))
+    message(
+      label, ": removing ", sum(dup), " rows (", n_ids,
+      " unique ", paste(id_cols, collapse = "/"), " combinations) with conflicting duplicate ids"
+    )
     print(data[dup, ], n = Inf)
   }
   data[!dup, ]
