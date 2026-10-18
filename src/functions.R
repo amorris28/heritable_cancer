@@ -27,12 +27,15 @@ resolve_duplicate_ids <- function(data, id_cols, label = "data") {
 # Function definitons
 ##  Data processing
 import_phs_data <- function(model_file, inverse = FALSE) {
+  # phs_raw is the unstandardized plink weighted sum (log-hazard units if the
+  # model Betas are log-HRs); phs is the cohort-specific z-score used for the
+  # primary analyses.
   readr::read_table(model_file) %>%
-    dplyr::select(bfile_id = IID, phs = SCORESUM) %>%
-    dplyr::mutate(phs = as.vector(scale(phs, center = TRUE, scale = TRUE))) ->
+    dplyr::select(bfile_id = IID, phs_raw = SCORESUM) %>%
+    dplyr::mutate(phs = as.vector(scale(phs_raw, center = TRUE, scale = TRUE))) ->
   phs_data
   if (inverse) {
-    dplyr::mutate(phs_data, phs = phs * -1) -> phs_data
+    dplyr::mutate(phs_data, phs_raw = phs_raw * -1, phs = phs * -1) -> phs_data
   }
   return(phs_data)
 }
