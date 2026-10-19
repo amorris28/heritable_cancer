@@ -110,48 +110,12 @@ zph_tt <- ggplot(plot_data, aes(x = time, y = beta_t)) +
 saveRDS(zph_tt, paste(output_prefix, "zph_tt.rds", sep = "_"))
 
 #########################################################
-# Overlay Cox model-predicted curves onto an empirical (KM) phs_abs_risk plot.
-# Percentiles are band midpoints so each dashed line tracks the corresponding
-# solid KM stratum: 95-100% -> 0.975, 80-100% -> 0.90, 30-70% -> 0.50, 0-20% -> 0.10.
-# KM keeps its solid line + ribbon (matches other KM figures in the paper);
-# the Cox overlay is a thin dashed line with no ribbon, to avoid visual clutter
-# from two overlapping bands of uncertainty per stratum.
-add_cox_curve_overlay <- function(km_plot, data, time = "age", event = "status") {
-  stratum_levels <- c("95-100%", "80-100%", "30-70%", "0-20%")
-  cox_pct        <- c(0.975, 0.90, 0.50, 0.10)
-
-  cxph <- survival::coxph(
-    stats::as.formula(paste0("survival::Surv(", time, ", ", event, ") ~ phs")),
-    data = data
-  )
-
-  cox_data <-
-    phs_cox_curve_at_percentile(cxph, data$phs, cox_pct) %>%
-    mutate(
-      stratum       = factor(stratum_levels[match(percentile_value, cox_pct)], levels = stratum_levels),
-      risk_estimate = 1 - estimate
-    ) %>%
-    select(time, stratum, risk_estimate)
-
-  # Thin the KM step line (package default is 0.8) so it doesn't dominate the dashed overlay.
-  km_plot$layers[[1]]$aes_params$linewidth <- 0.5
-
-  km_plot +
-    geom_line(
-      data = cox_data,
-      aes(x = time, y = risk_estimate, color = stratum),
-      linetype = "dashed", linewidth = 0.5, inherit.aes = FALSE
-    )
-}
-
-#########################################################
 # Plot Cumulative Incidence Curves
 any_pca_cuminc <- phs_cuminc_strata(
   combined_data,
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
 any_pca_km_curve <- plot_cuminc_strata(any_pca_cuminc)
-any_pca_km_curve <- add_cox_curve_overlay(any_pca_km_curve, combined_data)
 
 ######################################################
 # metastatic
@@ -256,10 +220,6 @@ metastatic_cuminc <- phs_cuminc_strata(
   intervals = list(c(0.95, 1), c(0.80, 1), c(0.30, 0.70), c(0, 0.20))
 )
 metastatic_km_curve <- plot_cuminc_strata(metastatic_cuminc)
-metastatic_km_curve <- add_cox_curve_overlay(
-  metastatic_km_curve, combined_data,
-  time = "age_of_metastasis", event = "metastasis"
-)
 
 # Build numbers-at-risk tables
 any_pca_risk_table <- plot_risk_table(
