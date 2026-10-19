@@ -136,6 +136,26 @@ table_coxph <-
   ) %>%
   select(-n)
 
+# Absolute risk: cumulative incidence by age 70 in the bottom 20%, middle (30-70%)
+# and top 20% of PHS
+cuminc_age <-
+  bind_rows(
+    read_tsv("data/public/p2521_cuminc_at_age.tsv") %>% mutate(cohort = "HUSK"),
+    read_tsv("data/public/p212_cuminc_at_age.tsv") %>% mutate(cohort = "NFCS")
+  ) %>%
+  filter(stratum %in% c("0-20%", "30-70%", "80-100%")) %>%
+  mutate(
+    PCa = if_else(model == "any_pca", "Any", "Aggr"),
+    value = sprintf("%.1f (%.1f, %.1f)", 100 * estimate, 100 * conf_low, 100 * conf_high),
+    col = paste0("Risk70_", stratum)
+  ) %>%
+  select(PCa, Cohort = cohort, col, value) %>%
+  pivot_wider(names_from = col, values_from = value) %>%
+  select(PCa, Cohort, `Risk70_0-20%`, `Risk70_30-70%`, `Risk70_80-100%`)
+
+table_coxph <- table_coxph %>%
+  left_join(cuminc_age, by = c("PCa", "Cohort"))
+
 write_tsv(table_coxph, "figures_and_tables/table_coxph.tsv")
 
 ###############################################################

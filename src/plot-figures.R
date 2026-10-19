@@ -231,6 +231,25 @@ metastatic_risk_table <- plot_risk_table(
   x_range = range(metastatic_cuminc$time)
 )
 
+# Cumulative incidence (1 - KM) by a predefined age for each PHS stratum, for Table 2
+risk_age <- 70
+cuminc_at_age <- function(cuminc_df, age, model) {
+  cuminc_df %>%
+    group_by(stratum) %>%
+    summarise(
+      last = max(which(time <= age)),
+      estimate = risk_estimate[last], conf_low = conf_low[last],
+      conf_high = conf_high[last], .groups = "drop"
+    ) %>%
+    transmute(cohort = output_prefix, model = model, age = age,
+              stratum = as.character(stratum), estimate, conf_low, conf_high)
+}
+cuminc_age_table <- bind_rows(
+  cuminc_at_age(any_pca_cuminc, risk_age, "any_pca"),
+  cuminc_at_age(metastatic_cuminc, risk_age, "metastatic")
+)
+write_tsv(cuminc_age_table, paste(output_prefix, "cuminc_at_age.tsv", sep = "_"))
+
 # Save Output
 saveRDS(any_pca_km_curve,       paste(output_prefix, "any_pca_abs_risk.rds",       sep = "_"))
 saveRDS(any_pca_risk_table,     paste(output_prefix, "any_pca_risk_table.rds",     sep = "_"))
