@@ -572,9 +572,9 @@ table_qc_sensitivity <-
     ),
     relatedness_set = factor(
       relatedness_set,
-      levels = c("all", "0deg", "2deg", "3deg"),
+      levels = c("0deg", "2deg", "3deg"),
       labels = c(
-        "All", "Excl. duplicates/MZ", "Excl. 2nd-degree+", "Excl. 3rd-degree+"
+        "Excl. duplicates/MZ", "Excl. 2nd-degree+", "Excl. 3rd-degree+"
       )
     ),
     pcs = factor(pc_count, levels = c(0, 5, 10), labels = c("No PCs", "5 PCs", "10 PCs")),

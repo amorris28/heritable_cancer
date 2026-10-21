@@ -43,12 +43,13 @@ Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
 ## Relatedness and PC sensitivity analyses
 
-The primary Cox models in `scripts/03_fit_models.sh <cohort>` retain the
-original specification: all eligible subjects, no genetic PCs. Sensitivity
+The primary Cox models in `scripts/03_fit_models.sh <cohort>` use all eligible
+subjects except one member of each KING 0-degree (duplicate/MZ) pair, with no
+genetic PCs. Sensitivity
 analyses estimate the PHS coefficient for each of three endpoints (any PCa,
-metastatic PCa and PCa-specific death) across a 4-by-3 grid:
+metastatic PCa and PCa-specific death) across a 3-by-3 grid:
 
-- retained set: all subjects, then KING 0-degree, 2-degree and 3-degree
+- retained set: KING 0-degree (primary), 2-degree and 3-degree
   retained sets;
 - PC adjustment: none, first 5 PCs, or first 10 PCs.
 
@@ -58,7 +59,8 @@ ratio and confidence interval, are written to
 kinship cutoff of 0.35333 (duplicates/monozygotic-level); 2-degree and
 3-degree lists use cutoffs 0.0883883 and 0.0441942, respectively.
 
-- p2521: KING retained-ID lists come from the external run,
+- p2521: genotypes are the v260302 imputation (`config/p2521.env`); KING
+  retained-ID lists must come from the same release. They come from the external run,
   `/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk/all_chr.cutoff_{0deg,2deg,3deg}.king.cutoff.in.id`.
 - p212: run `scripts/08_p212_relatedness.sh` first. It converts the
   colleague's KING text matrix to `.king.bin` (`scripts/lib/king_text_to_bin.py`)

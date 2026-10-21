@@ -125,7 +125,21 @@ analysis_data <-
   filter(age >= 40) %>%
   mutate(age_minus_40 = age - 40)
 
-# Preserve the original all-subject, unadjusted models as the primary analysis.
+# Primary analysis: unadjusted models excluding one member of each
+# duplicate/MZ pair (KING 0-degree retained set).
+relatedness_labels <- c("0deg", "2deg", "3deg")
+relatedness_ids <- purrr::map2(
+  relatedness_keep_files, relatedness_labels,
+  ~ read_relatedness_ids(.x, analysis_data$bfile_id)
+)
+names(relatedness_ids) <- relatedness_labels
+all_subjects_data <- analysis_data
+analysis_data <- analysis_data %>%
+  filter(as.character(bfile_id) %in% relatedness_ids[["0deg"]])
+message(
+  "Excluded ", nrow(all_subjects_data) - nrow(analysis_data),
+  " of ", nrow(all_subjects_data), " subjects as duplicates/MZ (0deg)"
+)
 combined_data <- analysis_data
 
 fit <- coxph(Surv(age, status) ~ phs, data = combined_data)
@@ -259,35 +273,27 @@ sample_size <- tibble(
   )
 )
 
-# Compare PHS coefficients across all subjects and KING retained sets, with no
+# Compare PHS coefficients across KING retained sets, with no
 # PCs and with the first 5 or 10 PCs as covariates.
 sensitivity_specs <- list(
   any_pca = c(time = "age", event = "status"),
   metastatic = c(time = "age_of_metastasis", event = "metastasis"),
   pca_death = c(time = "age_at_pca_death", event = "pca_death")
 )
-relatedness_labels <- c("0deg", "2deg", "3deg")
 relatedness_cutoffs <- c("0deg" = 0.35333, "2deg" = 0.0883883, "3deg" = 0.0441942)
-relatedness_ids <- purrr::map2(
-  relatedness_keep_files, relatedness_labels,
-  ~ read_relatedness_ids(.x, analysis_data$bfile_id)
-)
-names(relatedness_ids) <- relatedness_labels
-pca_scores <- read_pca_scores(pca_file, analysis_data$bfile_id)
-analysis_data <- analysis_data %>%
+# Reading PCs for every subject also verifies all phenotype IDs are present in
+# the genotype release used for PCA.
+pca_scores <- read_pca_scores(pca_file, all_subjects_data$bfile_id)
+all_subjects_data <- all_subjects_data %>%
   mutate(bfile_id = as.character(bfile_id)) %>%
   left_join(pca_scores, by = "bfile_id")
 
-relatedness_sets <- c(
-  list(all = list(data = analysis_data, cutoff = NA_real_)),
-  purrr::imap(relatedness_ids, function(ids, label) {
-    list(
-      data = analysis_data %>% filter(bfile_id %in% ids),
-      cutoff = unname(relatedness_cutoffs[[label]])
-    )
-  })
-)
-names(relatedness_sets) <- c("all", relatedness_labels)
+relatedness_sets <- purrr::imap(relatedness_ids, function(ids, label) {
+  list(
+    data = all_subjects_data %>% filter(bfile_id %in% ids),
+    cutoff = unname(relatedness_cutoffs[[label]])
+  )
+})
 
 genetic_qc_sensitivity <- purrr::imap_dfr(
   relatedness_sets,
