@@ -24,6 +24,17 @@ resolve_duplicate_ids <- function(data, id_cols, label = "data") {
   data[!dup, ]
 }
 
+# Print every row whose `key` value occurs more than once, grouped by key, so
+# the reason for the duplication (e.g. multiple diagnosis dates) is visible.
+show_duplicate_keys <- function(data, key, label = "data") {
+  ids <- data[[key]]
+  dup <- !is.na(ids) & (duplicated(ids) | duplicated(ids, fromLast = TRUE))
+  message(label, ": ", length(unique(ids[dup])), " duplicated ", key, " values (", sum(dup), " rows)")
+  out <- dplyr::arrange(data[dup, ], .data[[key]])
+  if (nrow(out) > 0) print(out, n = Inf, width = Inf)
+  invisible(out)
+}
+
 # Function definitons
 ##  Data processing
 import_phs_data <- function(model_file, inverse = FALSE) {

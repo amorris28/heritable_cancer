@@ -75,6 +75,13 @@ male_data <-
   mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
   select(pid = PID, death = DEATH, wgs = WGS, age = AGELASTOBS)
 
+show_duplicate_keys(
+  filter(all_data, SEX == "M"), "PID", "all_data (males)"
+)
+show_duplicate_keys(
+  filter(case_data, icd9 == 185), "pid", "case_data PCa rows"
+)
+
 cases <-
   case_data %>%
   filter(icd9 == 185) %>%
@@ -85,16 +92,24 @@ cases <-
   filter(age_diagnosis == min(age_diagnosis)) %>%
   ungroup()
 
-# Earliest age we can identify for each participant, from any diagnosis record
-# in sheet 2 (not just the PCa diagnosis used for `cases` above) — add more
-# sources here with additional pmin() terms if they become available.
-# earliest_case_age <-
-#   case_data %>%
-#   select(pid, age_ca) %>%
-#   filter(!is.na(age_ca)) %>%
-#   group_by(pid) %>%
-#   summarize(earliest_case_age = min(age_ca, na.rm = TRUE)) %>%
-#   ungroup()
+# Registry (ICD10 C61) is a second source of PCa diagnoses and is used below
+# for metastasis and PCa death, so it also has to define case status.
+reg_pca <-
+  cancer_reg %>%
+  filter(ICD10_gr == "C61") %>%
+  mutate(pid = as.character(regnr))
+
+show_duplicate_keys(
+  select(reg_pca, pid, ALDER, METASTASE, FOEDT_AAR, STATUSAAR, DAAR_CANCER),
+  "pid", "registry C61 rows"
+)
+
+registry_dx <-
+  reg_pca %>%
+  filter(!is.na(ALDER)) %>%
+  group_by(pid) %>%
+  summarize(age_diagnosis_reg = min(ALDER)) %>%
+  ungroup()
 
 combined_data <-
   all_data %>%
@@ -102,14 +117,37 @@ combined_data <-
   mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
   select(pid = PID, death = DEATH, wgs = WGS, age_lastobs = AGELASTOBS) %>%
   full_join(cases, by = "pid") %>%
-  # full_join(earliest_case_age, by = "pid") %>%
-  mutate(status = if_else(is.na(status), 0, status)) %>%
-  mutate(age = if_else(status == 1, age_diagnosis, age_lastobs)) %>%
-  # mutate(age_first_follow_up = pmin(age_lastobs, earliest_case_age, na.rm = TRUE)) %>%
-  # age_lastobs is last observed age for everyone in the registry, cases included
-  # mutate(follow_up_years = age_lastobs - age_first_follow_up) %>%
-  # select(-earliest_case_age) %>%
-  mutate(pid = as.character(pid))
+  mutate(pid = as.character(pid)) %>%
+  left_join(registry_dx, by = "pid") %>%
+  mutate(
+    in_case_data = !is.na(status),
+    in_registry = !is.na(age_diagnosis_reg),
+    diagnosis_source = case_when(
+      in_case_data & in_registry ~ "both",
+      in_case_data ~ "case_data only",
+      in_registry ~ "registry only",
+      TRUE ~ "none"
+    ),
+    # A registry C61 diagnosis counts as a case even if sheet 2 lacks it.
+    status = if_else(in_case_data | in_registry, 1, 0),
+    age_diagnosis = coalesce(age_diagnosis, age_diagnosis_reg),
+    age = if_else(status == 1, age_diagnosis, age_lastobs)
+  )
+
+message("PCa diagnosis source:")
+print(count(combined_data, diagnosis_source))
+registry_only <- filter(combined_data, diagnosis_source == "registry only")
+if (nrow(registry_only) > 0) {
+  message("Registry C61 diagnoses missing from case_data (treated as cases):")
+  print(registry_only, n = Inf, width = Inf)
+}
+age_mismatch <-
+  filter(combined_data, diagnosis_source == "both", abs(age_diagnosis - age_diagnosis_reg) > 1)
+if (nrow(age_mismatch) > 0) {
+  message("Diagnosis age differs >1 year between case_data and registry:")
+  print(age_mismatch, n = Inf, width = Inf)
+}
+combined_data <- select(combined_data, -in_case_data, -in_registry, -age_diagnosis_reg, -diagnosis_source)
 
 # SubjectIDs in a text file
 id_key <-
@@ -137,10 +175,8 @@ cancer_reg %>%
 
 # identify age at metastasis
 metastasis <-
-  cancer_reg %>%
-  filter(ICD10_gr == "C61") %>%
-  select(pid = regnr, ALDER, METASTASE) %>%
-  mutate(pid = as.character(pid)) %>%
+  reg_pca %>%
+  select(pid, ALDER, METASTASE) %>%
   mutate(metastasis = if_else(METASTASE %in% metastase_strict, 1, 0)) %>%
   mutate(age_of_metastasis = if_else(metastasis == 1, ALDER, NA)) %>%
   rename(metastasis_code = METASTASE) %>%
@@ -174,6 +210,25 @@ combined_data <-
   mutate(diagnosis_to_death_years = age_at_death - age_diagnosis) %>%
   mutate(pca_death = if_else(is.na(doed_av_pca), 0L, 1L)) %>%
   mutate(age_at_pca_death = if_else(pca_death == 1L, age_at_death, age_lastobs))
+
+# Consistency checks between sources.
+impossible <- filter(combined_data, status == 0 & (metastasis == 1 | pca_death == 1))
+if (nrow(impossible) > 0) {
+  print(impossible, n = Inf, width = Inf)
+  stop("Controls with metastasis or PCa death: ", nrow(impossible), " subjects")
+}
+inconsistent <- bind_rows(
+  filter(combined_data, metastasis == 1, age_of_metastasis < age_diagnosis) %>%
+    mutate(problem = "metastasis before diagnosis"),
+  filter(combined_data, pca_death == 1, age_at_death < age_diagnosis) %>%
+    mutate(problem = "PCa death before diagnosis"),
+  filter(combined_data, pca_death == 1, death != 1) %>%
+    mutate(problem = "registry PCa death but all_data death != 1")
+)
+if (nrow(inconsistent) > 0) {
+  message("Inconsistent records between sources:")
+  print(inconsistent, n = Inf, width = Inf)
+}
 
 #####################################################################
 # WGS
