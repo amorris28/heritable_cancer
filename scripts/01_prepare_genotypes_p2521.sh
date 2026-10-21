@@ -9,7 +9,7 @@
 # One-time, long-running genotype preprocessing for the p2521 (HUSK) cohort:
 #   imputed bfile -> harmonize PHS601 model -> extract SNPs -> score.
 # Idempotent: each step is skipped if its output already exists (see scripts/lib/common.sh).
-# Submit with: sbatch scripts/01_prepare_genotypes_p2521.sh
+# Submit with: sbatch scripts/01_prepare_genotypes_p2521.sh [--force]  (or FORCE=1 sbatch ...)
 set -euo pipefail
 # sbatch copies this script into a spool dir, so BASH_SOURCE can't locate the repo; use SLURM_SUBMIT_DIR instead.
 if [[ -n "${SLURM_SUBMIT_DIR:-}" ]]; then
@@ -18,6 +18,7 @@ else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 source "${SCRIPT_DIR}/lib/common.sh"
+[[ "${1:-}" == "--force" ]] && FORCE=1
 load_cohort_config p2521
 cd "$REPO_ROOT"
 

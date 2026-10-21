@@ -9,7 +9,7 @@
 # One-time, long-running genotype preprocessing for the p212 (NFCS/MoBA) cohort:
 #   BIM files (already imputed) -> harmonize PHS601 model -> filter SNPs -> merge -> score -> HOXB13.
 # Idempotent: each step is skipped if its output already exists (see scripts/lib/common.sh).
-# Submit with: sbatch scripts/01_prepare_genotypes_p212.sh
+# Submit with: sbatch scripts/01_prepare_genotypes_p212.sh [--force]  (or FORCE=1 sbatch ...)
 # Force recomputation of a step by removing its output file(s), or FORCE=1 sbatch ...
 set -euo pipefail
 # sbatch copies this script into a spool dir, so BASH_SOURCE can't locate the repo; use SLURM_SUBMIT_DIR instead.
@@ -19,6 +19,7 @@ else
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 source "${SCRIPT_DIR}/lib/common.sh"
+[[ "${1:-}" == "--force" ]] && FORCE=1
 load_cohort_config p212
 cd "$REPO_ROOT"
 
