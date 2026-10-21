@@ -227,7 +227,7 @@ In the WGS subset, a one-SD increase in PHS predicted a `{r} (wgs_results |> fil
 
 # Discussion
 
-We provide the first external validation of PHS601 in independent European population-based cohorts, demonstrating that the time-to-event genetic risk stratification of PHS601 generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. The magnitude of risk stratification in HUSK (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]) was consistent with PHS601 replication in the PRACTICAL consortium (COSM: HR~80/20~ = 9.18, 95% CI \[6.66–12.93\]; ProtecT: HR~80/20~ = 5.67, 95% CI \[4.75, 6.73\])[@vassy2026], supporting robust cross-population transferability of the model to independent European cohorts outside the development and prior validation populations. To illustrate the clinical magnitude of this risk stratification: by age 75, men in the top PHS quintile had an estimated cumulative PCa incidence of approximately 30%, compared with ~8% for those in the bottom quintile (@{fig-strat}), a ~4-fold absolute risk difference.
+We provide the first external validation of PHS601 in independent European population-based cohorts, demonstrating that the time-to-event genetic risk stratification of PHS601 generalizes across healthcare systems and populations with different baseline risk profiles, screening practices, and genetic backgrounds. The magnitude of risk stratification in HUSK (HR~80/20~ = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]) was consistent with PHS601 replication in the PRACTICAL consortium (COSM: HR~80/20~ = 9.18, 95% CI \[6.66–12.93\]; ProtecT: HR~80/20~ = 5.67, 95% CI \[4.75, 6.73\])[@vassy2026], supporting robust cross-population transferability of the model to independent European cohorts outside the development and prior validation populations. To illustrate the clinical magnitude of this risk stratification: by age 70, men in the top PHS quintile had an estimated cumulative PCa incidence of approximately 22.5%, compared with 3.3% for those in the bottom quintile (@{fig-strat}), a ~4-fold absolute risk difference.
 
 PHS601 stratified absolute risk of aggressive PCa in both cohorts, despite being trained on any-stage disease, which supports prior testing of PHS601 [@dornisch2025; @vassy2026], though risk stratification for aggressive PCa was weaker than for any-stage PCa (HUSK: HR~80/20~ for aggressive = `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95% CI \[`{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521_meta |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\] versus any-stage PCa = `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(estimate))`, 95\% CI \[`{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_low))`, `{r} sprintf("%.2f", p2521 |> filter(metric == "HR[80-100]_[0-20]") |> pull(conf_high))`\]). This study assessed risk from birth in the general population, which is the appropriate framing for a pre-screening context, since the clinically actionable question is who among undiagnosed men carries elevated inherited risk of aggressive disease. A case-only analysis would inappropriately condition on prior diagnosis [@paternoster2017]. Once a diagnosis is established, germline risk is superseded by superior instruments for predicting progression, including PSA trajectory, Gleason grade, MRI staging, and somatic genomic classifiers such as Decipher and Oncotype DX. Critically, PHS serves the screening decision rather than the treatment decision. High-PHS men benefit from earlier and more intensive surveillance, while low-PHS men are candidates for reduced or deferred screening — directly addressing the overdiagnosis harms that limit current PSA-based screening paradigms. The clinical relevance of PHS for aggressive disease is further supported by evidence that earlier PCa diagnosis independently confers elevated lifetime risk of metastatic progression regardless of initial grade [@clark2022].
 
@@ -325,9 +325,10 @@ ft <- flextable(table_age_summary) %>%
 ft
 ```
 
+
+
 Median and interquartile range (Q1, Q3) of key age and demographic variables for
-each cohort. Percentages are of all participants in the analysis. Age at first
-follow-up is not available for the NFCS cohort. Age at aggressive diagnosis is
+each cohort. Percentages are of all participants in the analysis. Age at aggressive diagnosis is
 restricted to aggressive cases. Age at last follow-up is restricted to controls
 (censored participants). PHS is z-scored. Deaths before diagnosis are treated
 as censoring events.
@@ -336,7 +337,7 @@ as censoring events.
 
 
 ```{r tbl-coxph}
-#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). Risk by 70 is the cumulative incidence (%) of PCa by age 70 (Kaplan-Meier) in the bottom 20%, middle (30-70th percentile) and top 20% of PHS. 95% confidence intervals are based on 999 bootstraps.
+#| tbl-cap: HRs and C-Index for the any-PCa and aggressive-PCa models. HR~SD~ is the increase in HR for a one-standard-deviation increase in PHS. HR~80/20~ is the HR between the top quintile and the bottom quintile of PHS. HR~80/50~ is the HR between the top quintile and the median PHS (30-70th percentile). HR~95/50~ is the HR between the top 5% and the median PHS (30-70th percentile). 95% confidence intervals are based on 999 bootstraps.
 table_coxph <- read_tsv("manuscript/figures_and_tables/table_coxph.tsv")
 border <- fp_border_default()
 
@@ -346,7 +347,7 @@ update <- table_coxph[, -1]
 update <-
   update %>%
   mutate(subheader = NA_character_) %>%
-  select(subheader, Cohort:`Risk70_80-100%`)
+  select(subheader, Cohort:`C-Index`)
 for (i in seq_along(rows)) {
   start = rows[i]-1
   update <- rbind(
@@ -362,8 +363,6 @@ ft <- flextable(update) %>%
       font(part = "all", fontname = "Helvetica Neue") %>% 
       bold(part = "body", j = "subheader") %>%
       width(j = c("subheader", "Cohort", "Cases", "HR_SD", "HR80/20", "HR80/50", "HR95/50", "C-Index"), width = c(.3, .5, .5, 1, 1, 1, 1, 1)) %>%
-      width(j = c("Risk70_0-20%", "Risk70_30-70%", "Risk70_80-100%"), width = 1) %>%
-      set_header_labels(`Risk70_0-20%` = "Risk by 70, PHS 0-20%", `Risk70_30-70%` = "Risk by 70, PHS 30-70%", `Risk70_80-100%` = "Risk by 70, PHS 80-100%") %>%
       mk_par( 
         j = "HR_SD", 
         part = "header",
@@ -392,12 +391,33 @@ ft <- flextable(update) %>%
           "HR", as_sub("95/50")
         )
       ) %>%
-      merge_h_range(i = 1, j1 = "subheader", j2 = "`Risk70_80-100%`") %>%
-      merge_h_range(i = 4, j1 = "subheader", j2 = "`Risk70_80-100%`")  %>%
+      merge_h_range(i = 1, j1 = "subheader", j2 = "`C-Index`") %>%
+      merge_h_range(i = 4, j1 = "subheader", j2 = "`C-Index`")  %>%
       set_header_labels(subheader = "") %>%
       theme_vanilla()
 
 ft
+```
+
+```{r tbl-risk}
+#| tbl-cap: Cumulative incidence (%) of PCa by age 70 (Kaplan-Meier) by PHS group, with 95% confidence intervals. Low is the bottom 20% of PHS, average is the 30-70th percentile and high is the top 20%.
+cols <- c("Cohort", "Cases", "Low", "Average", "High")
+risk <- read_tsv("manuscript/figures_and_tables/table_coxph.tsv") %>%
+  transmute(
+    PCa = recode(PCa, Any = "Any-stage PCa", Aggr = "Aggressive PCa"),
+    Cohort, Cases,
+    Low = `Risk70_0-20%`, Average = `Risk70_30-70%`, High = `Risk70_80-100%`
+  )
+
+as_grouped_data(risk, groups = "PCa") %>%
+  as_flextable(col_keys = cols, hide_grouplabel = TRUE) %>%
+  fontsize(size = 9, part = "all") %>%
+  font(part = "all", fontname = "Helvetica Neue") %>%
+  add_header_row(values = c("", "Cumulative incidence by age 70, % (95% CI)"),
+                 colwidths = c(2, 3)) %>%
+  align(part = "header", align = "center") %>%
+  width(j = cols, width = c(.7, .6, 1.3, 1.3, 1.3)) %>%
+  theme_vanilla()
 ```
 
 
@@ -406,6 +426,15 @@ ft
 ![](figures_and_tables/cumulative_comparison.pdf){width=85%}
 
 Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017[@huynh-le2020a]. Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
+
+:::
+
+
+::: {#suppfig-calibration}
+
+![](figures_and_tables/calibration.pdf){width=100%}
+
+Calibration of predicted absolute risk at screening ages 50, 55, 60 and 65 years. Men were grouped into PHS quintiles; points show the mean predicted cumulative incidence against the observed Kaplan-Meier cumulative incidence in each quintile (error bars, 95% CI). The dashed line is perfect calibration (slope = 1, intercept = 0). Coloured lines are weighted linear fits for a Cox model with a constant PHS hazard ratio and one with an age-varying hazard ratio (separate coefficients before age 60, 60-70 and after 70); slopes are shown with bootstrap 95% CIs. Calibration is internal (predictions and observations come from the same cohort).
 
 :::
 

@@ -497,7 +497,7 @@ table_hoxb13 <-
 write_tsv(table_hoxb13, "figures_and_tables/table_hoxb13.tsv")
 
 ###############################################################
-# Supplementary Table - age summary
+# Table 1 - age summary
 ###############################################################
 p212_age_summary     <- read_tsv("data/public/p212_age_summary.tsv")
 p212_age_summary_wgs <- read_tsv("data/public/p212_age_summary_wgs.tsv")
@@ -545,6 +545,10 @@ table_age_summary <-
     .after = 1
   )
 
+table_age_summary <-
+  table_age_summary %>%
+  filter(!Variable %in% c("Age at First Follow-up", "Follow-up Duration (years)"))
+
 write_tsv(table_age_summary, "figures_and_tables/table_age_summary.tsv")
 
 ###############################################################
@@ -587,3 +591,41 @@ table_qc_sensitivity <-
   mutate(across(c(Cohort, Outcome, Retained), as.character))
 
 write_tsv(table_qc_sensitivity, "figures_and_tables/table_qc_sensitivity.tsv")
+
+###############################################################
+# Calibration of absolute risk (supplementary figure)
+###############################################################
+plot_calibration <- function(prefix, title) {
+  calib <- read_tsv(paste0("data/public/", prefix, "_calibration_by_age.tsv"),
+                    show_col_types = FALSE) %>%
+    filter(analysis == "From age 40")
+  labels <- read_tsv(paste0("data/public/", prefix, "_calibration_slope_intercept.tsv"),
+                     show_col_types = FALSE) %>%
+    filter(analysis == "From age 40") %>%
+    mutate(label = sprintf("slope = %.2f (%.2f-%.2f)", slope, slope_lo, slope_hi),
+           vj = ifelse(model == "Constant HR", 1.2, 2.6))
+  ggplot(calib, aes(predicted * 100, observed * 100)) +
+    geom_abline(linetype = "dashed", colour = "grey50") +
+    geom_smooth(aes(weight = n, colour = model), method = "lm", se = FALSE,
+                na.rm = TRUE, linewidth = 0.7) +
+    geom_errorbar(aes(ymin = pmax(observed - 1.96 * obs_se, 0) * 100,
+                      ymax = (observed + 1.96 * obs_se) * 100),
+                  width = 0, colour = "grey60") +
+    geom_point(aes(colour = model)) +
+    geom_text(data = labels, aes(x = -Inf, y = Inf, label = label, colour = model),
+              hjust = -0.1, vjust = labels$vj, size = 3, inherit.aes = FALSE,
+              show.legend = FALSE) +
+    facet_wrap(~screen_age, scales = "free", nrow = 1,
+               labeller = labeller(screen_age = function(x) paste("Age", x))) +
+    labs(title = title, x = "Predicted cumulative incidence (%)",
+         y = "Observed cumulative incidence (%)", colour = NULL) +
+    theme_classic()
+}
+
+calibration_fig <- (plot_calibration("p2521", "HUSK") /
+                    plot_calibration("p212", "NFCS")) +
+  patchwork::plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+ggsave("figures_and_tables/calibration.pdf", calibration_fig, height = 7, width = 10)
+ggsave("figures_and_tables/calibration.png", calibration_fig, height = 7, width = 10)

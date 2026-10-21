@@ -9,7 +9,7 @@ output_prefix <- args[2]
 n_boot <- if (length(args) >= 3) as.integer(args[3]) else 200L
 
 screen_ages <- c(50, 55, 60, 65)
-n_groups <- 10
+n_groups <- 5
 
 dat <- read_tsv(metadata_file, show_col_types = FALSE) %>%
   filter(age >= 40, !is.na(phs))
