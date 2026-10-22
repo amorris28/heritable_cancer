@@ -196,6 +196,14 @@ age_specific_hr <-
   select(cohort, age_band, events, estimate, conf.low, conf.high, p.value, p_heterogeneity)
 print(age_specific_hr)
 
+# Registry metastasis codes among aggressive (metastatic) cases
+metastasis_code_counts <-
+  combined_data %>%
+  filter(metastasis == 1) %>%
+  count(metastasis_code, name = "n") %>%
+  mutate(cohort = output_prefix)
+print(metastasis_code_counts)
+
 # Performance metrics
 if (perform_bool) {
   any_pca_perform <- phs_performance_metrics(
@@ -394,6 +402,10 @@ phs_zph_tidy <-
 # Save Output
 write_tsv(phs_zph_tidy, paste(output_prefix, "phs_zph_tidy.tsv", sep = "_"))
 write_tsv(age_specific_hr, paste(output_prefix, "age_specific_hr.tsv", sep = "_"))
+write_tsv(
+  metastasis_code_counts,
+  paste(output_prefix, "metastasis_codes.tsv", sep = "_")
+)
 write_tsv(
   any_pca_perform,
   paste(output_prefix, "any_pca_performance.tsv", sep = "_")

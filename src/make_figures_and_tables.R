@@ -452,6 +452,52 @@ table_age_hr <-
 write_tsv(table_age_hr, "figures_and_tables/table_age_hr.tsv")
 
 ###############################################################
+# Supplementary Table - registry metastasis codes
+###############################################################
+metastasis_code_labels <- tibble::tribble(
+  ~Code, ~Description,
+  0, "No direct invasion into surrounding tissue/organ, lymph node metastasis or organ metastasis. Metastasis within the same organ as the primary tumor's origin",
+  1, "Lymph node metastasis to the same body region",
+  2, "Lymph node metastasis outside the same body region",
+  3, "Organ metastasis to the same body part",
+  4, "Organ metastasis outside the same body region",
+  5, "Microscopic ingrowth into neighboring structure",
+  6, "Macroscopic ingrowth into neighboring structure (all types of examination methodology)",
+  7, "Metastasis detected, but unknown location",
+  8, "Microinvasive growth, carcinoma with incipient infiltration",
+  9, "Unknown prevalence at time of diagnosis"
+)
+
+read_code_counts <- function(path, cohort_label) {
+  readr::read_tsv(path, show_col_types = FALSE) %>%
+    transmute(Code = as.numeric(metastasis_code), n = n, cohort = cohort_label)
+}
+
+table_metastasis_codes <-
+  bind_rows(
+    read_code_counts("data/public/p2521_metastasis_codes.tsv", "HUSK"),
+    read_code_counts("data/public/p212_metastasis_codes.tsv", "NFCS")
+  ) %>%
+  pivot_wider(names_from = cohort, values_from = n) %>%
+  right_join(metastasis_code_labels, by = "Code") %>%
+  arrange(Code) %>%
+  mutate(across(any_of(c("HUSK", "NFCS")), ~ if_else(is.na(.x), "", as.character(.x)))) %>%
+  select(HUSK, NFCS, Code, Description)
+
+unlisted <- setdiff(
+  bind_rows(
+    read_code_counts("data/public/p2521_metastasis_codes.tsv", "HUSK"),
+    read_code_counts("data/public/p212_metastasis_codes.tsv", "NFCS")
+  )$Code,
+  metastasis_code_labels$Code
+)
+if (length(unlisted) > 0) {
+  stop("Metastasis codes without a description: ", paste(unlisted, collapse = ", "))
+}
+
+write_tsv(table_metastasis_codes, "figures_and_tables/table_metastasis_codes.tsv")
+
+###############################################################
 # Supplementary Table - wgs subset
 ###############################################################
 wgs_results <-

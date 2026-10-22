@@ -537,6 +537,29 @@ One-sided Fisher's exact tests of whether the odds of carrying an RPV are greate
 :::
 
 
+::: {#supptab-metcodes}
+
+```{r}
+table_metcodes = read_tsv("manuscript/figures_and_tables/table_metastasis_codes.tsv", col_types = cols(.default = col_character())) %>%
+  mutate(across(everything(), ~ replace_na(.x, "")))
+
+# Create table
+ft <- flextable(table_metcodes) %>%
+  fontsize(size = 9, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  width(j = c("HUSK", "NFCS", "Code"), width = 0.6) %>%
+  width(j = "Description", width = 4.5) %>%
+  theme_vanilla()
+
+ft
+```
+
+Distribution of Cancer Registry of Norway metastasis codes among aggressive PCa cases in the HUSK and NFCS analysis cohorts. Aggressive PCa was defined by codes 1, 2, 4, 6 and 7; blank cells indicate no aggressive cases with that code.
+
+:::
+
 ::: {#supptab-qc}
 
 ```{r}

@@ -23,6 +23,7 @@ outputs=(
   "data/public/${CLUSTER}_coxph.tsv"
   "data/public/${CLUSTER}_genetic_qc_sensitivity.tsv"
   "data/public/${CLUSTER}_age_specific_hr.tsv"
+  "data/public/${CLUSTER}_metastasis_codes.tsv"
 )
 
 # KING cutoff retained-ID lists (plink2 --king-cutoff *.in.id).
@@ -56,7 +57,8 @@ run_rscript src/fit-models.R "${r_args[@]}"
 require_files "${CLUSTER}_phs_zph_tidy.tsv" "${CLUSTER}_any_pca_performance.tsv" \
   "${CLUSTER}_metastatic_performance.tsv" "${CLUSTER}_pca_death_performance.tsv" \
   "${CLUSTER}_sample_size.tsv" "${CLUSTER}_coxph.tsv" \
-  "${CLUSTER}_genetic_qc_sensitivity.tsv" "${CLUSTER}_age_specific_hr.tsv"
+  "${CLUSTER}_genetic_qc_sensitivity.tsv" "${CLUSTER}_age_specific_hr.tsv" \
+  "${CLUSTER}_metastasis_codes.tsv"
 
 move_files=(
   "${CLUSTER}_phs_zph_tidy.tsv"
@@ -67,6 +69,7 @@ move_files=(
   "${CLUSTER}_coxph.tsv"
   "${CLUSTER}_genetic_qc_sensitivity.tsv"
   "${CLUSTER}_age_specific_hr.tsv"
+  "${CLUSTER}_metastasis_codes.tsv"
 )
 mv "${move_files[@]}" data/public/
 
