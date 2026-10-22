@@ -4,7 +4,7 @@ Each script is safe to (re)run on its own: it checks whether its output already
 exists in `data/interim/`, `data/processed/`, or `data/public/` and skips work
 unless `FORCE=1` is set (or `--force` passed). Nothing reruns automatically —
 you decide what to rerun, so editing an early step never silently retriggers
-an expensive downstream step (e.g. the bootstrap in `03_fit_models.sh`).
+an expensive downstream step (e.g. the bootstrap in `05_fit_models.sh`).
 
 ## Order of operations, per cohort (`p212` = NFCS/MoBA, `p2521` = HUSK)
 
@@ -15,22 +15,27 @@ an expensive downstream step (e.g. the bootstrap in `03_fit_models.sh`).
 2. `scripts/02_preprocess_metadata.sh <cohort>` — builds `data/processed/phenotypes.tsv`
    from cohort-specific phenotype/registry sources + the PHS score. Fast, safe
    to rerun whenever phenotype logic changes.
-3. Prepare genetic-QC inputs before model fitting:
-   - p212: run `scripts/08_p212_relatedness.sh` and submit
-     `sbatch --account=p212 scripts/09_pca.sh p212`.
-   - p2521: confirm the external KING retained-ID files are available and
-     submit `sbatch --account=p2521 scripts/09_pca.sh p2521`.
-   The relatedness conversion and PCA job can run independently of each other,
-   but both must finish before model fitting.
-4. `scripts/03_fit_models.sh <cohort>` — primary Cox models + bootstrap
-   performance metrics (999 iterations by default; override with
-   `BOOTSTRAP_ITERS=99` for quick dev iteration), followed by the genetic-QC
-   sensitivity analyses.
-5. `scripts/04_plot_figures.sh <cohort>` — KM/absolute-risk curve objects.
-6. `scripts/05_incidence_analysis.sh <cohort>` — population incidence-rate comparison.
-7. `scripts/06_wgs_analysis.sh` — rare-variant (WGS) analysis, p212 only.
-8. `scripts/07_make_figures_and_tables.sh` — run **locally**, after both cohorts'
-   `data/public/` results are available, to build `manuscript/figures_and_tables/`.
+3. `scripts/03_p212_relatedness.sh` (p212 only) — build KING retained-ID lists
+   from the external kinship matrix. For p2521 the lists come from the external
+   run; confirm they are available and built on the same genotype release.
+4. `sbatch --account=<cohort> scripts/04_pca.sh <cohort>` — LD-pruned FlashPCA
+   genetic PCs. Steps 3 and 4 are independent of each other and of step 2, but
+   all must finish before model fitting.
+5. `scripts/05_fit_models.sh <cohort>` — primary Cox models (excluding
+   duplicates/MZ twins) + bootstrap performance metrics (999 iterations by
+   default; override with `BOOTSTRAP_ITERS=99` for quick dev iteration), age-band
+   HRs, and the genetic-QC sensitivity analyses.
+6. `scripts/06_plot_figures.sh <cohort>` — KM/absolute-risk curve objects.
+7. `scripts/07_incidence_analysis.sh <cohort>` — population incidence-rate comparison.
+8. `scripts/08_wgs_analysis.sh` — rare-variant (WGS) analysis, p212 only.
+9. `scripts/09_phs_portability.sh <cohort>` — PHS portability in the original
+   score units (not used by the manuscript tables/figures).
+10. `scripts/10_calibration_frozen.sh <cohort>` — calibration with the published
+    PHS601 weights (not used by the manuscript tables/figures).
+11. `scripts/11_calibration.sh <cohort>` — internal absolute-risk calibration
+    (supplementary figure).
+12. `scripts/12_make_figures_and_tables.sh` — run **locally**, after both cohorts'
+    `data/public/` results are available, to build `manuscript/figures_and_tables/`.
 
 Manuscript rendering itself stays manual and separate:
 ```
@@ -43,7 +48,7 @@ Quarto otherwise executes code relative to the `.qmd`'s own directory.
 
 ## Relatedness and PC sensitivity analyses
 
-The primary Cox models in `scripts/03_fit_models.sh <cohort>` use all eligible
+The primary Cox models in `scripts/05_fit_models.sh <cohort>` use all eligible
 subjects except one member of each KING 0-degree (duplicate/MZ) pair, with no
 genetic PCs. Sensitivity
 analyses estimate the PHS coefficient for each of three endpoints (any PCa,
@@ -62,7 +67,7 @@ kinship cutoff of 0.35333 (duplicates/monozygotic-level); 2-degree and
 - p2521: genotypes are the v260302 imputation (`config/p2521.env`); KING
   retained-ID lists must come from the same release. They come from the external run,
   `/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk/all_chr.cutoff_{0deg,2deg,3deg}.king.cutoff.in.id`.
-- p212: run `scripts/08_p212_relatedness.sh` first. It converts the
+- p212: run `scripts/03_p212_relatedness.sh` first. It converts the
   colleague's KING text matrix to `.king.bin` (`scripts/lib/king_text_to_bin.py`)
   and runs `plink2 --king-cutoff` at each threshold, writing
   `data/interim/relatedness/p212_{0deg,2deg,3deg}.king.cutoff.in.id`. Override
@@ -75,12 +80,12 @@ the model script checks the IDs and requires at least 10 PC columns.
 
 ## PCA
 
-Submit `scripts/09_pca.sh <p212|p2521>` with the matching Slurm account, for
+Submit `scripts/04_pca.sh <p212|p2521>` with the matching Slurm account, for
 example:
 
 ```sh
-sbatch --account=p2521 scripts/09_pca.sh p2521
-sbatch --account=p212 scripts/09_pca.sh p212
+sbatch --account=p2521 scripts/04_pca.sh p2521
+sbatch --account=p212 scripts/04_pca.sh p212
 ```
 
 The script uses the configured cohort genotype BED set, excludes build-matched

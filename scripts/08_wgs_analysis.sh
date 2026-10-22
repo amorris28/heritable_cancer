@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rare-variant (WGS) analysis — p212 only (HOXB13/BRCA2 etc. carrier screening vs PHS).
-# Usage: scripts/06_wgs_analysis.sh [--force]
+# Usage: scripts/08_wgs_analysis.sh [--force]
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"

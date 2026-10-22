@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the p212 KING retained-ID lists (0deg/2deg/3deg) from the externally
 # computed KING text kinship matrix. Light enough to run on a login node.
-# Usage: scripts/08_p212_relatedness.sh [--force]
+# Usage: scripts/03_p212_relatedness.sh [--force]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

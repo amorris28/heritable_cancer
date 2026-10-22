@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # KM/absolute-risk curve objects for the manuscript figures.
-# Usage: scripts/04_plot_figures.sh <p212|p2521> [--force]
+# Usage: scripts/06_plot_figures.sh <p212|p2521> [--force]
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"

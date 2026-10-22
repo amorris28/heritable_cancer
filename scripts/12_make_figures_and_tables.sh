@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Aggregate both cohorts' data/public/ results into the final manuscript figures/tables.
 # Run locally (not on TSD) after downloading data/public/ for both p212 and p2521.
-# Usage: scripts/07_make_figures_and_tables.sh [--force]
+# Usage: scripts/12_make_figures_and_tables.sh [--force]
 # Requires a local docker image (default name: r_manuscript) built from the
 # repo-root Dockerfile: `docker build -t r_manuscript .`
 set -euo pipefail

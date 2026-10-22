@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Population incidence-rate comparison (Norwegian Cancer Registry ASIRs vs cohort).
-# Usage: scripts/05_incidence_analysis.sh <p212|p2521> [--force]
+# Usage: scripts/07_incidence_analysis.sh <p212|p2521> [--force]
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"

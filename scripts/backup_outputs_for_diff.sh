@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dev utility: move a cohort's existing pipeline outputs out of data/public/
 # (or, in "manuscript" mode, out of manuscript/figures_and_tables/) into a
-# tagged baseline directory, so they survive a rerun of scripts/03-07 and can
+# tagged baseline directory, so they survive a rerun of scripts/05-12 and can
 # be diffed against freshly regenerated outputs. Use this before re-running
 # the pipeline after a code change you want to regression-test (e.g. the
 # hazrd -> raw coxph rewrite).
@@ -12,12 +12,12 @@
 #
 # Example:
 #   scripts/backup_outputs_for_diff.sh p212 pre_coxph_refactor
-#   # rerun scripts/03-06 for p212 — should_run will see the outputs as
+#   # rerun scripts/05-08 for p212 — should_run will see the outputs as
 #   # missing (they've been moved) and regenerate them without needing --force
-#   scripts/03_fit_models.sh p212
-#   scripts/04_plot_figures.sh p212
-#   scripts/05_incidence_analysis.sh p212
-#   scripts/06_wgs_analysis.sh
+#   scripts/05_fit_models.sh p212
+#   scripts/06_plot_figures.sh p212
+#   scripts/07_incidence_analysis.sh p212
+#   scripts/08_wgs_analysis.sh
 #   # then compare:
 #   Rscript scripts/compare_outputs.R p212 pre_coxph_refactor
 set -euo pipefail
@@ -29,7 +29,7 @@ TAG="${2:?Usage: $0 <p212|p2521|manuscript> <tag>}"
 cd "$REPO_ROOT"
 
 if [[ "$MODE" == "manuscript" ]]; then
-  # Output of scripts/07_make_figures_and_tables.sh (run locally, not on TSD).
+  # Output of scripts/12_make_figures_and_tables.sh (run locally, not on TSD).
   SRC_DIR="manuscript/figures_and_tables"
   BASELINE_DIR="manuscript/figures_and_tables/_baseline/${TAG}"
   [[ -d "$SRC_DIR" ]] || { echo "No such directory: $SRC_DIR — nothing to back up." >&2; exit 0; }
@@ -53,8 +53,8 @@ COHORT="$MODE"
   exit 1
 }
 
-# Exact outputs of scripts/03_fit_models.sh, 04_plot_figures.sh, and
-# 05_incidence_analysis.sh (see each script's `outputs=(...)` array). Deliberately
+# Exact outputs of scripts/05_fit_models.sh, 06_plot_figures.sh, and
+# 07_incidence_analysis.sh (see each script's `outputs=(...)` array). Deliberately
 # not a glob over data/public/${COHORT}_* — that would also sweep up
 # scripts/02_preprocess_metadata.sh outputs (age_summary.tsv etc.), which this
 # refactor didn't touch and don't need to be regenerated/compared.
@@ -76,7 +76,7 @@ FILES=(
   "${COHORT}_cumulative_comparison_metastatic.rds"
   "${COHORT}_stratified_incidence_metastatic.rds"
 )
-# scripts/06_wgs_analysis.sh is p212-only.
+# scripts/08_wgs_analysis.sh is p212-only.
 if [[ "$COHORT" == "p212" ]]; then
   FILES+=(
     p212_wgs_summary.tsv
@@ -106,4 +106,4 @@ for f in "${FILES[@]}"; do
 done
 
 echo "Backed up $moved file(s) to ${BASELINE_DIR}/"
-echo "Now rerun scripts/03-06 for $COHORT (outputs are absent, so should_run will proceed without --force)."
+echo "Now rerun scripts/05-08 for $COHORT (outputs are absent, so should_run will proceed without --force)."

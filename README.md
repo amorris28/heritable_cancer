@@ -29,18 +29,21 @@ output already exists, so reruns only recompute what you ask for:
 ```
 sbatch scripts/01_prepare_genotypes_p212.sh   # one-time, long-running genotype prep (per cohort)
 scripts/02_preprocess_metadata.sh p212        # phenotype preprocessing
-scripts/03_fit_models.sh p212                 # Cox models + bootstrap performance
-scripts/04_plot_figures.sh p212               # KM/absolute-risk curves
-scripts/05_incidence_analysis.sh p212         # population incidence comparison
-scripts/06_wgs_analysis.sh                    # rare-variant (WGS) analysis, p212 only
+scripts/03_p212_relatedness.sh               # KING retained-ID lists (p212 only)
+sbatch scripts/04_pca.sh p212                 # genetic PCs
+scripts/05_fit_models.sh p212                 # Cox models + bootstrap performance
+scripts/06_plot_figures.sh p212               # KM/absolute-risk curves
+scripts/07_incidence_analysis.sh p212         # population incidence comparison
+scripts/08_wgs_analysis.sh                    # rare-variant (WGS) analysis, p212 only
+scripts/11_calibration.sh p212                # absolute-risk calibration
 ```
 
-Repeat steps 2-5 for `p2521`. Once `data/public/` has been exported from both
+Repeat the per-cohort steps for `p2521` (see `scripts/README.md` for the full order). Once `data/public/` has been exported from both
 TSD projects to a local machine, build the manuscript figures/tables and
 render the manuscript:
 
 ```
-scripts/07_make_figures_and_tables.sh
+scripts/12_make_figures_and_tables.sh
 quarto render manuscript/manuscript.qmd --to pdf \
   --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
 ```

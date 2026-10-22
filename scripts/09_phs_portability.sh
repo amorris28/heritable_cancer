@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Portability of the published PHS601 weights: Cox slope on the unstandardized PHS.
-# Usage: scripts/10_phs_portability.sh <p212|p2521> [--force]
+# Usage: scripts/09_phs_portability.sh <p212|p2521> [--force]
 # Needs phenotypes.tsv with a phs_raw column (rerun scripts/02_preprocess_metadata.sh).
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

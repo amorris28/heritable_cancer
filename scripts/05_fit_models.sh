@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Cox models + bootstrap performance metrics — the slow interactive step (bootstrap_iters, default 999).
-# Usage: scripts/03_fit_models.sh <p212|p2521> [--force]
-# BOOTSTRAP_ITERS=99 scripts/03_fit_models.sh p212   # quick dev iteration with fewer bootstraps
+# Usage: scripts/05_fit_models.sh <p212|p2521> [--force]
+# BOOTSTRAP_ITERS=99 scripts/05_fit_models.sh p212   # quick dev iteration with fewer bootstraps
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/common.sh"
@@ -45,7 +45,7 @@ for f in "${relatedness_files[@]}"; do
 done
 PCA_FILE="data/interim/pca/pcs_${CLUSTER}.txt"
 [[ -f "$PCA_FILE" ]] || {
-  echo "Missing PCA scores: $PCA_FILE — run scripts/09_pca.sh $COHORT first" >&2
+  echo "Missing PCA scores: $PCA_FILE — run scripts/04_pca.sh $COHORT first" >&2
   exit 1
 }
 

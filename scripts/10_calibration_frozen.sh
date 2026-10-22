@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Absolute-risk calibration of the frozen PHS601 weights against registry incidence.
-# Usage: scripts/11_calibration_frozen.sh <p212|p2521> [--force]
+# Usage: scripts/10_calibration_frozen.sh <p212|p2521> [--force]
 # Needs phenotypes.tsv with a phs_raw column (rerun scripts/02_preprocess_metadata.sh).
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
