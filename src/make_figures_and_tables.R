@@ -426,6 +426,32 @@ table_tt <-
 write_tsv(table_tt, "figures_and_tables/table_tt.tsv")
 
 ###############################################################
+# Table - age-specific PHS hazard ratios
+###############################################################
+table_age_hr <-
+  read_tsv("data/public/p2521_age_specific_hr.tsv", show_col_types = FALSE) %>%
+  mutate(cohort = "HUSK") %>%
+  rbind(
+    read_tsv("data/public/p212_age_specific_hr.tsv", show_col_types = FALSE) %>%
+      mutate(cohort = "NFCS")
+  ) %>%
+  mutate(
+    cohort = factor(cohort, levels = c("HUSK", "NFCS")),
+    `HR (95% CI)` = sprintf("%.2f (%.2f, %.2f)", estimate, conf.low, conf.high),
+    `P heterogeneity` = if_else(
+      age_band == "40-59", pvalr(p_heterogeneity), NA_character_
+    )
+  ) %>%
+  arrange(cohort, age_band) %>%
+  select(
+    Cohort = cohort, `Age band` = age_band, Events = events,
+    `HR (95% CI)`, `P heterogeneity`
+  ) %>%
+  mutate(Cohort = as.character(Cohort))
+
+write_tsv(table_age_hr, "figures_and_tables/table_age_hr.tsv")
+
+###############################################################
 # Supplementary Table - wgs subset
 ###############################################################
 wgs_results <-

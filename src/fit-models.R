@@ -161,6 +161,41 @@ phs_fit_tt <- coxph(Surv(age_minus_40, status) ~ phs + tt(phs), combined_data,
 )
 phs_tt_tidy <- broom::tidy(phs_fit_tt, exponentiate = TRUE, conf.int = TRUE)
 
+# Age-specific HRs: a separate PHS effect in each age band (same bands as
+# calibration.R). Heterogeneity is tested against a single constant HR.
+age_cuts <- c(40, 60, 70)
+age_band_labels <- c("40-59", "60-69", "70+")
+age_split <-
+  survSplit(
+    Surv(age, status) ~ phs,
+    data = combined_data, cut = age_cuts[-1], episode = "band"
+  )
+for (k in seq_along(age_band_labels)) {
+  age_split[[paste0("phs_band", k)]] <- age_split$phs * (age_split$band == k)
+}
+age_band_fit <- coxph(
+  Surv(tstart, age, status) ~ phs_band1 + phs_band2 + phs_band3,
+  data = age_split
+)
+age_band_const <- coxph(Surv(tstart, age, status) ~ phs, data = age_split)
+age_band_test <- anova(age_band_const, age_band_fit)
+age_specific_hr <-
+  broom::tidy(age_band_fit, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate(band = as.integer(sub("^phs_band", "", term))) %>%
+  left_join(
+    age_split %>%
+      group_by(band) %>%
+      summarize(events = sum(status), .groups = "drop"),
+    by = "band"
+  ) %>%
+  mutate(
+    cohort = output_prefix,
+    age_band = age_band_labels[band],
+    p_heterogeneity = age_band_test[["Pr(>|Chi|)"]][2]
+  ) %>%
+  select(cohort, age_band, events, estimate, conf.low, conf.high, p.value, p_heterogeneity)
+print(age_specific_hr)
+
 # Performance metrics
 if (perform_bool) {
   any_pca_perform <- phs_performance_metrics(
@@ -358,6 +393,7 @@ phs_zph_tidy <-
 
 # Save Output
 write_tsv(phs_zph_tidy, paste(output_prefix, "phs_zph_tidy.tsv", sep = "_"))
+write_tsv(age_specific_hr, paste(output_prefix, "age_specific_hr.tsv", sep = "_"))
 write_tsv(
   any_pca_perform,
   paste(output_prefix, "any_pca_performance.tsv", sep = "_")
