@@ -189,6 +189,15 @@ combined_data <-
   mutate(age_of_metastasis = if_else(is.na(age_of_metastasis), age_lastobs, age_of_metastasis)) %>%
   mutate(conversion_to_metastasis_years = age_of_metastasis - age_diagnosis)
 
+# Registry ages and case_data ages can disagree by a year. An event dated up to
+# 1 year before the diagnosis is set to the diagnosis age; larger gaps are
+# real conflicts and are caught by the checks below.
+clamp_to_diagnosis <- function(event_age, event, diagnosis_age, tolerance = 1) {
+  early <- event == 1 & !is.na(diagnosis_age) & event_age < diagnosis_age &
+    diagnosis_age - event_age <= tolerance
+  if_else(early, diagnosis_age, event_age)
+}
+
 ##############################################################################
 # cause of death
 #############################################################################
@@ -211,6 +220,26 @@ combined_data <-
   mutate(pca_death = if_else(is.na(doed_av_pca), 0L, 1L)) %>%
   mutate(age_at_pca_death = if_else(pca_death == 1L, age_at_death, age_lastobs))
 
+n_clamped <- c(
+  metastasis = sum(combined_data$metastasis == 1 &
+    combined_data$age_of_metastasis < combined_data$age_diagnosis, na.rm = TRUE),
+  pca_death = sum(combined_data$pca_death == 1 &
+    combined_data$age_at_pca_death < combined_data$age_diagnosis, na.rm = TRUE)
+)
+message(
+  "Events dated before diagnosis (<=1 year are set to the diagnosis age): ",
+  paste(names(n_clamped), n_clamped, sep = "=", collapse = ", ")
+)
+combined_data <-
+  combined_data %>%
+  mutate(
+    age_of_metastasis = clamp_to_diagnosis(age_of_metastasis, metastasis, age_diagnosis),
+    age_at_pca_death = clamp_to_diagnosis(age_at_pca_death, pca_death, age_diagnosis),
+    age_at_death = clamp_to_diagnosis(age_at_death, pca_death, age_diagnosis),
+    conversion_to_metastasis_years = age_of_metastasis - age_diagnosis,
+    diagnosis_to_death_years = age_at_death - age_diagnosis
+  )
+
 # Consistency checks between sources.
 impossible <- filter(combined_data, status == 0 & (metastasis == 1 | pca_death == 1))
 if (nrow(impossible) > 0) {
@@ -229,6 +258,10 @@ if (nrow(inconsistent) > 0) {
   message("Inconsistent records between sources:")
   print(inconsistent, n = Inf, width = Inf)
 }
+stopifnot(
+  "metastasis or PCa death more than 1 year before diagnosis" =
+    !any(inconsistent$problem %in% c("metastasis before diagnosis", "PCa death before diagnosis"))
+)
 
 #####################################################################
 # WGS
