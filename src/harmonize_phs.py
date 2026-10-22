@@ -12,7 +12,11 @@ def merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol):
     #assert 0==bim['SNP'].duplicated().sum()
     if 'GP' in bim: del bim['GP']
 
-    phs = pd.merge(phs[[chrcol, bpcol, 'Effect', 'Ref', 'Beta']].rename(columns={chrcol:'CHR',bpcol:'BP'}), bim, on=['CHR','BP'], how='left')
+    # Compare chromosomes as strings: labels such as PAR1/PAR2 make the bim column non-numeric
+    phs = phs[[chrcol, bpcol, 'Effect', 'Ref', 'Beta']].rename(columns={chrcol:'CHR',bpcol:'BP'})
+    phs['CHR'] = phs['CHR'].astype(str)
+    bim = bim.assign(CHR=bim['CHR'].astype(str))
+    phs = pd.merge(phs, bim, on=['CHR','BP'], how='left')
     phs=phs[~phs['SNP'].isnull()]
     print(f'{len(phs)} SNPs after merging on CHR:BP')
     
@@ -51,7 +55,7 @@ def main():
         raise FileNotFoundError(f"⚠️ BIM file not found: {bim_path}")
 
     bim = pd.read_csv(bim_path, sep='\t', header=None, 
-                      names=['CHR','SNP','GP','BP','A1','A2'])
+                      names=['CHR','SNP','GP','BP','A1','A2'], dtype={'CHR': str})
     print(f"{len(bim)} SNPs loaded from {bim_path}")
 
     phs_harmonized = merge_by_chr_bp_and_flip_alleles(bim, phs, chrcol, bpcol)

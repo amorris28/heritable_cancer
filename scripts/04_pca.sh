@@ -21,6 +21,7 @@ cd "$REPO_ROOT"
 
 OUT="data/interim/pca"
 INPUT_BFILE="$BED_FILE"
+AUTOSOME_BFILE="$OUT/$COHORT.autosomes"
 PRUNE_PREFIX="$OUT/$COHORT"
 PCA_BFILE="$OUT/$COHORT.pruned"
 
@@ -43,6 +44,7 @@ esac
 
 mkdir -p "$OUT"
 PLINK="../bin/plink"
+PLINK2="../bin/plink2"
 FLASHPCA="$(cd ../bin && pwd)/flashpca_x86-64"
 [[ -x "$FLASHPCA" ]] || { echo "Missing or non-executable $FLASHPCA" >&2; exit 1; }
 PCA_CPUS="${SLURM_CPUS_PER_TASK:-$(nproc 2>/dev/null || echo 1)}"
@@ -50,10 +52,22 @@ PCA_CPUS="${SLURM_CPUS_PER_TASK:-$(nproc 2>/dev/null || echo 1)}"
 [[ -n "$INPUT_BFILE" ]] || { echo "BED_FILE is not set in config/$COHORT.env" >&2; exit 1; }
 require_files "$INPUT_BFILE.bed" "$INPUT_BFILE.bim" "$INPUT_BFILE.fam"
 
+# plink 1.9 cannot read PAR1/PAR2 chromosome labels, so write an autosome-only
+# copy with plink2 (which also drops X, Y, PAR and MT) before using plink 1.9.
+if should_run "$AUTOSOME_BFILE.bed" "$AUTOSOME_BFILE.bim" "$AUTOSOME_BFILE.fam"; then
+  "$PLINK2" \
+    --bfile "$INPUT_BFILE" \
+    --chr 1-22 \
+    --make-bed \
+    --threads "$PCA_CPUS" \
+    --out "$AUTOSOME_BFILE"
+fi
+require_files "$AUTOSOME_BFILE.bed" "$AUTOSOME_BFILE.bim" "$AUTOSOME_BFILE.fam"
+
 if should_run "$PRUNE_PREFIX.prune.in"; then
   "$PLINK" \
-    --bfile "$INPUT_BFILE" \
-    --chr 1-22 --geno 0.05 \
+    --bfile "$AUTOSOME_BFILE" \
+    --geno 0.05 \
     --indep-pairwise 1000 50 0.05 \
     --exclude range "$HIGH_LD_FILE" \
     --threads "$PCA_CPUS" \
@@ -62,7 +76,7 @@ fi
 
 if should_run "$PCA_BFILE.bed" "$PCA_BFILE.bim" "$PCA_BFILE.fam"; then
   "$PLINK" \
-    --bfile "$INPUT_BFILE" \
+    --bfile "$AUTOSOME_BFILE" \
     --extract "$PRUNE_PREFIX.prune.in" \
     --make-bed \
     --threads "$PCA_CPUS" \
