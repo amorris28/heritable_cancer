@@ -421,6 +421,18 @@ as_grouped_data(risk, groups = "PCa") %>%
 ```
 
 
+```{r tbl-wgs-risk}
+#| tbl-cap: Cumulative incidence (%) of PCa by age 70 (Kaplan-Meier) in the NFCS participants with whole-genome sequencing, by HOXB13 pathogenic variant carrier status and by PHS group. Low is the bottom 20% of PHS, average the 30-70th percentile, high the top 20%, and top 1.8% the same prevalence as HOXB13 carriers. Groups overlap, so rows are not independent.
+read_tsv("manuscript/figures_and_tables/table_wgs_risk.tsv") %>%
+  as_grouped_data(groups = "Marker") %>%
+  as_flextable(hide_grouplabel = TRUE) %>%
+  fontsize(size = 9, part = "all") %>%
+  font(part = "all", fontname = "Helvetica Neue") %>%
+  autofit() %>%
+  theme_vanilla()
+```
+
+
 ::: {#tbl-age-hr}
 
 ```{r}

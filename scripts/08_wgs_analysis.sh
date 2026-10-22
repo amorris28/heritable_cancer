@@ -24,6 +24,7 @@ outputs=(
   data/public/p212_binomial_phs_hoxb13.tsv
   data/public/p212_wgs.tsv
   data/public/p212_wgs_cindex.tsv
+  data/public/p212_wgs_cuminc_at_age.tsv
   data/public/p212_wgs_phs_abs_risk.rds
   data/public/p212_wgs_phs_risk_table.rds
   data/public/p212_wgs_hoxb13_abs_risk.rds
@@ -33,12 +34,12 @@ should_run "${outputs[@]}" || exit 0
 
 run_rscript src/fit-models-plot-figures-wgs.R "$PHENOTYPES" TRUE p212 "$BOOTSTRAP_ITERS"
 require_files p212_wgs_summary.tsv p212_fisher.tsv p212_wgs_phs_performance_95.tsv \
-  p212_binomial_phs_hoxb13.tsv p212_wgs.tsv p212_wgs_cindex.tsv \
+  p212_binomial_phs_hoxb13.tsv p212_wgs.tsv p212_wgs_cindex.tsv p212_wgs_cuminc_at_age.tsv \
   p212_wgs_phs_abs_risk.rds p212_wgs_phs_risk_table.rds \
   p212_wgs_hoxb13_abs_risk.rds p212_wgs_hoxb13_risk_table.rds
 
 mv p212_wgs_summary.tsv p212_fisher.tsv p212_wgs_phs_performance_95.tsv \
-   p212_binomial_phs_hoxb13.tsv p212_wgs.tsv p212_wgs_cindex.tsv \
+   p212_binomial_phs_hoxb13.tsv p212_wgs.tsv p212_wgs_cindex.tsv p212_wgs_cuminc_at_age.tsv \
    p212_wgs_phs_abs_risk.rds p212_wgs_phs_risk_table.rds \
    p212_wgs_hoxb13_abs_risk.rds p212_wgs_hoxb13_risk_table.rds \
    data/public/

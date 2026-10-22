@@ -701,3 +701,28 @@ calibration_fig <- (plot_calibration("p2521", "HUSK") /
 
 ggsave("figures_and_tables/calibration.pdf", calibration_fig, height = 7, width = 10)
 ggsave("figures_and_tables/calibration.png", calibration_fig, height = 7, width = 10)
+
+###############################################################
+# Cumulative incidence by age 70 in the NFCS WGS subset
+###############################################################
+table_wgs_risk <- read_tsv("data/public/p212_wgs_cuminc_at_age.tsv", show_col_types = FALSE) %>%
+  mutate(
+    group = factor(group, levels = c(
+      "HOXB13 non-carrier", "HOXB13 carrier",
+      "PHS 0-20%", "PHS 30-70%", "PHS 80-100%", "PHS 98-100%"
+    )),
+    Marker = if_else(str_detect(group, "HOXB13"), "HOXB13", "PHS"),
+    Group = recode(
+      as.character(group),
+      "HOXB13 non-carrier" = "Non-carrier", "HOXB13 carrier" = "Carrier",
+      "PHS 0-20%" = "Low (0-20%)", "PHS 30-70%" = "Average (30-70%)",
+      "PHS 80-100%" = "High (80-100%)", "PHS 98-100%" = "Top 1.8%"
+    ),
+    `Cumulative incidence by age 70, % (95% CI)` = sprintf(
+      "%.1f (%.1f, %.1f)", 100 * estimate, 100 * conf_low, 100 * conf_high
+    )
+  ) %>%
+  arrange(group) %>%
+  select(Marker, Group, N = n, Cases = events, `Cumulative incidence by age 70, % (95% CI)`)
+
+write_tsv(table_wgs_risk, "figures_and_tables/table_wgs_risk.tsv")

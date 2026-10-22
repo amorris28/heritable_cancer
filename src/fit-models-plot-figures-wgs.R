@@ -149,6 +149,30 @@ wgs_cuminc <- phs_cuminc_strata(
 )
 wgs_inc <- plot_cuminc_strata(wgs_cuminc)
 
+# Cumulative incidence by a predefined age in the WGS subset: HOXB13 carriers vs
+# non-carriers and PHS strata (comparable to the cohort-level risk table)
+risk_age <- 70
+wgs_risk_at_age <- function(sub, group, age = risk_age) {
+  fit <- survfit(Surv(age, status) ~ 1, data = sub)
+  s <- summary(fit, times = age, extend = TRUE)
+  tibble(
+    group = group, n = nrow(sub), events = sum(sub$status),
+    age = age, estimate = 1 - s$surv, conf_low = 1 - s$upper, conf_high = 1 - s$lower
+  )
+}
+phs_bands <- list(
+  "PHS 0-20%" = c(0, 0.20), "PHS 30-70%" = c(0.30, 0.70),
+  "PHS 80-100%" = c(0.80, 1), "PHS 98-100%" = c(1 - hoxb13_freq, 1)
+)
+wgs_cuminc_age <- bind_rows(
+  wgs_risk_at_age(wgs[wgs$HOXB13_carrier == 1, ], "HOXB13 carrier"),
+  wgs_risk_at_age(wgs[wgs$HOXB13_carrier == 0, ], "HOXB13 non-carrier"),
+  purrr::imap_dfr(phs_bands, function(iv, lbl) {
+    wgs_risk_at_age(wgs[phs_band_mask(wgs$phs, iv[1], iv[2]), ], lbl)
+  })
+)
+write_tsv(wgs_cuminc_age, paste(output_prefix, "wgs_cuminc_at_age.tsv", sep = "_"))
+
 # KM Curves for HOXB13
 km_curves <- data.frame()
 noncarrier_data <- wgs[wgs$HOXB13_carrier == 0, ]
