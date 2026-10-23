@@ -705,7 +705,13 @@ ggsave("figures_and_tables/calibration.png", calibration_fig, height = 7, width 
 ###############################################################
 # Cumulative incidence by age 70 in the NFCS WGS subset
 ###############################################################
-table_wgs_risk <- read_tsv("data/public/p212_wgs_cuminc_at_age.tsv", show_col_types = FALSE) %>%
+wgs_raw <- read_tsv("data/public/p212_wgs_cuminc_at_age.tsv", show_col_types = FALSE)
+# Carriers and non-carriers partition the sequenced men, so they give the totals
+wgs_all <- wgs_raw %>%
+  filter(str_detect(group, "^HOXB13")) %>%
+  summarise(n = sum(n), events = sum(events))
+
+table_wgs_risk <- wgs_raw %>%
   mutate(
     group = factor(group, levels = c(
       "HOXB13 non-carrier", "HOXB13 carrier",
@@ -718,11 +724,14 @@ table_wgs_risk <- read_tsv("data/public/p212_wgs_cuminc_at_age.tsv", show_col_ty
       "PHS 0-20%" = "Low (0-20%)", "PHS 30-70%" = "Average (30-70%)",
       "PHS 80-100%" = "High (80-100%)", "PHS 98-100%" = "Top 1.8%"
     ),
-    `Cumulative incidence by age 70, % (95% CI)` = sprintf(
+    `% of men` = sprintf("%.1f", 100 * n / wgs_all$n),
+    `% of cases` = sprintf("%.0f", 100 * events / wgs_all$events),
+    `Risk by 70, % (95% CI)` = sprintf(
       "%.1f (%.1f, %.1f)", 100 * estimate, 100 * conf_low, 100 * conf_high
     )
   ) %>%
   arrange(group) %>%
-  select(Marker, Group, N = n, Cases = events, `Cumulative incidence by age 70, % (95% CI)`)
+  select(Marker, Group, N = n, Cases = events, `% of men`, `% of cases`,
+         `Risk by 70, % (95% CI)`)
 
 write_tsv(table_wgs_risk, "figures_and_tables/table_wgs_risk.tsv")
