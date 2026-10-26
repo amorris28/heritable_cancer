@@ -59,6 +59,8 @@ p2521_rt <- p2521_rt + labs(x = NULL) +
 p212 <- patchwork::wrap_plots(p212_ar, p212_rt, ncol = 1L, heights = c(3, 1))
 p2521 <- patchwork::wrap_plots(p2521_ar, p2521_rt, ncol = 1L, heights = c(3, 1))
 
+panels_any <- list(p2521, p212)
+
 any_pca <- (p2521 | p212) +
   # patchwork::plot_annotation(tag_levels = "A") +
   patchwork::plot_layout(guides = "collect") &
@@ -200,6 +202,22 @@ ggsave("figures_and_tables/metastatic_km_curve.png", metastatic,
 )
 ggsave("figures_and_tables/metastatic_km_curve.tiff", metastatic,
   height = 10 * 0.618, width = 10, dpi = 300
+)
+
+# Combined 4-panel figure (risk tables are untagged): A/B any-stage (HUSK, NFCS), C/D aggressive (HUSK, NFCS)
+km_combined <- patchwork::wrap_plots(c(panels_any, list(p2521, p212)), ncol = 2L) +
+  patchwork::plot_layout(guides = "collect") +
+  patchwork::plot_annotation(tag_levels = list(c("A", "", "B", "", "C", "", "D", ""))) &
+  theme(legend.position = "bottom")
+
+ggsave("figures_and_tables/km_curve_combined.pdf", km_combined,
+  height = 10 * 1.1, width = 10
+)
+ggsave("figures_and_tables/km_curve_combined.png", km_combined,
+  height = 10 * 1.1, width = 10
+)
+ggsave("figures_and_tables/km_curve_combined.tiff", km_combined,
+  height = 10 * 1.1, width = 10, dpi = 300
 )
 
 ###############################################################
