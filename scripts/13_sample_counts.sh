@@ -9,22 +9,12 @@ COHORT="${1:?Usage: $0 <p212|p2521>}"
 load_cohort_config "$COHORT"
 cd "$REPO_ROOT"
 
-if [[ "$COHORT" == "p2521" ]]; then
-  cohort_label=p2521
-  relatedness_dir=/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk
-  relatedness_files=(
-    "$relatedness_dir/all_chr.cutoff_0deg.king.cutoff.in.id"
-    "$relatedness_dir/all_chr.cutoff_2deg.king.cutoff.in.id"
-    "$relatedness_dir/all_chr.cutoff_3deg.king.cutoff.in.id"
-  )
-else
-  cohort_label=p212
-  relatedness_files=(
-    "data/interim/relatedness/p212_0deg.king.cutoff.in.id"
-    "data/interim/relatedness/p212_2deg.king.cutoff.in.id"
-    "data/interim/relatedness/p212_3deg.king.cutoff.in.id"
-  )
-fi
+cohort_label="$COHORT"
+relatedness_files=(
+  "$(king_keep_file "$COHORT" 0deg)"
+  "$(king_keep_file "$COHORT" 2deg)"
+  "$(king_keep_file "$COHORT" 3deg)"
+)
 
 [[ -f data/processed/phenotypes.tsv ]] || {
   echo "Missing data/processed/phenotypes.tsv — run scripts/02_preprocess_metadata.sh $COHORT first" >&2

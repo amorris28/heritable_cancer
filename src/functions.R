@@ -109,6 +109,32 @@ record_sample_counts <- function(counts, path, replace_all = FALSE) {
   readr::write_tsv(counts, path)
 }
 
+# Retained IDs from a plink2 --king-cutoff *.in.id file. The ID column is picked
+# as the one overlapping most with sample_ids (the files may carry FID + IID).
+read_keep_ids <- function(path, sample_ids) {
+  if (!file.exists(path)) {
+    stop("Relatedness keep file does not exist: ", path)
+  }
+  id_table <- read_table(
+    path,
+    col_names = FALSE,
+    col_types = cols(.default = col_character()),
+    comment = "#",
+    progress = FALSE
+  ) %>%
+    filter(!if_all(everything(), ~ toupper(.x) %in% c("FID", "IID")))
+  if (nrow(id_table) == 0) {
+    stop("Relatedness keep file contains no sample IDs: ", path)
+  }
+  overlaps <- vapply(id_table, function(column) {
+    length(intersect(sample_ids, column))
+  }, integer(1))
+  if (max(overlaps) == 0) {
+    stop("No IDs in ", path, " match the phenotype cohort")
+  }
+  unique(id_table[[which.max(overlaps)]])
+}
+
 ##  Formatting
 pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
   roundr <- function(x, digits = 1) {

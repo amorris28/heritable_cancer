@@ -14,7 +14,10 @@ an expensive downstream step (e.g. the bootstrap in `05_fit_models.sh`).
    slow and only needs to run once (or after a genotype/model update).
 2. `scripts/02_preprocess_metadata.sh <cohort>` — builds `data/processed/phenotypes.tsv`
    from cohort-specific phenotype/registry sources + the PHS score. Fast, safe
-   to rerun whenever phenotype logic changes.
+   to rerun whenever phenotype logic changes. The Table 1 age summaries
+   (`*_age_summary.tsv`) describe the primary analysis set (age 40+, KING 0-degree
+   retained), so this step needs the 0-degree KING list from step 3 (p212) or the
+   external HUSK list; `phenotypes.tsv` itself is not KING-filtered.
 3. `scripts/03_p212_relatedness.sh` (p212 only) — build KING retained-ID lists
    from the external kinship matrix. For p2521 the lists come from the external
    run; confirm they are available and built on the same genotype release.
@@ -37,7 +40,7 @@ an expensive downstream step (e.g. the bootstrap in `05_fit_models.sh`).
 12. `scripts/12_make_figures_and_tables.sh` — run **locally**, after both cohorts'
     `data/public/` results are available, to build `manuscript/figures_and_tables/`.
 
-After steps 2 and 3, run `bash scripts/13_sample_counts.sh <p212|p2521>` to add
+Once steps 2 and 3 are done (for p212 run step 3 before step 2), run `bash scripts/13_sample_counts.sh <p212|p2521>` to add
 the age-40+ before/after KING counts to the report created during preprocessing.
 This is independent of steps 4-11 and can be run before model fitting. It only
 reads the existing phenotype file and KING retained-ID lists; it does not rerun

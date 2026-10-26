@@ -125,6 +125,15 @@ p212_zph <- readr::read_tsv("data/public/p212_phs_zph_tidy.tsv")
 p2521_zph <- readr::read_tsv("data/public/p2521_phs_zph_tidy.tsv")
 p2521_sample_size <- readr::read_tsv("data/public/p2521_sample_size.tsv")
 p212_sample_size <- readr::read_tsv("data/public/p212_sample_size.tsv")
+sample_counts <- dplyr::bind_rows(
+  readr::read_tsv("data/public/p2521_sample_counts.tsv", show_col_types = FALSE),
+  readr::read_tsv("data/public/p212_sample_counts.tsv", show_col_types = FALSE)
+)
+# Formatted participant count for a cohort (p2521/p212) and sample_counts stage
+cn <- function(cohort, stage) {
+  format(sample_counts$n[sample_counts$cohort == cohort & sample_counts$stage == stage],
+         big.mark = ",", scientific = FALSE)
+}
 
 p212_coxph_results <- readr::read_tsv("data/public/p212_coxph.tsv")
 p2521_coxph_results <- readr::read_tsv("data/public/p2521_coxph.tsv")
@@ -165,11 +174,13 @@ PHS601 was developed in the US Million Veterans Program, a large, multi-ethnic c
 
 ## Study Population
 
-This study evaluated two Norwegian cohorts that have not been included in prior PHS601 model development or validation (@tbl-age-summary). The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with 35,515 participants. This cohort was recruited from Hordaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} format(p2521_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with 15,769 participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} format(p212_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in NFCS. end of follow-up was defined by the last recorded clinical contact in linked registry data. For HUSK, the latest delivery was 2024, and for NFCS, the latest delivery was 2020.
+This study evaluated two Norwegian cohorts that have not been included in prior PHS601 model development or validation (@tbl-age-summary). The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with `{r} cn("p2521", "source_cohort")` participants. This cohort was recruited from Hordaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} cn("p2521", "source_males")` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with `{r} cn("p212", "source_cohort")` participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} cn("p212", "source_males")` male participants in NFCS. end of follow-up was defined by the last recorded clinical contact in linked registry data. For HUSK, the latest delivery was 2024, and for NFCS, the latest delivery was 2020.
 
 ## Relatedness
 
-We assessed genetic relatedness using KING. The primary analyses used the 0-degree retained set (kinship cutoff 0.35333), retaining one participant per duplicate- or monozygotic-twin-level pair. Sensitivity analyses used retained sets with kinship cutoffs of 0.0883883 (second-degree or closer) and 0.0441942 (third-degree or closer). Sample sizes after each exclusion are reported in Supplementary Table S5.
+Analyses were further restricted to male participants aged 40 years or older with a PHS and complete age and PCa status data (HUSK: `{r} cn("p2521", "male_with_phs_and_complete_phenotype_age40plus")`; NFCS: `{r} cn("p212", "male_with_phs_and_complete_phenotype_age40plus")`). Participants last observed before age 40 were excluded because diagnoses before this age were not available, so they were not meaningfully at risk, and age 40 was used as the time origin in the time-varying models.
+
+We assessed genetic relatedness using KING. The primary analyses used the 0-degree retained set (kinship cutoff 0.35333), retaining one participant per duplicate- or monozygotic-twin-level pair. This removed `{r} cn("p2521", "age40plus_removed_by_king_0deg")` participants in HUSK and `{r} cn("p212", "age40plus_removed_by_king_0deg")` in NFCS, leaving `{r} cn("p2521", "age40plus_after_king_0deg")` and `{r} cn("p212", "age40plus_after_king_0deg")` participants, respectively, as the primary analysis samples. Sensitivity analyses used retained sets with kinship cutoffs of 0.0883883 (second-degree or closer; HUSK n = `{r} cn("p2521", "age40plus_after_king_2deg")`, NFCS n = `{r} cn("p212", "age40plus_after_king_2deg")`) and 0.0441942 (third-degree or closer; HUSK n = `{r} cn("p2521", "age40plus_after_king_3deg")`, NFCS n = `{r} cn("p212", "age40plus_after_king_3deg")`). Sample sizes and events for each retained set are reported in Supplementary Table S5.
 
 ## Characterization of PCa Cases
 
@@ -179,9 +190,9 @@ In both cohorts, PCa cases were defined as participants with ICD10 code C61. Dia
 
 ### Genotyping
 
-HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2 [@purcell2007]. QC steps for variants included removal of indels, non-ATGC, strand-ambiguous, poorly-genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 35,476 participants and 10,433,751 autosomal variants.
+HUSK participants were genotyped at deCODE Genetics (https://www.decode.com/) in two batches (10,083 and 25,432 individuals in batch 1 and 2, respectively) using a customized Illumina GSA v3 array (687,316 genotyped variants). Prior to phasing and imputation, genotyping data were QCed separately for each batch using plink2 [@purcell2007]. QC steps for variants included removal of indels, non-ATGC, strand-ambiguous, poorly-genotyped (plink2's option: --geno 0.05), non-autosomal and rare (--maf 0.05) variants as well as variants with extreme deviation from Hardy-Weinberg equilibrium (--hwe 1E-50 midp keep-fewhet). Chromosomal strand and allele order for the remaining variants were aligned based on the HGDP + 1KG reference panel from gnomAD [@koenig2024], and variants with alleles that were not possible to align to the reference as well as variants with MAF deviating from the reference by more than 30% were removed. Resulting genotypes from two batches were merged. Variants with high missingness (--geno 0.02) and individuals with poor genotyping rate (--mind 0.05) were removed from the merged data. The combined dataset was then phased and imputed with Beagle 5.4 (version 27May24.118) using the HGDP + 1KG reference panel. The resulting dataset contained 10,433,751 autosomal variants, and `{r} cn("p2521", "male_with_genotype_qc")` of the male participants had genotype data passing QC.
 
-For the NFCS cohort, genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland). The genotyped dataset consisted of 713,014 SNPs. Genotype data were imputed using the HRC v1.1 reference panel following the same imputation protocol as The Norwegian Mother, Father and Child Cohort [@corfield2024]. After imputation, the dataset consisted of 39,111,193 autosomal variants.
+For the NFCS cohort, genomic DNA was extracted from peripheral blood samples using the DNeasy Blood & Tissue Kit (Qiagen, Germantown, MD, USA), following the manufacturer’s protocol, and analyzed using the Illumina OmniExpress 24 v1.1 chip at deCODE genetics (Reykjavik, Iceland). The genotyped dataset consisted of 713,014 SNPs. Genotype data were imputed using the HRC v1.1 reference panel following the same imputation protocol as The Norwegian Mother, Father and Child Cohort [@corfield2024]. After imputation, the dataset consisted of 39,111,193 autosomal variants, and `{r} cn("p212", "male_with_genotype_qc")` of the male participants had genotype data passing QC.
 
 ### Harmonization of alleles and calculation of PHS
 
@@ -191,7 +202,7 @@ The list of variants used by the PHS601 model, and their effect sizes, were acqu
 
 ### Sequencing
 
-The whole-genome sequencing data were generated at deCODE Genetics on samples from 2,576 participants from the NFCS cohort as described previously [@ivarsdottir2024]. The samples were sequenced using Illumina HiSeqX and NovaSeq sequencing platforms with a total of 8,034 lanes, and all samples were prepared without PCR. Duplicated samples were discarded based on sequencing yield and only samples with a genome-wide average coverage of 20× and higher were included. `read_haps` was used to detect and remove contaminated samples [@eggertsson2021]. The average genome-wide sequencing coverage was 37.2X (SD = 6.3; minimum = 20.1X; maximum = 98.5X) and joint variant calling was performed using GraphTyper (v.2.7.5) [@eggertsson2017]. The WGS analyses in this study used the subset of male participants aged 40 years or older with available PHS and complete phenotype data; its analytic sample size is shown in Table 1 and is distinct from the total number sequenced.
+The whole-genome sequencing data were generated at deCODE Genetics on samples from 2,576 participants from the NFCS cohort as described previously [@ivarsdottir2024]. The samples were sequenced using Illumina HiSeqX and NovaSeq sequencing platforms with a total of 8,034 lanes, and all samples were prepared without PCR. Duplicated samples were discarded based on sequencing yield and only samples with a genome-wide average coverage of 20× and higher were included. `read_haps` was used to detect and remove contaminated samples [@eggertsson2021]. The average genome-wide sequencing coverage was 37.2X (SD = 6.3; minimum = 20.1X; maximum = 98.5X) and joint variant calling was performed using GraphTyper (v.2.7.5) [@eggertsson2017]. The WGS analyses in this study used the subset of male participants aged 40 years or older with available PHS and complete phenotype data. Of the `{r} cn("p212", "wgs_flagged_source_cohort")` sequenced participants present in the NFCS phenotype data, `{r} cn("p212", "wgs_flagged_males")` were male, and `{r} cn("p212", "wgs_males_with_phs_and_complete_phenotype_age40plus")` formed the analytic sample (no kinship exclusion was applied to this subset).
 
 ### Variant calling and classification of RPVs
 
@@ -337,9 +348,9 @@ ft
 
 Median and interquartile range (Q1, Q3) of key age and demographic variables for
 each cohort. Participant counts and percentages describe men aged 40 years or
-older with available PHS and complete phenotype data, before KING relatedness
-filtering; sample sizes after relatedness exclusions are reported in
-Supplementary Table S5. Age at aggressive diagnosis is restricted to aggressive
+older with available PHS and complete phenotype data, after removing
+duplicates/MZ twins (KING 0-degree); the WGS subset had no kinship exclusion.
+Sample sizes and events for each retained set are reported in Supplementary Table S5. Age at aggressive diagnosis is restricted to aggressive
 cases. Age at last follow-up is restricted to controls (censored participants).
 PHS is z-scored. Deaths before diagnosis are treated as censoring events.
 

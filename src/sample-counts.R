@@ -34,30 +34,6 @@ if (anyDuplicated(as.character(analysis_data$bfile_id))) {
   stop("Duplicate bfile_id values found in the age-40+ phenotype data")
 }
 
-read_keep_ids <- function(path, sample_ids) {
-  if (!file.exists(path)) {
-    stop("Relatedness keep file does not exist: ", path)
-  }
-  id_table <- read_table(
-    path,
-    col_names = FALSE,
-    col_types = cols(.default = col_character()),
-    comment = "#",
-    progress = FALSE
-  ) %>%
-    filter(!if_all(everything(), ~ toupper(.x) %in% c("FID", "IID")))
-  if (nrow(id_table) == 0) {
-    stop("Relatedness keep file contains no sample IDs: ", path)
-  }
-  overlaps <- vapply(id_table, function(column) {
-    length(intersect(sample_ids, column))
-  }, integer(1))
-  if (max(overlaps) == 0) {
-    stop("No IDs in ", path, " match the phenotype cohort")
-  }
-  unique(id_table[[which.max(overlaps)]])
-}
-
 sample_ids <- as.character(analysis_data$bfile_id)
 sample_count_file <- read_tsv(sample_counts_file, show_col_types = FALSE)
 preprocessed_age40_n <- sample_count_file %>%

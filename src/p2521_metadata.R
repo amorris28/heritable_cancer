@@ -5,6 +5,7 @@ inverse <- args[2]
 genotype_bfile <- args[3]
 phs_bfile <- args[4]
 sample_counts_file <- args[5]
+king_0deg_file <- args[6] # KING 0-degree retained IDs, used for Table 1 summaries
 
 # initialize packages
 library(tidyverse)
@@ -359,8 +360,13 @@ write_tsv(combined_data, "phenotypes.tsv")
 
 #########################################################################
 ## Summary statistics: median and IQR
-descriptive_data <- combined_data %>%
+# Table 1 describes the primary analysis set: age 40+, duplicates/MZ removed.
+# phenotypes.tsv stays unfiltered; fit-models.R applies KING itself.
+age40_data <- combined_data %>%
   filter(age >= 40)
+descriptive_data <- age40_data %>%
+  filter(as.character(bfile_id) %in%
+           read_keep_ids(king_0deg_file, as.character(age40_data$bfile_id)))
 
 age_summary <- descriptive_data %>%
   mutate(

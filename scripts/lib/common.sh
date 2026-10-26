@@ -15,6 +15,15 @@ load_cohort_config() {
   source "$env_file"
 }
 
+# king_keep_file <p212|p2521> <0deg|2deg|3deg>: path of the KING retained-ID list
+king_keep_file() {
+  if [[ "$1" == "p2521" ]]; then
+    echo "/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk/all_chr.cutoff_${2}.king.cutoff.in.id"
+  else
+    echo "data/interim/relatedness/p212_${2}.king.cutoff.in.id"
+  fi
+}
+
 # should_run <output_file> [<output_file> ...]
 # Prints a skip message and returns false if every given output already exists
 # (unless FORCE=1). Long-running/one-off steps use this to avoid recomputation;

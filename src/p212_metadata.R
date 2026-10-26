@@ -5,6 +5,7 @@ inverse <- args[2]
 genotype_bfile <- args[3]
 phs_bfile <- args[4]
 sample_counts_file <- args[5]
+king_0deg_file <- args[6] # KING 0-degree retained IDs, used for Table 1 summaries
 
 library(tidyverse)
 library(readxl)
@@ -489,8 +490,14 @@ analysis_data <- combined_data %>%
 wgs_analysis_data <- analysis_data %>%
   filter(wgs == 1)
 
-age_summary     <- bind_rows(summarize_age_vars(analysis_data, birth_year_p212),
-                             proportion_summary(analysis_data))
+# Table 1 describes the primary analysis set: age 40+, duplicates/MZ removed.
+# phenotypes.tsv stays unfiltered; fit-models.R applies KING itself.
+primary_data <- analysis_data %>%
+  filter(as.character(bfile_id) %in%
+           read_keep_ids(king_0deg_file, as.character(analysis_data$bfile_id)))
+
+age_summary     <- bind_rows(summarize_age_vars(primary_data, birth_year_p212),
+                             proportion_summary(primary_data))
 age_summary_wgs <- bind_rows(summarize_age_vars(wgs_analysis_data, birth_year_p212),
                              proportion_summary(wgs_analysis_data))
 
