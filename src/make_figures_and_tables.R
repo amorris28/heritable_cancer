@@ -728,6 +728,7 @@ calibration_fig <- (plot_calibration("p2521", "HUSK") /
 
 ggsave("figures_and_tables/calibration.pdf", calibration_fig, height = 7, width = 10)
 ggsave("figures_and_tables/calibration.png", calibration_fig, height = 7, width = 10)
+ggsave("figures_and_tables/calibration.tiff", calibration_fig, height = 7, width = 10, dpi = 300)
 
 ###############################################################
 # Cumulative incidence by age 70 in the NFCS WGS subset
