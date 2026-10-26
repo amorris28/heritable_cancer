@@ -76,7 +76,7 @@ male_data <-
   all_data %>%
   filter(SEX == "M") %>%
   mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
-  select(pid = PID, death = DEATH, wgs = WGS, age = AGELASTOBS)
+  select(pid = PID, death = DEATH, wgs = WGS, age_lastobs = AGELASTOBS)
 
 show_duplicate_keys(
   filter(all_data, SEX == "M"), "PID", "all_data (males)"
