@@ -167,6 +167,10 @@ PHS601 was developed in the US Million Veterans Program, a large, multi-ethnic c
 
 This study evaluated two Norwegian cohorts that have not been included in prior PHS601 model development or validation (@tbl-age-summary). The first cohort was the Hordaland Health Studies (Helseundersøkelsene i Hordaland; HUSK) with 35,515 participants. This cohort was recruited from Hordaland county in western Norway in two waves. The first wave was in 1992-1993 and the second wave was in 1997-1999. Analyses were restricted to the `{r} format(p2521_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in HUSK. The second cohort was the Norwegian Familial Cancer Study (NFCS) with 15,769 participants [@mattingsdal2021]. Participants in this cohort were recruited in 1980-1995 from all of Norway via self-report based on over-representation of cancer in their families. Analyses were restricted to the `{r} format(p212_sample_size[[2, 2]], big.mark = ",", scientific = FALSE)` male participants in NFCS. end of follow-up was defined by the last recorded clinical contact in linked registry data. For HUSK, the latest delivery was 2024, and for NFCS, the latest delivery was 2020.
 
+## Relatedness
+
+We assessed genetic relatedness using KING. The primary analyses used the 0-degree retained set (kinship cutoff 0.35333), retaining one participant per duplicate- or monozygotic-twin-level pair. Sensitivity analyses used retained sets with kinship cutoffs of 0.0883883 (second-degree or closer) and 0.0441942 (third-degree or closer). Sample sizes after each exclusion are reported in Supplementary Table S5.
+
 ## Characterization of PCa Cases
 
 In both cohorts, PCa cases were defined as participants with ICD10 code C61. Diagnosis date was the first instance of this ICD10 code in the Cancer Registry of Norway, which has been estimated to be 98.8% complete [@larsen2009]. Age was used as the time scale, with follow-up from birth to age at diagnosis (event) or age at last follow-up (censoring). Deaths prior to prostate cancer diagnosis were treated as censoring events. Aggressive disease was defined according to metastasis codes `{r} metastase_strict[1:length(metastase_strict)-1]`, and `{r} metastase_strict[length(metastase_strict)]` in the Norwegian Cancer Registry, corresponding to disease that extends to lymph nodes inside or outside the same body region, organ metastasis outside the body region, and microscopic or macroscopic ingrowth into neighboring structures @{supptab-metcodes}. Progression, relapse, and metastases are required to be reported by the Norwegian Cancer Registry, supporting completeness of the aggressive phenotype ascertainment.
@@ -187,7 +191,7 @@ The list of variants used by the PHS601 model, and their effect sizes, were acqu
 
 ### Sequencing
 
-The whole-genome sequencing data were generated at deCODE Genetics on samples from 2,576 participants from the NFCS cohort as described previously [@ivarsdottir2024]. The samples were sequenced using Illumina HiSeqX and NovaSeq sequencing platforms with a total of 8,034 lanes, and all samples were prepared without PCR. Duplicated samples were discarded based on sequencing yield and only samples with a genome-wide average coverage of 20× and higher were included. `read_haps` was used to detect and remove contaminated samples [@eggertsson2021]. The average genome-wide sequencing coverage was 37.2X (SD = 6.3; minimum = 20.1X; maximum = 98.5X) and joint variant calling was performed using GraphTyper (v.2.7.5) [@eggertsson2017].
+The whole-genome sequencing data were generated at deCODE Genetics on samples from 2,576 participants from the NFCS cohort as described previously [@ivarsdottir2024]. The samples were sequenced using Illumina HiSeqX and NovaSeq sequencing platforms with a total of 8,034 lanes, and all samples were prepared without PCR. Duplicated samples were discarded based on sequencing yield and only samples with a genome-wide average coverage of 20× and higher were included. `read_haps` was used to detect and remove contaminated samples [@eggertsson2021]. The average genome-wide sequencing coverage was 37.2X (SD = 6.3; minimum = 20.1X; maximum = 98.5X) and joint variant calling was performed using GraphTyper (v.2.7.5) [@eggertsson2017]. The WGS analyses in this study used the subset of male participants aged 40 years or older with available PHS and complete phenotype data; its analytic sample size is shown in Table 1 and is distinct from the total number sequenced.
 
 ### Variant calling and classification of RPVs
 
@@ -332,12 +336,17 @@ ft
 
 
 Median and interquartile range (Q1, Q3) of key age and demographic variables for
-each cohort. Percentages are of all participants in the analysis. Age at aggressive diagnosis is
-restricted to aggressive cases. Age at last follow-up is restricted to controls
-(censored participants). PHS is z-scored. Deaths before diagnosis are treated
-as censoring events.
+each cohort. Participant counts and percentages describe men aged 40 years or
+older with available PHS and complete phenotype data, before KING relatedness
+filtering; sample sizes after relatedness exclusions are reported in
+Supplementary Table S5. Age at aggressive diagnosis is restricted to aggressive
+cases. Age at last follow-up is restricted to controls (censored participants).
+PHS is z-scored. Deaths before diagnosis are treated as censoring events.
 
 :::
+
+
+
 
 
 ```{r tbl-coxph}
@@ -611,7 +620,5 @@ ft
 Sensitivity analyses of the PHS hazard ratio (95% CI) per unit increase in PHS, accounting for relatedness and population structure. Kinship was estimated with KING; one member of each pair was retained at kinship coefficients above 0.35 (duplicates/monozygotic twins), 0.088 (2nd-degree or closer) and 0.044 (3rd-degree or closer). Models were adjusted for the first 0, 5 or 10 genetic principal components, calculated with FlashPCA on LD-pruned autosomal variants after excluding high-LD regions. Excl. = one member of each related pair removed at the indicated degree or closer. The primary analysis (excluding duplicates/MZ twins, no PCs) is the first row of each outcome. N (events) = participants in the model (cases of the outcome).
 
 :::
-
-
 
 

@@ -2,6 +2,9 @@ args <- commandArgs(trailingOnly = TRUE)
 
 model_file <- args[1] # PHS file
 inverse <- args[2]
+genotype_bfile <- args[3]
+phs_bfile <- args[4]
+sample_counts_file <- args[5]
 
 # initialize packages
 library(tidyverse)
@@ -306,12 +309,60 @@ combined_data <- process_combined_data(phenotype_data, phs_data)
 
 combined_data <- resolve_duplicate_ids(combined_data, c("huskmentid", "bfile_id"), "p2521 phenotypes")
 
+genotype_ids <- read_fam_iids(genotype_bfile)
+phs_bfile_ids <- read_fam_iids(phs_bfile)
+male_bfile_ids <- unique(as.character(phenotype_data$bfile_id[!is.na(phenotype_data$bfile_id)]))
+sample_counts <- sample_count_rows(
+  "HUSK",
+  stage = c(
+    "source_cohort",
+    "source_males",
+    "post_qc_genotype_file_samples",
+    "genotype_qc_passed_cohort",
+    "male_with_genotype_qc",
+    "phs_variant_bfile_samples",
+    "phs_variant_bfile_cohort",
+    "phs_score_file_samples",
+    "male_with_phs_score",
+    "male_with_phs_and_complete_phenotype",
+    "male_with_phs_and_complete_phenotype_age40plus"
+  ),
+  n = c(
+    dplyr::n_distinct(age_dob_data$HUSKMentID, na.rm = TRUE),
+    length(unique(stats::na.omit(all_male_huskmentids))),
+    length(genotype_ids),
+    length(intersect(unique(as.character(id_key$bfile_id)), genotype_ids)),
+    length(intersect(male_bfile_ids, genotype_ids)),
+    length(phs_bfile_ids),
+    length(intersect(unique(as.character(id_key$bfile_id)), phs_bfile_ids)),
+    dplyr::n_distinct(phs_data$bfile_id, na.rm = TRUE),
+    length(intersect(male_bfile_ids, unique(as.character(phs_data$bfile_id)))),
+    nrow(combined_data),
+    sum(combined_data$age >= 40)
+  ),
+  definition = c(
+    "Unique participants in the HUSK age/DOB source file.",
+    "Unique participants classified as male from HUSK phenotype/registry sources.",
+    "Unique sample IDs in the configured post-QC genotype file; includes samples outside the HUSK phenotype cohort if present.",
+    "Unique HUSK participant IDs present in the configured, post-QC genotype file.",
+    "Male HUSK participant IDs present in the configured, post-QC genotype file.",
+    "Unique sample IDs in the PHS-variant genotype file.",
+    "Unique HUSK participant IDs present in the PHS-variant genotype file.",
+    "Unique sample IDs with a score in the PHS profile file.",
+    "Male HUSK participant IDs present in the PHS score file.",
+    "Male participants with a PHS score and non-missing age and PCa status, after duplicate-ID resolution.",
+    "The preceding group restricted to age 40 years or older; input to the primary model before KING filtering."
+  )
+)
 # Save output
 write_tsv(combined_data, "phenotypes.tsv")
 
 #########################################################################
 ## Summary statistics: median and IQR
-age_summary <- phenotype_data %>%
+descriptive_data <- combined_data %>%
+  filter(age >= 40)
+
+age_summary <- descriptive_data %>%
   mutate(
     birth_year = year(fdato),
     age_first_follow_up = interval(fdato, date_first_follow_up) / years(1),
@@ -341,8 +392,8 @@ age_summary <- phenotype_data %>%
   mutate(iqr = q75 - q25) %>%
   select(variable, median, q25, q75, iqr)
 
-# PHS summary from genotyped subjects (combined_data)
-phs_summary <- combined_data %>%
+# PHS summary from the same age-eligible, genotyped subjects
+phs_summary <- descriptive_data %>%
   summarize(
     median = median(phs, na.rm = TRUE),
     q25    = quantile(phs, 0.25, na.rm = TRUE),
@@ -352,7 +403,7 @@ phs_summary <- combined_data %>%
   select(variable, median, q25, q75, iqr)
 
 # died_before_dx: censored and appears in death register
-phenotype_data_dx <- phenotype_data %>%
+phenotype_data_dx <- descriptive_data %>%
   mutate(died_before_dx = (huskmentid %in% death_dates$huskmentid) & (status == 0))
 
 n_total <- nrow(phenotype_data_dx)
@@ -373,3 +424,4 @@ proportion_summary_p2521 <- tibble(
 age_summary <- bind_rows(age_summary, phs_summary, proportion_summary_p2521)
 
 write_tsv(age_summary, "age_summary.tsv")
+record_sample_counts(sample_counts, sample_counts_file, replace_all = TRUE)

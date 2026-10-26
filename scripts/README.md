@@ -37,6 +37,14 @@ an expensive downstream step (e.g. the bootstrap in `05_fit_models.sh`).
 12. `scripts/12_make_figures_and_tables.sh` — run **locally**, after both cohorts'
     `data/public/` results are available, to build `manuscript/figures_and_tables/`.
 
+After steps 2 and 3, run `bash scripts/13_sample_counts.sh <p212|p2521>` to add
+the age-40+ before/after KING counts to the report created during preprocessing.
+This is independent of steps 4-11 and can be run before model fitting. It only
+reads the existing phenotype file and KING retained-ID lists; it does not rerun
+preprocessing, fit models, or run bootstraps. If preprocessing logic has changed
+or the report is missing, run `scripts/02_preprocess_metadata.sh <cohort>
+--force` first. The output is `data/public/<cohort>_sample_counts.tsv`.
+
 Manuscript rendering itself stays manual and separate:
 ```
 quarto render manuscript/manuscript.qmd --to pdf \
@@ -77,6 +85,20 @@ The retained-ID lists provide progressively less-related subsets, not
 family/cluster identifiers, so they do not support a full-cohort
 relatedness-adjusted Cox model. PC scores must cover every analysis sample;
 the model script checks the IDs and requires at least 10 PC columns.
+
+## Participant flow counts
+
+`data/public/<cohort>_sample_counts.tsv` is created by step 2 and records the
+source cohort, male participants, overlap with the post-QC genotype and
+PHS-scoring files, complete phenotype/PHS sets, and the age-40+ primary-model
+input. Step 13 adds the exact before/after KING counts, including the number
+removed by the 0-degree duplicate/MZ filter. For NFCS the preprocessing report
+also includes WGS-flagged
+participants in the source cohort, male WGS participants, and the WGS analysis
+set. These are distinct denominators; use the stage definitions in the file
+when reporting them. The previously cited 2,576 sequenced participants is an
+overall sequencing-cohort count and should not be presented as the analytic
+male WGS sample size.
 
 ## PCA
 

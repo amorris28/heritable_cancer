@@ -2,6 +2,9 @@ args <- commandArgs(trailingOnly = TRUE)
 
 model_file <- args[1] # PHS file
 inverse <- args[2]
+genotype_bfile <- args[3]
+phs_bfile <- args[4]
+sample_counts_file <- args[5]
 
 library(tidyverse)
 library(readxl)
@@ -112,10 +115,7 @@ registry_dx <-
   ungroup()
 
 combined_data <-
-  all_data %>%
-  filter(SEX == "M") %>%
-  mutate(WGS = if_else(is.na(WGS), 0, WGS)) %>%
-  select(pid = PID, death = DEATH, wgs = WGS, age_lastobs = AGELASTOBS) %>%
+  male_data %>%
   full_join(cases, by = "pid") %>%
   mutate(pid = as.character(pid)) %>%
   left_join(registry_dx, by = "pid") %>%
@@ -343,6 +343,73 @@ combined_data <- process_combined_data(combined_data, phs_data)
 
 combined_data <- resolve_duplicate_ids(combined_data, c("pid", "bfile_id"), "p212 phenotypes")
 
+genotype_ids <- read_fam_iids(genotype_bfile)
+phs_bfile_ids <- read_fam_iids(phs_bfile)
+male_ids <- unique(as.character(male_data$pid))
+male_bfile_ids <- unique(as.character(id_key$bfile_id[match(male_ids, id_key$pid)]))
+male_bfile_ids <- male_bfile_ids[!is.na(male_bfile_ids)]
+wgs_full_cohort_n <- all_data %>%
+  filter(WGS == 1) %>%
+  summarize(n = n_distinct(PID, na.rm = TRUE)) %>%
+  pull(n)
+wgs_male_n <- male_data %>%
+  filter(wgs == 1) %>%
+  summarize(n = n_distinct(pid, na.rm = TRUE)) %>%
+  pull(n)
+sample_counts <- sample_count_rows(
+  "NFCS",
+  stage = c(
+    "source_cohort",
+    "source_males",
+    "post_qc_genotype_file_samples",
+    "genotype_qc_passed_cohort",
+    "male_with_genotype_qc",
+    "phs_variant_bfile_samples",
+    "phs_variant_bfile_cohort",
+    "phs_score_file_samples",
+    "male_with_phs_score",
+    "male_with_phs_and_complete_phenotype",
+    "male_with_phs_and_complete_phenotype_age40plus",
+    "wgs_flagged_source_cohort",
+    "wgs_flagged_males",
+    "wgs_males_with_phs_and_complete_phenotype",
+    "wgs_males_with_phs_and_complete_phenotype_age40plus"
+  ),
+  n = c(
+    dplyr::n_distinct(all_data$PID, na.rm = TRUE),
+    dplyr::n_distinct(male_data$pid, na.rm = TRUE),
+    length(genotype_ids),
+    length(intersect(unique(as.character(id_key$bfile_id)), genotype_ids)),
+    length(intersect(male_bfile_ids, genotype_ids)),
+    length(phs_bfile_ids),
+    length(intersect(unique(as.character(id_key$bfile_id)), phs_bfile_ids)),
+    dplyr::n_distinct(phs_data$bfile_id, na.rm = TRUE),
+    length(intersect(male_bfile_ids, unique(as.character(phs_data$bfile_id)))),
+    nrow(combined_data),
+    sum(combined_data$age >= 40),
+    wgs_full_cohort_n,
+    wgs_male_n,
+    sum(combined_data$wgs == 1),
+    sum(combined_data$wgs == 1 & combined_data$age >= 40)
+  ),
+  definition = c(
+    "Unique participants in the NFCS/MoBa phenotype source file.",
+    "Unique male participants in the NFCS/MoBa phenotype source file.",
+    "Unique sample IDs in the configured post-QC genotype file; may include samples outside the NFCS phenotype cohort.",
+    "Unique NFCS participant IDs present in the configured, post-QC genotype file.",
+    "Male NFCS participant IDs present in the configured, post-QC genotype file.",
+    "Unique sample IDs in the PHS-variant genotype file.",
+    "Unique NFCS participant IDs present in the PHS-variant genotype file.",
+    "Unique sample IDs with a score in the PHS profile file.",
+    "Male NFCS participant IDs present in the PHS score file.",
+    "Male participants with a PHS score and non-missing age and PCa status, after duplicate-ID resolution.",
+    "The preceding group restricted to age 40 years or older; input to the primary model before KING filtering.",
+    "Unique NFCS phenotype-source participants flagged as having WGS.",
+    "Unique male NFCS participants flagged as having WGS.",
+    "Male participants flagged for WGS with a PHS score and non-missing age and PCa status.",
+    "The preceding WGS group restricted to age 40 years or older; input to the WGS analysis."
+  )
+)
 # Save output
 write_tsv(combined_data, "phenotypes.tsv")
 
@@ -417,10 +484,16 @@ proportion_summary <- function(df) {
     select(variable, median, q25, q75, iqr, n, pct)
 }
 
-age_summary     <- bind_rows(summarize_age_vars(combined_data, birth_year_p212),
-                             proportion_summary(combined_data))
-age_summary_wgs <- bind_rows(summarize_age_vars(filter(combined_data, wgs == 1), birth_year_p212),
-                             proportion_summary(filter(combined_data, wgs == 1)))
+analysis_data <- combined_data %>%
+  filter(age >= 40)
+wgs_analysis_data <- analysis_data %>%
+  filter(wgs == 1)
+
+age_summary     <- bind_rows(summarize_age_vars(analysis_data, birth_year_p212),
+                             proportion_summary(analysis_data))
+age_summary_wgs <- bind_rows(summarize_age_vars(wgs_analysis_data, birth_year_p212),
+                             proportion_summary(wgs_analysis_data))
 
 write_tsv(age_summary,     "age_summary.tsv")
 write_tsv(age_summary_wgs, "age_summary_wgs.tsv")
+record_sample_counts(sample_counts, sample_counts_file, replace_all = TRUE)

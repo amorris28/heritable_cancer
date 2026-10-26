@@ -13,8 +13,11 @@ cd "$REPO_ROOT"
 
 PHENOTYPES=data/processed/phenotypes.tsv
 SCORE_FILE=data/processed/${CLUSTER}_phs601.profile
+PHS_BFILE=data/interim/merge_bfiles/${CLUSTER}_phs601
+SAMPLE_COUNTS="data/public/${CLUSTER}_sample_counts.tsv"
+AGE_SUMMARY="data/public/${CLUSTER}_age_summary.tsv"
 
-if ! should_run "$PHENOTYPES"; then
+if ! should_run "$PHENOTYPES" "$SAMPLE_COUNTS" "$AGE_SUMMARY"; then
   exit 0
 fi
 
@@ -24,8 +27,8 @@ if [[ "$HAS_HOXB13" == "1" ]]; then
   cp data/processed/tmp_rs138213197.raw tmp_rs138213197.raw
 fi
 
-run_rscript "$PREPROCESS_SCRIPT" "$SCORE_FILE" FALSE
-require_files phenotypes.tsv age_summary.tsv
+run_rscript "$PREPROCESS_SCRIPT" "$SCORE_FILE" FALSE "$BED_FILE" "$PHS_BFILE" "$SAMPLE_COUNTS"
+require_files phenotypes.tsv age_summary.tsv "$SAMPLE_COUNTS"
 if [[ "$HAS_HOXB13" == "1" ]]; then
   require_files all_variants.tsv age_summary_wgs.tsv
 fi

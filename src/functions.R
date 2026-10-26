@@ -59,6 +59,56 @@ process_combined_data <- function(metadata, phs_data) {
   return(combined_data)
 }
 
+read_fam_iids <- function(bfile_prefix) {
+  fam_file <- paste0(bfile_prefix, ".fam")
+  if (!file.exists(fam_file)) {
+    stop("Genotype sample file does not exist: ", fam_file)
+  }
+  fam <- readr::read_table(
+    fam_file,
+    col_names = FALSE,
+    col_types = readr::cols(.default = readr::col_character()),
+    show_col_types = FALSE
+  )
+  if (ncol(fam) < 2) {
+    stop("Expected at least FID and IID columns in ", fam_file)
+  }
+  ids <- unique(fam[[2]])
+  ids[!is.na(ids) & nzchar(ids)]
+}
+
+sample_count_rows <- function(cohort, stage, n, definition) {
+  if (length(stage) != length(n) || length(stage) != length(definition)) {
+    stop("stage, n, and definition must have matching lengths")
+  }
+  tibble::tibble(
+    cohort = cohort,
+    stage = stage,
+    n = as.integer(n),
+    definition = definition
+  )
+}
+
+record_sample_counts <- function(counts, path, replace_all = FALSE) {
+  required <- c("cohort", "stage", "n", "definition")
+  if (!all(required %in% names(counts))) {
+    stop("Sample count rows must include: ", paste(required, collapse = ", "))
+  }
+  if (anyNA(counts$n) || any(counts$n < 0)) {
+    stop("Sample counts must be non-missing and non-negative")
+  }
+  if (anyDuplicated(counts[c("cohort", "stage")])) {
+    stop("Sample count rows must have unique cohort/stage combinations")
+  }
+
+  if (!replace_all && file.exists(path)) {
+    existing <- readr::read_tsv(path, show_col_types = FALSE)
+    existing <- dplyr::anti_join(existing, counts, by = c("cohort", "stage"))
+    counts <- dplyr::bind_rows(existing, counts)
+  }
+  readr::write_tsv(counts, path)
+}
+
 ##  Formatting
 pvalr <- function(pvals, sig.limit = .001, digits = 3, html = FALSE) {
   roundr <- function(x, digits = 1) {
@@ -262,5 +312,3 @@ phs_performance_metrics <- function(data, time = "age", event = "status", phs = 
       adjusted = FALSE
     )
 }
-
-
