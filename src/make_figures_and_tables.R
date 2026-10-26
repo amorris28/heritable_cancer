@@ -670,7 +670,8 @@ write_tsv(table_qc_sensitivity, "figures_and_tables/table_qc_sensitivity.tsv")
 plot_calibration <- function(prefix, title) {
   calib <- read_tsv(paste0("data/public/", prefix, "_calibration_by_age.tsv"),
                     show_col_types = FALSE) %>%
-    filter(analysis == "From age 40")
+    filter(analysis == "From age 40") %>%
+    mutate(phs_group = factor(phs_group, levels = 1:5, labels = paste0("Q", 1:5)))
   labels <- read_tsv(paste0("data/public/", prefix, "_calibration_slope_intercept.tsv"),
                      show_col_types = FALSE) %>%
     filter(analysis == "From age 40") %>%
@@ -683,10 +684,18 @@ plot_calibration <- function(prefix, title) {
     geom_errorbar(aes(ymin = pmax(observed - 1.96 * obs_se, 0) * 100,
                       ymax = (observed + 1.96 * obs_se) * 100),
                   width = 0, colour = "grey60") +
-    geom_point(aes(colour = model)) +
+    geom_point(aes(colour = model, shape = phs_group), size = 2) +
     geom_text(data = labels, aes(x = -Inf, y = Inf, label = label, colour = model),
               hjust = -0.1, vjust = labels$vj, size = 3, inherit.aes = FALSE,
               show.legend = FALSE) +
+    scale_colour_manual(
+      values = c("Constant HR" = "#005A8D", "Age-varying HR" = "#A84300")
+    ) +
+    scale_shape_manual(
+      name = "PHS quintile",
+      values = c(Q1 = 16, Q2 = 17, Q3 = 15, Q4 = 18, Q5 = 25),
+      labels = c("Q1 (lowest)", "Q2", "Q3", "Q4", "Q5 (highest)")
+    ) +
     facet_wrap(~screen_age, scales = "free", nrow = 1,
                labeller = labeller(screen_age = function(x) paste("Age", x))) +
     labs(title = title, x = "Predicted cumulative incidence (%)",

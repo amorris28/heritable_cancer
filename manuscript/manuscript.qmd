@@ -485,7 +485,7 @@ Comparison of cumulative incidence rates for PCa in two cohorts against national
 
 ![](figures_and_tables/calibration.pdf){width=100%}
 
-Calibration of predicted absolute risk at screening ages 50, 55, 60 and 65 years. Men were grouped into PHS quintiles; points show the mean predicted cumulative incidence against the observed Kaplan-Meier cumulative incidence in each quintile (error bars, 95% CI). The dashed line is perfect calibration (slope = 1, intercept = 0). Coloured lines are weighted linear fits for a Cox model with a constant PHS hazard ratio and one with an age-varying hazard ratio (separate coefficients before age 60, 60-70 and after 70); slopes are shown with bootstrap 95% CIs. Calibration is internal (predictions and observations come from the same cohort).
+Calibration of predicted absolute risk at screening ages 50, 55, 60 and 65 years. Men were grouped into PHS quintiles; points show the mean predicted cumulative incidence against the observed Kaplan-Meier cumulative incidence in each quintile (error bars, 95% CI). Point shapes identify the quintile, from Q1 (lowest PHS) to Q5 (highest PHS). The dashed line is perfect calibration (slope = 1, intercept = 0). Dark blue and orange lines are weighted linear fits for a Cox model with a constant PHS hazard ratio and one with an age-varying hazard ratio (separate coefficients before age 60, 60-70 and after 70); slopes are shown with bootstrap 95% CIs. Calibration is internal (predictions and observations come from the same cohort).
 
 :::
 
