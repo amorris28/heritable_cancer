@@ -4,7 +4,7 @@ source("src/functions.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 6) {
   stop(
-    "Usage: sample-counts.R <phenotypes.tsv> <HUSK|NFCS> ",
+    "Usage: sample-counts.R <phenotypes.tsv> <p2521|p212> ",
     "<0deg.keep> <2deg.keep> <3deg.keep> <sample_counts.tsv>"
   )
 }
@@ -14,8 +14,8 @@ cohort <- args[2]
 relatedness_files <- args[3:5]
 sample_counts_file <- args[6]
 
-if (!cohort %in% c("HUSK", "NFCS")) {
-  stop("Cohort must be HUSK or NFCS; got: ", cohort)
+if (!cohort %in% c("p2521", "p212")) {
+  stop("Cohort must be p2521 or p212; got: ", cohort)
 }
 
 phenotypes <- read_tsv(phenotypes_file, show_col_types = FALSE)

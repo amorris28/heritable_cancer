@@ -10,7 +10,7 @@ load_cohort_config "$COHORT"
 cd "$REPO_ROOT"
 
 if [[ "$COHORT" == "p2521" ]]; then
-  cohort_label=HUSK
+  cohort_label=p2521
   relatedness_dir=/ess/p2521/cluster/users/espehage/BiobankNorge_AD/results/husk
   relatedness_files=(
     "$relatedness_dir/all_chr.cutoff_0deg.king.cutoff.in.id"
@@ -18,7 +18,7 @@ if [[ "$COHORT" == "p2521" ]]; then
     "$relatedness_dir/all_chr.cutoff_3deg.king.cutoff.in.id"
   )
 else
-  cohort_label=NFCS
+  cohort_label=p212
   relatedness_files=(
     "data/interim/relatedness/p212_0deg.king.cutoff.in.id"
     "data/interim/relatedness/p212_2deg.king.cutoff.in.id"

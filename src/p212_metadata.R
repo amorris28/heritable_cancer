@@ -357,7 +357,7 @@ wgs_male_n <- male_data %>%
   summarize(n = n_distinct(pid, na.rm = TRUE)) %>%
   pull(n)
 sample_counts <- sample_count_rows(
-  "NFCS",
+  "p212",
   stage = c(
     "source_cohort",
     "source_males",

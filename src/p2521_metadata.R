@@ -313,7 +313,7 @@ genotype_ids <- read_fam_iids(genotype_bfile)
 phs_bfile_ids <- read_fam_iids(phs_bfile)
 male_bfile_ids <- unique(as.character(phenotype_data$bfile_id[!is.na(phenotype_data$bfile_id)]))
 sample_counts <- sample_count_rows(
-  "HUSK",
+  "p2521",
   stage = c(
     "source_cohort",
     "source_males",
