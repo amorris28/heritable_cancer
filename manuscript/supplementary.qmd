@@ -1,0 +1,200 @@
+---
+title: "Supplementary Data: Prostate cancer risk prediction using polygenic hazard scores in Norwegian populations"
+
+format:
+    docx:
+        reference-doc: reference.docx
+    pdf:
+        papersize: A4
+        keep-tex: true
+        include-in-header:
+          - header.tex
+execute:
+  echo: false
+  warning: false
+  message: false
+crossref:
+  custom:
+    - kind: float
+      key: suppfig
+      latex-env: suppfig
+      reference-prefix: Figure S
+      space-before-numbering: false
+      latex-list-of-description: Supplementary Figure
+    - kind: float
+      key: supptab
+      latex-env: supptab
+      reference-prefix: Table S
+      space-before-numbering: false
+      latex-list-of-description: Supplementary Table
+      caption-location: top
+---
+
+```{r load}
+library(tidyverse)
+library(flextable)
+library(officer)
+```
+
+::: {#suppfig-comp}
+
+![](figures_and_tables/cumulative_comparison.pdf){width=85%}
+
+Comparison of cumulative incidence rates for PCa in two cohorts against national data from the Norwegian Cancer Registry. The red line represents the cumulative incidence observed in each cohort, while the black line depicts the overall cumulative incidence of PCa cases in Norway from 2014 to 2017 (Huynh-Le et al., 2020). Panels **(A)** and **(B)** show incidence rates for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show incidence rates for aggressive PCa in the same cohorts.
+
+:::
+
+
+::: {#suppfig-zph}
+
+![](figures_and_tables/zph_tt.pdf){width=85%}
+
+Assessment of the proportional hazards assumption for PHS using Schoenfeld residuals plotted against age. The solid blue line represents the estimated time-varying log hazard ratio from the extended Cox model with a linear time transform for PHS (95% confidence bands shown). The dashed blue line shows the log hazard ratio for PHS from the standard Cox proportional hazards model, and the dashed red line indicates a hazard ratio of 1.0 (log HR = 0). Divergence between the solid and dashed blue lines indicates violation of the proportional hazards assumption and time-dependency of the PHS effect. Panels **(A)** and **(B)** show results for any-stage PCa in the HUSK and NFCS cohorts, respectively; panels **(C)** and **(D)** show results for aggressive PCa in the same cohorts. 
+
+:::
+
+
+::: {#suppfig-calibration}
+
+![](figures_and_tables/calibration.pdf){width=100%}
+
+Calibration of predicted absolute risk at screening ages 50, 55, 60 and 65 years. Men were grouped into PHS quintiles; points show the mean predicted cumulative incidence against the observed Kaplan-Meier cumulative incidence in each quintile (error bars, 95% CI). Point shapes identify the quintile, from Q1 (lowest PHS) to Q5 (highest PHS). The dashed line is perfect calibration (slope = 1, intercept = 0). Dark blue and orange lines are weighted linear fits for a Cox model with a constant PHS hazard ratio and one with an age-varying hazard ratio (separate coefficients before age 60, 60-70 and after 70); slopes are shown with bootstrap 95% CIs. Calibration is internal (predictions and observations come from the same cohort).
+
+:::
+
+
+::: {#supptab-metcodes}
+
+```{r}
+table_metcodes = read_tsv("manuscript/figures_and_tables/table_metastasis_codes.tsv", col_types = cols(.default = col_character())) %>%
+  mutate(across(everything(), ~ replace_na(.x, "")))
+
+ft <- flextable(table_metcodes) %>%
+  fontsize(size = 8, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  width(j = c("HUSK", "NFCS", "Code"), width = 0.6) %>%
+  width(j = "Description", width = 4) %>%
+  theme_vanilla()
+
+ft
+```
+
+Distribution of Cancer Registry of Norway metastasis codes among aggressive PCa cases in the HUSK and NFCS analysis cohorts. Aggressive PCa was defined by codes 1, 2, 4, 6 and 7; blank cells indicate no aggressive cases with that code. Each participant receives only one code.
+
+:::
+
+
+::: {#supptab-qc}
+
+```{r}
+table_qc <- read_tsv("manuscript/figures_and_tables/table_qc_sensitivity.tsv")
+
+ft <- flextable(table_qc) %>%
+  fontsize(size = 8, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  merge_v(j = c("Cohort", "Outcome")) %>%
+  autofit() %>%
+  fit_to_width(max_width = 6) %>%
+  theme_vanilla()
+
+ft
+```
+
+Sensitivity analyses of the PHS hazard ratio (95% CI) per SD increase in PHS, accounting for relatedness and population structure. Kinship was estimated with KING; one member of each pair was retained at kinship coefficients above 0.35 (duplicates/monozygotic twins), 0.088 (2nd-degree or closer) and 0.044 (3rd-degree or closer). Models were adjusted for the first 0, 5 or 10 genetic principal components, calculated with FlashPCA on LD-pruned autosomal variants after excluding high-LD regions. Excl. = one member of each related pair retained at the indicated degree or closer. The primary analysis (excluding duplicates/MZ twins, no PCs) is the first row of each outcome. N (events) = participants in the model (cases of the outcome).
+
+:::
+
+
+::: {#supptab-variants}
+
+```{r}
+table_wgs = read_tsv("manuscript/figures_and_tables/table_variants.tsv")
+
+ft <- flextable(table_wgs) %>%
+  fontsize(size = 8, part = "all") %>%
+  autofit() %>%
+  theme_vanilla()
+
+ft
+```
+
+All variants from genes that we investigated were classified as "Pathogenic" in ClinVar. N is the number of participants carrying this mutation.
+
+:::
+
+
+::: {#supptab-tt}
+
+```{r}
+table_tt = read_tsv("manuscript/figures_and_tables/table_tt.tsv")
+
+ft <- flextable(table_tt) %>%
+  fontsize(size = 10, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  merge_v(j = c("Cohort", "Cases")) %>%
+  autofit() %>%
+  theme_vanilla()
+
+ft
+```
+
+Hazard ratios and 95% confidence intervals from the extended Cox model for PHS with time-varying effects. The baseline PHS term represents the hazard ratio at age 40; the tt(PHS) term represents the multiplicative change in hazard ratio per additional year of age (linear time transform). Outcome is age at diagnosis of any-stage PCa.
+
+:::
+
+
+::: {#supptab-fisher}
+
+```{r}
+table_fisher = read_tsv("manuscript/figures_and_tables/table_fisher.tsv")
+
+ft <- flextable(table_fisher) %>%
+  fontsize(size = 10, part = "all") %>%
+  border_outer(border = fp_border(width = 1)) %>%
+  border_inner_h(border = fp_border(width = 0.5)) %>%
+  border_inner_v(border = fp_border(width = 0.5)) %>%
+  autofit() %>%
+  theme_vanilla()
+
+ft
+```
+
+One-sided Fisher's exact tests of whether the odds of carrying an RPV are greater among cases than controls in the NFCS cohort. P values adjusted using the Benjamini & Hochberg method. OR = Odds ratio, LCB = lower confidence bound.
+
+:::
+
+
+::: {#supptab-wgs-risk}
+
+```{r}
+wgs_tbl <- read_tsv("manuscript/figures_and_tables/table_wgs_risk.tsv") %>%
+  mutate(across(everything(), as.character))
+sub_rows <- c(HOXB13 = 1, PHS = sum(wgs_tbl$Marker == "HOXB13") + 2)
+update <- wgs_tbl %>% mutate(subheader = NA_character_) %>% select(subheader, Group, N:last_col(), -Marker)
+update <- rbind(
+  c("HOXB13", rep(NA, ncol(update) - 1)),
+  update[wgs_tbl$Marker == "HOXB13", ],
+  c("PHS", rep(NA, ncol(update) - 1)),
+  update[wgs_tbl$Marker == "PHS", ]
+)
+
+flextable(update) %>%
+  fontsize(size = 9, part = "all") %>%
+  font(part = "all", fontname = "Helvetica Neue") %>%
+  bold(part = "body", j = "subheader") %>%
+  merge_h_range(i = sub_rows[["HOXB13"]], j1 = "subheader", j2 = "Risk by 70, % (95% CI)") %>%
+  merge_h_range(i = sub_rows[["PHS"]], j1 = "subheader", j2 = "Risk by 70, % (95% CI)") %>%
+  set_header_labels(subheader = "") %>%
+  autofit() %>%
+  theme_vanilla()
+```
+
+Cases and cumulative incidence (%) of PCa by age 70 (Kaplan-Meier) in the NFCS participants with whole-genome sequencing, by HOXB13 pathogenic variant carrier status and by PHS group. Low is the bottom 20% of PHS, average the 30-70th percentile, high the top 20%, and top 1.8% the same prevalence as HOXB13 carriers. Cases are all PCa diagnoses during follow-up; "% of cases" is the share of all cases in the sequenced subset. Groups overlap (HOXB13 carriers can also have high PHS), so rows are not independent.
+
+:::
