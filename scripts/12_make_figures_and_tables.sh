@@ -24,7 +24,7 @@ mv figures_and_tables/* manuscript/figures_and_tables/
 rmdir figures_and_tables
 
 echo "Done. Outputs written to manuscript/figures_and_tables/"
-echo 'Render manually with: quarto render manuscript/manuscript.qmd --to pdf --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"'
+echo 'Render manually with: quarto render manuscript/manuscript.qmd --to pdf --metadata csl=american-association-for-cancer-research.csl --execute-dir "$(pwd)"'
 
-quarto render manuscript/manuscript.qmd --to pdf --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
-quarto render manuscript/manuscript.qmd --to docx --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
+quarto render manuscript/manuscript.qmd --to pdf --metadata csl=american-association-for-cancer-research.csl --execute-dir "$(pwd)"
+quarto render manuscript/manuscript.qmd --to docx --metadata csl=american-association-for-cancer-research.csl --execute-dir "$(pwd)"

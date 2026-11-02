@@ -45,7 +45,7 @@ render the manuscript:
 ```
 scripts/12_make_figures_and_tables.sh
 quarto render manuscript/manuscript.qmd --to pdf \
-  --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
+  --metadata csl=american-association-for-cancer-research.csl --execute-dir "$(pwd)"
 ```
 
 `--execute-dir` is required: the R code in `manuscript.qmd` reads `src/` and

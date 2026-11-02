@@ -31,13 +31,9 @@ an expensive downstream step (e.g. the bootstrap in `05_fit_models.sh`).
 6. `scripts/06_plot_figures.sh <cohort>` — KM/absolute-risk curve objects.
 7. `scripts/07_incidence_analysis.sh <cohort>` — population incidence-rate comparison.
 8. `scripts/08_wgs_analysis.sh` — rare-variant (WGS) analysis, p212 only.
-9. `scripts/09_phs_portability.sh <cohort>` — PHS portability in the original
-   score units (not used by the manuscript tables/figures).
-10. `scripts/10_calibration_frozen.sh <cohort>` — calibration with the published
-    PHS601 weights (not used by the manuscript tables/figures).
-11. `scripts/11_calibration.sh <cohort>` — internal absolute-risk calibration
+9. `scripts/11_calibration.sh <cohort>` — internal absolute-risk calibration
     (supplementary figure).
-12. `scripts/12_make_figures_and_tables.sh` — run **locally**, after both cohorts'
+10. `scripts/12_make_figures_and_tables.sh` — run **locally**, after both cohorts'
     `data/public/` results are available, to build `manuscript/figures_and_tables/`.
 
 Once steps 2 and 3 are done (for p212 run step 3 before step 2), run `bash scripts/13_sample_counts.sh <p212|p2521>` to add
@@ -51,7 +47,7 @@ or the report is missing, run `scripts/02_preprocess_metadata.sh <cohort>
 Manuscript rendering itself stays manual and separate:
 ```
 quarto render manuscript/manuscript.qmd --to pdf \
-  --metadata csl=journal-of-clinical-oncology.csl --execute-dir "$(pwd)"
+  --metadata csl=american-association-for-cancer-research.csl --execute-dir "$(pwd)"
 ```
 `--execute-dir` must point at the repo root (run this from there) — the R
 chunks in `manuscript.qmd` read `src/` and `data/public/` relative to it, but

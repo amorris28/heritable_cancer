@@ -14,7 +14,7 @@ n_groups <- 5
 dat <- read_tsv(metadata_file, show_col_types = FALSE) %>%
   filter(age >= 40, !is.na(phs))
 
-# Entry age (delayed entry), computed as in calibration-frozen.R
+# Entry age (delayed entry)
 has_entry <- all(c("fdato", "date_first_follow_up") %in% names(dat))
 if (has_entry) {
   dat <- dat %>%
